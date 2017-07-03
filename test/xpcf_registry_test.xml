@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xpcf-registry>
+    <container uuid="ff7780d6-744d-4561-821d-714aad763afd" filepath="/Users/ltouraine/Documents/bcomBuild/xpcfSampleComponent/1.0.0/lib/x86_64/shared/debug/libxpcfSampleComponent.dylib">
+        <component uuid="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" description="C0 component">
+                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
+                <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" description="I0 openCV scale interface"/>
+                <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" description="I1 openCV rotate interface"/>
+            </component>
+    </container>
+</xpcf-registry>
