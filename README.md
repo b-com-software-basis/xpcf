@@ -6,6 +6,12 @@ It is designed to provide dependency injection, with clarity, simplicity and lig
 
 It implements the abstractfactory and the factory design patterns (through the ComponentManager and ComponentFactory classes).
 
+It also provides a safe toolkit to avoid common c++ design issues such as :
+- ensure use of one unique shared_ptr type (even on platforms with several STLs : the SRef class is guaranteed to be from one source only through boost binary)
+- ensure correct memory handling (avoid memory leaks)
+- provide parallel helpers such as tasks, fifo, circular buffers, delays..
+- a common configuration design : configuring a component doesn't require to write serialization code
+
 ## Definitions
 
 ### Module

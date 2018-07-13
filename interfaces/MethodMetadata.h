@@ -20,14 +20,26 @@
  * @date 2017-04-28
  */
 
-#ifndef __MethodMetadata_H__
-#define __MethodMetadata_H__
+#ifndef ORG_BCOM_XPCF_METHODMETADATA_H
+#define ORG_BCOM_XPCF_METHODMETADATA_H
 
+#include <string>
+#include "xpcf/core/uuid.h"
+
+namespace org { namespace bcom { namespace xpcf {
 
 class MethodMetadata
 {
 public:
     MethodMetadata();
+    const char * getDescription() const { return m_description.c_str(); }
+    MethodMetadata(const char * name, const uuids::uuid& interfaceUUID);
+
+private:
+    std::basic_string<char> m_description;
+    uuids::uuid m_interfaceUuid;
 };
 
-#endif // __MethodMetadata_H__
+}}} //namespace org::bcom::xpcf
+
+#endif // METHODMETADATA_H

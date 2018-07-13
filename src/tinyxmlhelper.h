@@ -20,12 +20,13 @@
  * @date 2017-04-28
  */
 
-#ifndef TINYXMLHELPER_H
-#define TINYXMLHELPER_H
+#ifndef ORG_BCOM_XPCF_TINYXMLHELPER_H
+#define ORG_BCOM_XPCF_TINYXMLHELPER_H
 
 #include <string>
 #include "tinyxml2.h"
 
-std::string xmlGetTextSecure(tinyxml2::XMLElement * elt,const std::string & nodeName,bool optional = false,const std::string & defaultValue = "");
+std::string xmlGetTextSecure(tinyxml2::XMLElement * elt, const std::string & nodeName,
+                             bool optional = false, const std::string & defaultValue = "");
 
 #endif // TINYXMLHELPER_H

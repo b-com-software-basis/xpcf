@@ -23,7 +23,7 @@
 #include "tinyxmlhelper.h"
 #include <stdexcept>
 
-std::string xmlGetTextSecure(tinyxml2::XMLElement * elt,const std::string & nodeName,bool optional,const std::string & defaultValue)
+std::string xmlGetTextSecure(tinyxml2::XMLElement * elt, const std::string & nodeName, bool optional, const std::string & defaultValue)
 {
     if (elt->FirstChildElement(nodeName.c_str()) == NULL) {
         throw std::runtime_error("Node '" + nodeName + "' doesn't exist in XML file");

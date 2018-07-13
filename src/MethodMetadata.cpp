@@ -21,8 +21,12 @@
  */
 
 #include "MethodMetadata.h"
+namespace org { namespace bcom { namespace xpcf {
+
 
 MethodMetadata::MethodMetadata()
 {
 
 }
+
+}}} //namespace org::bcom::xpcf

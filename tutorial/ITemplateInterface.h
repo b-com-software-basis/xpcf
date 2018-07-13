@@ -16,8 +16,8 @@
  * @date 2015-09-18
  */
 
-#ifndef __ITemplateInterface_h__
-#define __ITemplateInterface_h__
+#ifndef CLIENT_ITEMPLATEINTERFACE_H
+#define CLIENT_ITEMPLATEINTERFACE_H
 
 #include "IComponentIntrospect.h"
 
@@ -32,9 +32,13 @@ class ITemplateInterface : public virtual org::bcom::xpcf::IComponentIntrospect
         // ...
         //
 
-        // a new UUID for each new interface must be set using uuidgen
-      XPCF_DECLARE_UUID("AC4D2F09-0DF1-412E-874D-9245718F4753");
+};
 
+template <> struct InterfaceTraits<ITemplateInterface>
+{
+    // a new UUID for each new interface must be set using uuidgen
+    static constexpr const char * UUID = "AC4D2F09-0DF1-412E-874D-9245718F4753";
+    static constexpr const char * DESCRIPTION = "client::ITemplateInterface interface";
 };
 }
 #endif

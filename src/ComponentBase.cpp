@@ -20,37 +20,44 @@
  * @date 2017-04-28
  */
 
-#define BOOST_ALL_DYN_LINK 1
-#include "ComponentBase.h"
-#include <string.h>
+#include "xpcf/component/ComponentBase.h"
+#include "PropertyManager.h"
+#include "xpcf/core/Exception.h"
 #include <iostream>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/move/make_unique.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/attributes.hpp>
-#include "IComponentManager.h"
+#include "Collection.h"
+#include <string>
 
 using namespace std;
 
 namespace logging = boost::log;
 
-namespace org {
-namespace bcom {
-namespace xpcf {
+namespace org { namespace bcom { namespace xpcf {
+
+template class IEnumerable<uuids::uuid>;
 
 class ComponentBase::InternalImpl {
 
 public:
-    InternalImpl() = default;
+    InternalImpl(const uuids::uuid& componentUUID):m_componentUUID(componentUUID) {}
     ~InternalImpl() = default;
     void addInterface(uuids::uuid& interfaceUUID, utils::any aThis, const char * name);
     const char* getDescription(const uuids::uuid& interfaceUUID) const;
     utils::any queryInterface(const uuids::uuid& interfaceUUID) const;
-    int getNbInterfaces() const;
-    void getInterfaces(uuids::uuid* anInterfacesArray) const;
-    inline boost::log::sources::severity_logger< boost::log::trivial::severity_level > & getLogger() { return m_logger;}
+    bool implements(const uuids::uuid& interfaceUUID) const;
+
+    uint32_t getNbInterfaces() const;
+    const IEnumerable<uuids::uuid> & getInterfaces() const { return m_interfacesUUID; }
+
+    inline boost::log::sources::severity_logger< boost::log::trivial::severity_level > & getLogger() { return m_logger; }
+    // IEnumerable
+    /*   inline UniqueRef<IEnumerator<uuids::uuid>> getEnumerator() {
+        return unixpcf::make_unique<Enumerator<uuids::uuid, vector>>(m_interfacesUUID);
+    }
+
+    inline uint32_t size() { return m_interfacesUUID.size(); }*/
 
 private:
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
@@ -58,48 +65,68 @@ private:
     InternalImpl & operator=(InternalImpl const &);
 
     struct XPCF_ObjectInterface {
-        uuids::uuid	m_uuid;
-        utils::any	m_component;
-        std::string		m_description;
+        uuids::uuid m_uuid;
+        utils::any m_component;
+        std::string m_description;
     };
 
+    Collection<uuids::uuid,vector> m_interfacesUUID;
     std::map<uuids::uuid, UniqueRef<XPCF_ObjectInterface>> m_interfaces;
+    const uuids::uuid & m_componentUUID;
 };
 
-ComponentBase::ComponentBase():m_internalImpl(new InternalImpl()),m_count(0)
+ComponentBase::ComponentBase(const uuids::uuid & uuid)
+    :m_UUID(uuid), m_internalImpl(new InternalImpl(uuid)), m_usageRefCount(0)
 {
     m_internalImpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentBase"));
-    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<"ComponentBase::ComponentBase construction";
-    addInterface<IComponentIntrospect>(this,IComponentIntrospect::UUID, "IComponentIntrospect");
+    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::ComponentBase construction";
+    addInterface<IComponentIntrospect>(this);
+}
+
+ComponentBase::ComponentBase(std::map<std::string,std::string> componentTrait)
+    : m_UUID(toUUID(componentTrait.at("UUID"))), m_componentTrait(componentTrait),
+      m_internalImpl(new InternalImpl(toUUID(componentTrait.at("UUID")))), m_usageRefCount(0)
+{
+    m_internalImpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentBase"));
+    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::ComponentBase construction";
+    addInterface<IComponentIntrospect>(this);
 }
 
 ComponentBase::~ComponentBase()
 {
-    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<"ComponentBase::~ComponentBase destruction";
+    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::~ComponentBase destruction";
 }
 
-void ComponentBase::addComponentRef() {
-    m_count++;
-    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<"ComponentBase::addComponentRef refcount="<<m_count;
+void ComponentBase::addComponentRef()
+{
+    // NOTE : add/releaseComponentRef not synchronized !
+    m_usageRefCount++;
+    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::addComponentRef refcount="<<m_usageRefCount;
 }
 
-void ComponentBase::releaseComponentRef() {
-    m_count--;
-    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<"ComponentBase::releaseComponentRef refcount="<<m_count;
-    if (m_count == 0) {
-        BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<"ComponentBase::releaseComponentRef calling unloadComponent";
+void ComponentBase::releaseComponentRef()
+{
+    m_usageRefCount--;
+    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::releaseComponentRef refcount="<<m_usageRefCount;
+    if (m_usageRefCount == 0) {
+        BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::releaseComponentRef calling unloadComponent";
         this->unloadComponent();
     }
 }
 
-int ComponentBase::getNbInterfaces() const
+uint32_t ComponentBase::getNbInterfaces() const
 {
-    return m_internalImpl->getNbInterfaces();
+    return m_internalImpl->getInterfaces().size();
 }
 
-SRef<IComponentIntrospect>     ComponentBase::introspect()
+const IEnumerable<uuids::uuid> & ComponentBase::getInterfaces() const
 {
-    return IComponentIntrospect::acquireComponentRef<remove_pointer<decltype(this)>::type,IComponentIntrospect>(this);
+    return m_internalImpl->getInterfaces();
+}
+
+SRef<IComponentIntrospect> ComponentBase::introspect()
+{
+    return IComponentIntrospect::acquireComponentRef<remove_pointer<decltype(this)>::type, IComponentIntrospect>(this);
 }
 
 const char * ComponentBase::getDescription(const uuids::uuid& interfaceUUID) const
@@ -107,26 +134,9 @@ const char * ComponentBase::getDescription(const uuids::uuid& interfaceUUID) con
     return m_internalImpl->getDescription(interfaceUUID);
 }
 
-void ComponentBase::getInterfaces(uuids::uuid* interfacesArray) const
-{
-    m_internalImpl->getInterfaces(interfacesArray);
-}
-
-
 void ComponentBase::addInterface(uuids::uuid& interfaceUUID, utils::any componentThis, const char * name)
 {
     m_internalImpl->addInterface(interfaceUUID, componentThis, name);
-}
-
-void ComponentBase::setUUID(const uuids::uuid& componentUUID)
-{
-    m_UUID = componentUUID;
-}
-
-void ComponentBase::setUUID(const char * componentUUID)
-{
-    uuids::uuid componentID = toUUID(componentUUID );
-    setUUID(componentID);
 }
 
 utils::any ComponentBase::queryInterface(const uuids::uuid& interfaceUUID) const
@@ -134,19 +144,14 @@ utils::any ComponentBase::queryInterface(const uuids::uuid& interfaceUUID) const
     return m_internalImpl->queryInterface(interfaceUUID);
 }
 
-int ComponentBase::InternalImpl::getNbInterfaces() const
+bool ComponentBase::implements(const uuids::uuid& interfaceUUID) const
 {
-    return m_interfaces.size();
+     return m_internalImpl->implements(interfaceUUID);
 }
 
-void ComponentBase::InternalImpl::getInterfaces(uuids::uuid* interfacesArray) const
+uint32_t ComponentBase::InternalImpl::getNbInterfaces() const
 {
-    if (interfacesArray) {
-        unsigned long i = 0;
-        for (auto & compInterface:m_interfaces) {
-            interfacesArray[i++] = compInterface.first;
-        }
-    }
+    return m_interfaces.size();
 }
 
 void ComponentBase::InternalImpl::addInterface(uuids::uuid& interfaceUUID, utils::any componentThis, const char * name)
@@ -155,11 +160,13 @@ void ComponentBase::InternalImpl::addInterface(uuids::uuid& interfaceUUID, utils
         m_interfaces[interfaceUUID] = unixpcf::make_unique<struct XPCF_ObjectInterface>();
         m_interfaces[interfaceUUID]->m_component = componentThis;
         m_interfaces[interfaceUUID]->m_uuid = interfaceUUID;
-        if(name != nullptr) {
+        m_interfacesUUID.add(interfaceUUID);
+        if (name != nullptr) {
             m_interfaces[interfaceUUID]->m_description = name;
         }
     }
 }
+
 
 
 utils::any ComponentBase::InternalImpl::queryInterface(const uuids::uuid& interfaceUUID) const
@@ -169,8 +176,17 @@ utils::any ComponentBase::InternalImpl::queryInterface(const uuids::uuid& interf
     if (m_interfaces.find(interfaceUUID) != m_interfaces.end()) {
         component = m_interfaces.at(interfaceUUID)->m_component;
     }
+    else {
+        throw InterfaceNotImplementedException(m_componentUUID,interfaceUUID);
+    }
     return component;
 }
+
+bool ComponentBase::InternalImpl::implements(const uuids::uuid& interfaceUUID) const
+{
+     return (m_interfaces.find(interfaceUUID) != m_interfaces.end());
+}
+
 
 const char * ComponentBase::InternalImpl::getDescription(const uuids::uuid& interfaceUUID) const
 {

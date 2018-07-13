@@ -1,35 +1,62 @@
+:stylesheet: boot-darkly.css
+
 = XPCF Cross-Platform Component Framework
+
 XPCF is a lightweight cross platform component framework (it is similar to the well known COM model).
+It is released under the Apache 2 (http://www.apache.org/licenses/LICENSE-2.0).
 
 It is designed to provide dependency injection, with clarity, simplicity and light code base in mind.
 
 It implements the abstractfactory and the factory design patterns (through the ComponentManager and ComponentFactory classes).
 
 == Definitions
+=== Reflection
+Reflection is a program ability to inspect, and potentially modify its inner high level structures during runtime.
+
+It can be used for observing and modifying program execution at runtime.
+
+This is typically accomplished by dynamically assigning program code at runtime.
+
+Reflective systems use two paradigms : Introspection and intercession.
+
+=== Introspection
+
+Introspection is the ability to inspect a program or a piece of program to figure out the features it provides.
+
+Introspection can be provided to identify the various functionalities a software component provides, a library content or even a component method signature.
+
+NOTE: IHM sample and explanation to add
+
+=== Intercession
+Intercession is a program ability to modify its own runtime state or to alter its own interpretation or meaning.
+
+It allows the program to automatically evolve depending on the needs and the context.
+NOTE: Define control and data flow
+image::xpcf_decision_sample.png[]
 
 === Module
 
-A module consists in a shared library hosting a set of factories to create components/services
+A shared library hosting a set of factories to create components/services
 
-Provides:
+=== Component
++ sample
 
-- introspection to figure out which components are available in the module
+- a class that can have several instances over the application lifetime
 
-- separate implementation from interface : creates the concrete implementation and binds it to the IComponentIntrospect interface
+- each instance is unloaded (destroyed) when no more reference exists upon one of its interfaces
 
-- component creation
+=== Service
 
-- service instanciation
+- a component singleton that only has one instance at any given time
+
+- is never unloaded
+
 
 ===  Component/Service interface
 
-A component/service interface in the component framework context is :
+A component/service interface in the component framework context is the published part of the component/service functionality.
 
-- based on C++ virtual class
-
-- uniquely identified by an UUID (128-bit number guaranteed to be unique based on timestamps, HW addresses, random seeds)
-
-- mandatory derives from *IComponentIntrospect* (the base interface of all XPCF interfaces)
+It represents the contract between the component/service user and the component/service provider.
 
 === IComponentIntrospect interface
 
@@ -49,30 +76,37 @@ Special Notes about queryInterface :
 
 - queryInterface from interface A to the IComponentIntrospect interface, must equal the queryInterface from interface B to the  IComponentIntrospect interface
 
+== Framework functionalities
+The XPCF framework provides the following concepts :
+- provide features available in other languages (Java/C#) to C/C++
+- an "in-code" dependency injection factory to create components and bind them to a specific interface
 
-=== Components and Services
+- a component abstract factory to load components at runtime from modules (named ComponentManager)
 
-An implementation of one or more interfaces identified by a Component UUID
+- increase modularity with better separation of concerns through interface discovery (using component introspection)
 
-NOTE: The introspection interface is the same for both components and services
+- component dynamic loading resolves implementation scope and naming conflicts : a component with the same type declaration in the same namespace can exist in both modules without conflict : it will be differentiated with its UUID, and its creation will occur in the module scope. (component Full qualified name - namespace and type name - is important inside the module boundary, it is not an issue across module boundary)
 
-==== component
+- a centralized description of modules, components and interfaces (a mettre plus loin dans implementation et usages : "with a dedicated configuration file")
 
-- a class that can have several instances over the application lifetime
+- module introspection to figure out the components contained and the interfaces they implement
 
-- each instance is unloaded (destroyed) when no more reference exists upon one of its interfaces
+- secure memory management using smart pointers for components  (prevents from memory leaks, dangling null pointer)
 
-==== service
+- component and service configuration at creation through abstract properties
 
-- a component singleton that only has one instance at any given time
+- support for both components and services
 
-- is never unloaded
+- support for Domain Specific Language through the "IFeatures" interface (for instance, a component can declare "opencv" and "cuda" features as it is an opencv/cuda accelerated implementation of a keypointdetector)
+
+NOTE: Variant properties for configuration are a set of property. Each property is defined as a pair of type, value. Supported types include long, unsigned long, double, string or another subset of properties. Each property has an access definition : in, out or inout.
+
 
 == Schema
 
 ----
  ___________________________________________________
-| Module #1                                      |
+| Module #1                                         |
 | entry point => XPCF_getComponent                  |
 |           ______________________________          |
 |          | Component #UUIDC1            |         |
@@ -106,29 +140,6 @@ NOTE: The introspection interface is the same for both components and services
  ---------------------------------------------------
 ----
 
-== Framework functionalities
-This framework provides the following concepts :
-
-- an "in-code" dependency injection factory to create components and bind them to a specific interface
-
-- a component abstract factory to load components at runtime from modules (named ComponentManager)
-
-- increase modularity with better separation of concerns through interface discovery (using component introspection)
-
-- a centralized description of modules, components and interfaces (with a dedicated configuration file)
-
-- module introspection to figure out the components contained and the interfaces they implement
-
-- secure memory management using smart pointers for components  (prevents from memory leaks, dangling null pointer)
-
-- component and service configuration at creation through abstract variant parameters
-
-- support for both components and services
-
-- support for Domain Specific Language through the "IFeatures" interface (for instance, a component can declare "opencv" and "cuda" features as it is an opencv/cuda accelerated implementation of a keypointdetector)
-
-NOTE: Variant parameters for configuration are a set of parameters. Each parameter is a pair of type, value. Supported types include long, unsigned long, double, string or another subset of parameters. Each parameter has an access definition : in, out or inout.
-
 == Making a module (under construction)
 
 The shared library must export the API XPCF_getComponent.
@@ -152,3 +163,67 @@ Purpose of Contract IDs
 - implementation independence for clients
 
 - functional versioning
+
+== Framework implementation details
+
+=== Module
+
+A shared library hosting a set of factories to create components/services
+
+Provides:
+
+- introspection to figure out which components are available in the module
++ introcession method
+- separate implementation from interface : creates the concrete implementation and binds it to the IComponentIntrospect interface
+
+- component creation
+
+- service instanciation
+
+=== Components and Services
+
+An implementation of one or more interfaces identified by a Component UUID
+
+NOTE: The introspection interface is the same for both components and services
+
+==== component
++ sample
+
+- a class that can have several instances over the application lifetime
+
+- each instance is unloaded (destroyed) when no more reference exists upon one of its interfaces
+
+==== service
+
+- a component singleton that only has one instance at any given time
+
+- is never unloaded
+
+
+===  Component/Service interface
+prog par contrat
+A component/service interface in the component framework context is :
+
+- based on C++ virtual class
+
+- uniquely identified by an UUID (128-bit number guaranteed to be unique based on timestamps, HW addresses, random seeds)
+
+- mandatory derives from *IComponentIntrospect* (the base interface of all XPCF interfaces)
+
+=== IComponentIntrospect interface
+
+- is a special interface
+
+- does not derive from any other interface
+
+Provides:
+
+- component introspection to query interfaces implemented by the component
+
+- functional reference counting
+
+Special Notes about queryInterface :
+
+- queryInterface from interface A to interface B, must be able to queryInterface back from interface B to interface A
+
+- queryInterface from interface A to the IComponentIntrospect interface, must equal the queryInterface from interface B to the  IComponentIntrospect interface

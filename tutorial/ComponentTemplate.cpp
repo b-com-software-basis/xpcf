@@ -25,14 +25,21 @@
 XPCF_DEFINE_FACTORY_CREATE_INSTANCE(client::ComponentTemplate);
 
 namespace client {
-ComponentTemplate::ComponentTemplate ()
+ComponentTemplate::ComponentTemplate ():ComponentBase(xpcf::toMap<ComponentTemplate>())
 {
-   setUUID(ComponentTemplate::UUID);
-   addInterface<ITemplateInterface>(this,ITemplateInterface::UUID, "interface ITemplateInterface");
+   addInterface<ITemplateInterface>(this);
 }
 
 ComponentTemplate::~ComponentTemplate ()
 {
+}
+
+void ComponentTemplate::unloadComponent ()
+{
+  std::cout<<m_name<<"::"<<"ComponentTemplate::unload () called!"<<std::endl;
+
+  delete this;
+  return;
 }
 
 }

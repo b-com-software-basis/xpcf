@@ -1,66 +1,58 @@
 /**
- * @copyright Copyright (c) 2015 All Right Reserved, B-com http://www.b-com.com/
+ * @copyright Copyright (c) 2017 B-com http://www.b-com.com/
  *
- * This file is subject to the B<>Com License.
- * All other rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- * KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- * PARTICULAR PURPOSE.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @author Loïc Touraine
  *
  * @file
  * @brief description of file
- * @date 2015-09-18
+ * @date 2018-07-02
  */
 
 #include <stdio.h>
-#include "IComponentManager.h"
-#include "ComponentFactory.h"
-#include "I0.h"
-#include "I1.h"
-#include "I2.h"
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/dll.hpp>
 #include <boost/dll/shared_library.hpp>
 #include <boost/function.hpp>
 #include <boost/system/system_error.hpp>
 #include <iostream>
+#include "xpcf/threading/BaseTask.h"
 
 #define BOOST_TEST_MODULE test dynamic xpcf
-#define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
+
+#include "TestDefines.h"
+
+xpcf::uuids::string_generator gen;
+xpcf::uuids::uuid clsid_C0 = gen("ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" );
+xpcf::uuids::uuid iid_IComponentIntrospect= xpcf::toUUID<xpcf::IComponentIntrospect>();
+xpcf::uuids::uuid iid_I0= xpcf::toUUID<I0>();
+xpcf::uuids::uuid iid_I1= xpcf::toUUID<I1>();
+xpcf::uuids::uuid iid_I2= xpcf::toUUID<I2>();
 
 using namespace std;
 
-namespace xpcf  = org::bcom::xpcf;
-
-#include <boost/uuid/uuid_generators.hpp>
-xpcf::uuids::string_generator gen;
-xpcf::uuids::uuid clsid_C0 = gen("ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" );
-xpcf::uuids::uuid iid_IComponentIntrospect= gen(xpcf::IComponentIntrospect::UUID );
-xpcf::uuids::uuid iid_I0= gen(I0::UUID );
-xpcf::uuids::uuid iid_I1= gen(I1::UUID );
-xpcf::uuids::uuid iid_I2= gen(I2::UUID );
-
-SRef<xpcf::IComponentManager> xpcfComponentManager;
-SRef<xpcf::IComponentIntrospect> rIComponentIntrospect;
-SRef<I0> rI0;
-SRef<I1> rI1;
-SRef<I2> rI2;
-
+//TODO : unittests, exception catching
 /*------------------------------*/
 void TCDLL()
 {
     try {
         boost::dll::shared_library shlib;
         //shlib.load(boost::dll::program_location());
-        shlib.load("/Users/ltouraine/workspace/test-lto/lto_components/XPCF_framework/xpcf/build-test-Desktop_Qt_5_4_2_clang_64bit-Debug/test.app/Contents/MacOS/test");
+        shlib.load("test");
         if (shlib.has("my_test_func")) {
-            boost::function<void(const char * )> testFunc = boost::dll::import<void(const char * )>(boost::dll::program_location(), "my_test_func"
-                                                                                                    );
+            boost::function<void(const char * )> testFunc = boost::dll::import<void(const char * )>(boost::dll::program_location(), "my_test_func");
 
             if (testFunc) {
                 testFunc("message");
@@ -72,16 +64,9 @@ void TCDLL()
         BOOST_TEST_MESSAGE("Got exception");
 
     }
-
-
 }
 
-struct XpcfFixture {
-    XpcfFixture() { xpcfComponentManager = xpcf::getComponentManagerInstance(); BOOST_TEST_MESSAGE( "setup fixture" ); }
-    ~XpcfFixture()         { BOOST_TEST_MESSAGE( "teardown fixture" ); }
 
-    SRef<xpcf::IComponentManager> xpcfComponentManager;
-};
 
 BOOST_AUTO_TEST_SUITE( test_library_component_metadata )
 
@@ -92,10 +77,26 @@ BOOST_AUTO_TEST_CASE( test_fixture )
     BOOST_TEST(fixture.xpcfComponentManager );
 }
 
+BOOST_AUTO_TEST_CASE( test_threading)
+{
+    xpcf::SharedFifo<int> inFifo;
+    xpcf::SharedFifo<std::string> outFifo;
+    std::function<void(void)> func = [&inFifo,&outFifo](){
+        int valueIn = inFifo.pop();
+        valueIn += 2;
+        outFifo.push(to_string(valueIn));
+    };
+    xpcf::DelegateTask task(func);
+    task.start();
+    inFifo.push(2);
+    inFifo.push(3);
+    BOOST_TEST_MESSAGE("THREADING OK. OutFifo first element is:"<<outFifo.pop());
+    BOOST_TEST_MESSAGE("THREADING OK. OutFifo second element is:"<<outFifo.pop());
+}
 
 BOOST_FIXTURE_TEST_CASE( test_load_library,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_fixture"))
 {
-    BOOST_TEST(xpcfComponentManager->load() == 1, " failed to load library from "<<getenv("XPCF_REGISTRY_PATH") );
+    BOOST_TEST(xpcfComponentManager->load("$BCOMDEVROOT/.xpcf/test/xpcf_registry_test.xml",false) == 0, " failed to load library from "<<getenv("BCOMDEVROOT")<<"/.xpcf/test/xpcf_registry_test.xml" );
 }
 
 
@@ -142,7 +143,7 @@ BOOST_FIXTURE_TEST_CASE( test_read_component,XpcfFixture,* boost::unit_test::dep
     xpcfComponentManager->load();
     /*
     ** 1)(using the SPtr_XPCF_ComponentClass of clsid_C0)
-    **    getting the path name of the Container library of the component Class
+    **    getting the path name of the Module library of the component Class
     ** 2) (using the SPtr_XPCF_ComponentClass of clsid_C0)
     **	  getting number of interfaces implemented by the component class "clsid_C0"
     ** 3) (using the SPtr_XPCF_ComponentClass of clsid_C0)
@@ -154,7 +155,7 @@ BOOST_FIXTURE_TEST_CASE( test_read_component,XpcfFixture,* boost::unit_test::dep
     SPtr<xpcf::ComponentMetadata> poCC;
     poCC= xpcfComponentManager->findComponentMetadata(clsid_C0);
 
-    BOOST_TEST_MESSAGE("TC4-1 OK. Container UUID: "<<poCC->getContainerUUID());
+    BOOST_TEST_MESSAGE("TC4-1 OK. Module UUID: "<<poCC->getModuleUUID());
 
     int nbI=poCC->getNbInterfaces();
     BOOST_TEST_MESSAGE("TC4-2 OK. "<<nbI<<" interfaces found in component Class");
@@ -173,7 +174,7 @@ BOOST_FIXTURE_TEST_CASE( test_read_interfaces,XpcfFixture,* boost::unit_test::de
     ** 2) Getting pointers (SPtr_XPCF_Interface) on all implemented interfaces of any components declared in the SCP registry file.
     **     Then with these pointers we  obtain the name (help string) of each interface.
     **/
-
+    //xpcf::uuids::uuid * leakedUUID = new xpcf::uuids::uuid();
     SPtr<xpcf::InterfaceMetadata> poCI;
     int nbI = xpcfComponentManager->getNbInterfaces();
     BOOST_TEST_MESSAGE("TC5-1 OK. "<<nbI<<" interfaces found the registry s");
@@ -216,21 +217,92 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( test_library_component_creation )
 
+void displayParameter(SRef<xpcf::IProperty> p)
+{
+    BOOST_TEST_MESSAGE("Property name ="<<p->getName());
+    for (uint32_t i=0 ; i < p->size() ; i++ ) {
+        switch (p->getType()) {
+        case xpcf::IProperty::IProperty_NONE :
+            break;
+        case xpcf::IProperty::IProperty_INTEGER :
+            BOOST_TEST_MESSAGE("=> Int property = "<<p->getIntegerValue(i));
+            break;
+        case xpcf::IProperty::IProperty_UINTEGER :
+            BOOST_TEST_MESSAGE("=> Uint property = "<<p->getUnsignedIntegerValue(i));
+            break;
+        case xpcf::IProperty::IProperty_LONG :
+            BOOST_TEST_MESSAGE("=> Long property = "<<p->getLongValue(i));
+            break;
+        case xpcf::IProperty::IProperty_ULONG :
+            BOOST_TEST_MESSAGE("=> ULong property = "<<p->getUnsignedLongValue(i));
+            break;
+        case xpcf::IProperty::IProperty_CHARSTR :
+            BOOST_TEST_MESSAGE("=> String property = "<<p->getStringValue(i));
+            break;
+        case xpcf::IProperty::IProperty_UNICODESTR :
+            break;
+        case xpcf::IProperty::IProperty_FLOAT :
+            BOOST_TEST_MESSAGE("=> Float property = "<<p->getFloatingValue(i));
+            break;
+        case xpcf::IProperty::IProperty_DOUBLE :
+            BOOST_TEST_MESSAGE("=> Double property = "<<p->getDoubleValue(i));
+            break;
+        case xpcf::IProperty::IProperty_STRUCTURE :
+        {
+            SRef<xpcf::IPropertyMap> propertyMap = p->getStructureValue(i);
+            BOOST_TEST_MESSAGE("Accessing class values for C0 from IProperty/IPropertyMap interfaces");
+            for (auto property : propertyMap->getProperties()) {
+                displayParameter(property);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+}
+
+
 BOOST_FIXTURE_TEST_CASE( test_component_creation,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
+    SRef<xpcf::IComponentIntrospect> rIComponentIntrospect;
+
+    SRef<xpcf::IConfigurable> rIConfigurable;
+
+    SRef<I2> rI2;
     xpcfComponentManager->load() ;
     // create a component
     //
-    int res=0;
-    res=   xpcfComponentManager->createComponent(clsid_C0, rIComponentIntrospect);
-    BOOST_TEST_REQUIRE(res == XPCF_OK, "ERROR:CreateInstance(clsid_C0, iid_I0 ,rI0)");
-    rIComponentIntrospect->queryInterface(iid_I0,rI0);
-    BOOST_TEST_REQUIRE(rI0, "ERROR:queryInterface(iid_I0,rI0)");
-    BOOST_TEST_MESSAGE("TC1 OK. CreateInstance(clsid_C0, iid_I0 ,rI0)");
+    try {
+        BOOST_REQUIRE_NO_THROW( rIConfigurable = xpcfComponentManager->create<component::C1>()->bindTo<xpcf::IConfigurable>() );
+        BOOST_CHECK_THROW( rIComponentIntrospect = xpcfComponentManager->create<fakeComponent>(),xpcf::ComponentNotFoundException);
+        BOOST_CHECK_THROW( rIConfigurable->bindTo<I0>(),xpcf::InterfaceNotImplementedException);
+        BOOST_REQUIRE_NO_THROW(rIComponentIntrospect = xpcfComponentManager->create<component::C0>() );
+        BOOST_TEST_REQUIRE(! rIComponentIntrospect->implements<xpcf::IConfigurable>(),"ERROR: C0 implements IConfigurable");
+        SRef<I0> rI0 = rIComponentIntrospect->queryInterface<I0>(iid_I0);
+        BOOST_TEST_REQUIRE(rI0, "ERROR:queryInterface(iid_I0,rI0)");
+        BOOST_TEST_MESSAGE("TC1 OK. CreateInstance(clsid_C0, iid_I0 ,rI0)");
+        //rIConfigurable = rIComponentIntrospect->queryInterface<xpcf::IConfigurable>();
+        //rIComponentIntrospect->queryInterface(xpcf::toUUID<xpcf::IConfigurable>(),rIConfigurable);
+
+        SRef<xpcf::IProperty> varSetted = rIConfigurable->getProperty("blurFactor");
+        varSetted->setFloatingValue(4.0);
+
+        BOOST_TEST_MESSAGE("Accessing class values for C0 from IProperty/IPropertyMap interfaces");
+        for (auto property : rIConfigurable->getProperties()) {
+            displayParameter(property);
+        }
+    }
+    catch (std::out_of_range & e) {
+        BOOST_TEST_MESSAGE("Catched : "<<e.what());
+    }
 }
 
-BOOST_FIXTURE_TEST_CASE( test_component_instropection,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
+BOOST_FIXTURE_TEST_CASE( test_component_introspection,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
+    SRef<xpcf::IComponentIntrospect> rIComponentIntrospect;
+
+
     xpcfComponentManager->load() ;
     /**
     *** 1) from a reference of the implementation class I0 (SRef<I0>) we obtain
@@ -239,50 +311,67 @@ BOOST_FIXTURE_TEST_CASE( test_component_instropection,XpcfFixture,* boost::unit_
     ***    array (of xpcf::uuids::uuid) up interfaces uuids.
     *** 3) with the interface UUIDs we enumerate each interface help string.
     **/
-    int res=0;
-    res=   xpcfComponentManager->createComponent(clsid_C0, rIComponentIntrospect);
-    rIComponentIntrospect->queryInterface(iid_I0,rI0);
+    rIComponentIntrospect=   xpcfComponentManager->createComponent(clsid_C0);
+    SRef<I0> rI0 = rIComponentIntrospect->queryInterface<I0>(iid_I0);
 
-    int nbI = rI0->getNbInterfaces();
+    uint32_t nbI = rI0->getNbInterfaces();
     BOOST_TEST_MESSAGE("TC7-1 OK. "<<nbI<<" Interface(s) found from I0:");
 
-    xpcf::uuids::uuid  puuid10[100] ;
-    rI0->getInterfaces(&puuid10[0]);
-    BOOST_TEST_MESSAGE("TC7-2 OK. filling xpcf::uuids::uuid  puuid10[100]  array of Interface uuids from I0:");
+    BOOST_TEST_MESSAGE("TC7-2 OK. Enumerating uuids");
+    unsigned long index = 0;
 
-    for( int ii=0; ii<nbI; ii++)
-    {
-        BOOST_TEST_MESSAGE("TC7-3-["<<ii<<"] OK. Interface: "<<xpcf::uuids::to_string(puuid10[ii]).c_str());
-
+    for (xpcf::uuids::uuid interfaceUUID : rI0->getInterfaces()) {
+        BOOST_TEST_MESSAGE("TC7-3-["<<index<<"] OK. Interface: "<<xpcf::uuids::to_string(interfaceUUID).c_str());
+        index++;
     }
 }
 
 /*------------------------------*/
 BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
-    xpcfComponentManager->load() ;
-    int res=0;
-    res=   xpcfComponentManager->createComponent(clsid_C0, rIComponentIntrospect);
-    rIComponentIntrospect->queryInterface(iid_I0,rI0);
+    SRef<xpcf::IComponentIntrospect> rIComponentIntrospect;
 
-    BOOST_TEST_MESSAGE("TC8-1 OK Calling some component methods of I0");
+    xpcfComponentManager->load() ;
+
+    rIComponentIntrospect=   xpcfComponentManager->createComponent(clsid_C0);
+    SRef<I0> rI0 = rIComponentIntrospect->queryInterface<I0>(iid_I0);
+    BOOST_CHECK_THROW(SRef<I1> rI1test = rIComponentIntrospect->queryInterface<I1>(iid_I0),xpcf::utils::bad_any_cast);
+
+    BOOST_TEST_MESSAGE("TC8-1 OK Calling methods of I0 on component C0");
     rI0->I0_opname();
     rI0->I0_opname2();
     rI0->I0_opname4();
 
-
     // look for another interface
     //
     //rI0->queryInterface(iid_I1, rI1);
-    rIComponentIntrospect->queryInterface(iid_I1,rI1);
-    BOOST_TEST_MESSAGE("TC8-2 OK QueryInterface(iid_I1, rI1);");
+    SRef<I1> rI1 = rIComponentIntrospect->queryInterface<I1>(iid_I1);
+    BOOST_TEST_MESSAGE("TC8-2 OK queryInterface<I1>(iid_I1);");
     // test it
     //
-    BOOST_TEST_MESSAGE("TC8-3 OK Calling some component methods I1");
+    BOOST_TEST_MESSAGE("TC8-3 OK Calling methods of I1 on component C0");
     rI1->I1_opname();
     rI1->I1_opname2();
     rI1->I1_opname3();
     rI1->I1_opname4();
+
+    rI1 = xpcfComponentManager->create<component::C1>()->bindTo<I1>();
+    BOOST_TEST_MESSAGE("TC8-4 OK Calling methods of I1 on component C1");
+    rI1->I1_opname();
+    rI1->I1_opname2();
+    rI1->I1_opname3();
+    rI1->I1_opname4();
+
+    SRef<I2>  rI2 = rI1->bindTo<I2>();
+    BOOST_TEST_MESSAGE("TC8-5 O5 Calling methods of I1 on component C1 through I2 SRef");
+    rI2->I1_opname();
+    rI2->I1_opname2();
+    rI2->I1_opname3();
+    rI2->I1_opname4();
+
+    BOOST_TEST_MESSAGE("TC8-6 OK Calling methods of I2 on component C1");
+    rI2->I2_opname();
+    rI2->I2_opname2();
 
 }
 

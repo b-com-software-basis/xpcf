@@ -20,7 +20,8 @@
  * @date 2017-04-28
  */
 
-#include "ComponentMetadata.h"
+#include "xpcf/api/ComponentMetadata.h"
+#include "PathBuilder.h"
 
 #include <string.h>
 
@@ -28,31 +29,44 @@
 // implement Component
 //
 
+namespace org { namespace bcom { namespace xpcf {
 
+using namespace uuids;
 
-namespace org {
-namespace bcom {
-namespace xpcf {
-using namespace utils::uuids;
-
-ComponentMetadata::ComponentMetadata(const char* name, const uuid& componentID, const uuid& containerUUID):InterfaceMetadata(name,componentID),m_containerUUID(containerUUID)
+ComponentMetadata::ComponentMetadata(const char* name, const uuid& componentID, const uuid& moduleUUID, const char * configFilePath):InterfaceMetadata(name, componentID), m_moduleUUID(moduleUUID)
 {
+
+    setPath(configFilePath);
 }
 
-ComponentMetadata::ComponentMetadata(const char *name, const char *componentID, const char *containerUUID):InterfaceMetadata(name,componentID)
+ComponentMetadata::ComponentMetadata(const char *name, const char *componentID, const char *moduleUUID,  const char * configFilePath):InterfaceMetadata(name, componentID)
 {
-    setContainerUUID(containerUUID);
+
+    setPath(configFilePath);
+    setModuleUUID(moduleUUID);
 }
 
 ComponentMetadata::~ComponentMetadata()
 {
 }
 
-void ComponentMetadata::setContainerUUID(const char* containerUUID)
+void ComponentMetadata::setPath(const char* path)
 {
-    if (containerUUID != nullptr) {
+    if (path != nullptr) {
+        m_configPath = path;
+    }
+    m_configFullPath =PathBuilder::replaceRootEnvVars(path);
+    if ( !boost::filesystem::exists( m_configFullPath ) )
+    {
+        //std::cout<<"Error : Module not found at : "<<m_moduleFullPath.c_str()<<std::endl;
+    }
+}
+
+void ComponentMetadata::setModuleUUID(const char* moduleUUID)
+{
+    if (moduleUUID != nullptr) {
         string_generator gen;
-        m_containerUUID = gen(containerUUID);
+        m_moduleUUID = gen(moduleUUID);
     }
 }
 
@@ -72,9 +86,9 @@ int ComponentMetadata::getNbInterfaces() const
     return m_interfaceUUIDs.size();
 }
 
-uuid ComponentMetadata::getContainerUUID() const
+uuid ComponentMetadata::getModuleUUID() const
 {
-    return m_containerUUID;
+    return m_moduleUUID;
 }
 
 }}} //namespace org::bcom::xpcf

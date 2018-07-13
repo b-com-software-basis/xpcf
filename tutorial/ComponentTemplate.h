@@ -16,12 +16,16 @@
  * @date 2015-09-18
  */
 
-#ifndef __ComponentTemplate_h__
-#define __ComponentTemplate_h__
+#ifndef CLIENT_COMPONENTTEMPLATE_H
+#define CLIENT_COMPONENTTEMPLATE_H
 
 
 #include "ITemplateInterface.h"
+
 #include "ComponentBase.h"
+
+#include "module_traits.h"
+
 namespace client {
 class ComponentTemplate : public org::bcom::xpcf::ComponentBase,
            public ITemplateInterface {
@@ -37,10 +41,8 @@ class ComponentTemplate : public org::bcom::xpcf::ComponentBase,
       // Implement methods of inherited interfaces here
       // ...
       //
-
-      // a new UUID for each component must be created !
-      XPCF_DECLARE_UUID("40F7D2F4-523E-4497-A848-9A6F17456019");
 };
+
 }
 
 #endif

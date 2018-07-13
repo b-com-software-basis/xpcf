@@ -1,50 +1,55 @@
 /**
- * @copyright Copyright (c) 2015 All Right Reserved, B-com http://www.b-com.com/
+ * @copyright Copyright (c) 2017 B-com http://www.b-com.com/
  *
- * This file is subject to the B<>Com License.
- * All other rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
- * KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
- * PARTICULAR PURPOSE.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @author Loïc Touraine
  *
  * @file
  * @brief description of file
- * @date 2015-09-18
+ * @date 2017-03-07
  */
 
 #include <stdio.h>
 #include "C0.h"
-#include "InterfaceMetadata.h"
+#include <iostream>
+#include "xpcfSampleComponentAPI.h"
 
-template<> XPCF_EXPORT_API C0* org::bcom::xpcf::ComponentFactory::createInstance() {
-    return new C0();
+namespace xpcf = org::bcom::xpcf;
+namespace org { namespace bcom { namespace xpcf {
+template<> XPCFSAMPLECOMPONENT_EXPORT_API component::C0* ComponentFactory::createInstance() {
+    return new component::C0();
 }
+}}}
+
+namespace component {
 
 
-constexpr const char * C0::UUID;
-
-C0::C0 ()
+C0::C0 ():ComponentBase(xpcf::toMap<C0>()),m_name("C0")
 {
-   setUUID(C0::UUID);
-   addInterface<I0>(this,I0::UUID, "interface I0");
-   addInterface<I1>(this,I1::UUID, "interface I1");
-   addInterface<I2>(this,I2::UUID, "interface I2");
-   printf("Constructor C0::C0 () called!\n");
-
+   addInterface<I0>(this);
+   addInterface<I1>(this);
+   std::cout<<m_name<<"::"<<"Constructor C0::C0 () called!"<<std::endl;
 }
 
 C0::~C0 ()
 {
-    printf("Destructor C0::C0 () called!\n");
+    std::cout<<m_name<<"::"<<"Destructor C0::C0 () called!"<<std::endl;
 }
 
 void C0::unloadComponent ()
 {
-  printf("C0::unload () called!\n");
+  std::cout<<m_name<<"::"<<"C0::unload () called!"<<std::endl;
 
   delete this;
   return;
@@ -52,22 +57,22 @@ void C0::unloadComponent ()
 
 void C0::I0_opname ()
 {
-
-	printf(" C0::I0_opname ()  called!\n");
+    //m_blurFactor*m_blurScale[1];
+    std::cout<<m_name<<"::"<<" C0::I0_opname ()  called!"<<std::endl;
 
 }
 
 void C0::I0_opname2 ()
 {
 
-	printf(" C0::I0_opname2 ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I0_opname2 ()  called!"<<std::endl;
 
 }
 
 void C0::I0_opname3 ()
 {
 
-	printf(" C0::I0_opname3 ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I0_opname3 ()  called!"<<std::endl;
 
 
 }
@@ -76,7 +81,7 @@ void C0::I0_opname4 ()
 {
 
 
-	printf(" C0::I0_opname4 ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I0_opname4 ()  called!"<<std::endl;
 
 
 }
@@ -84,41 +89,42 @@ void C0::I0_opname4 ()
 void C0::I0_opname5 ()
 {
 
-	printf(" C0::I0_opname5 ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I0_opname5 ()  called!"<<std::endl;
 
 }
 
 void C0::I1_opname ()
 {
 
-	printf(" C0::I1_opname ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I1_opname ()  called!"<<std::endl;
 
 }
 
 void C0::I1_opname2 ()
 {
 
-	printf(" C0::I1_opname2 ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I1_opname2 ()  called!"<<std::endl;
 
 }
 
 void C0::I1_opname3 ()
 {
 
-	printf(" C0::I1_opname3 ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I1_opname3 ()  called!"<<std::endl;
 
 }
 
 void C0::I1_opname4 ()
 {
 
-	printf(" C0::I1_opname4 ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I1_opname4 ()  called!"<<std::endl;
 
 }
 
 void C0::I1_opname5 ()
 {
 
-	printf(" C0::I1_opname5 ()  called!\n");
+    std::cout<<m_name<<"::"<<" C0::I1_opname5 ()  called!"<<std::endl;
 
+}
 }

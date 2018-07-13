@@ -20,19 +20,14 @@
  * @date 2017-04-28
  */
 
-#include "InterfaceMetadata.h"
-#include <string.h>
+#include "xpcf/api/InterfaceMetadata.h"
 #include <boost/uuid/uuid_generators.hpp>
 
+namespace org { namespace bcom { namespace xpcf {
 
+using namespace uuids;
 
-namespace org {
-namespace bcom {
-namespace xpcf {
-
-using namespace utils::uuids;
-
-InterfaceMetadata::InterfaceMetadata(const char* name, const uuid& interfaceUUID):m_description(name),m_uuid(interfaceUUID)
+InterfaceMetadata::InterfaceMetadata(const char* name, const uuid& interfaceUUID):m_description(name), m_uuid(interfaceUUID)
 {
 }
 

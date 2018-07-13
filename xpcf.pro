@@ -4,13 +4,12 @@ CONFIG -= app_bundle qt
 TARGET = xpcf
 INSTALLSUBDIR = bcomBuild
 FRAMEWORK = $${TARGET}
-VERSION=1.0.0
+VERSION=2.0.0
 DEFINES += MYVERSION=$${VERSION}
 
-CONFIG += c++11
+CONFIG += c++17
 CONFIG += shared
 
-PROJECTDEPLOYDIR = $$(BCOMDEVROOT)/$${INSTALLSUBDIR}/$${FRAMEWORK}/$${VERSION}
 DEPENDENCIESCONFIG = sharedlib
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (builddefs/qmake/templatelibconfig.pri)
@@ -19,47 +18,96 @@ staticlib {
     DEFINES += XPCF_STATIC
 } else {
     DEFINES += XPCF_SHARED
+#    DEFINES += XPCF_STD_SHAREDPTR
 }
 
-DEFINES += TIXML_USE_STL
+CONFIG(debug,debug|release) {
+    DEFINES += XPCFSUBDIRSEARCH=\\\"debug\\\"
+}
 
+CONFIG(release,debug|release) {
+    DEFINES += XPCFSUBDIRSEARCH=\\\"release\\\"
+}
+
+DEFINES += BOOST_ALL_NO_LIB
+DEFINES += BOOST_ALL_DYN_LINK
+
+DEFINES += TIXML_USE_STL
 
 SOURCES += \
     src/tinyxml2.cpp \
     src/tinyxmlhelper.cpp \
     src/ComponentMetadata.cpp \
-    src/ContainerMetadata.cpp \
     src/InterfaceMetadata.cpp \
     src/MethodMetadata.cpp \
     src/ComponentBase.cpp \
-    src/ComponentManager.cpp
+    src/ComponentManager.cpp \
+    src/ModuleMetadata.cpp \
+    src/PathBuilder.cpp \
+    src/ModuleManager.cpp \
+    src/Enumerator.cpp \
+    src/Property.cpp \
+    src/PropertyMap.cpp \
+    src/Exception.cpp \
+    src/PropertyManager.cpp \
+    src/ConfigurableBase.cpp \
+    src/BaseTask.cpp
 
 HEADERS += \
     src/tinyxml2.h \
     src/tinyxmlhelper.h \
-    interfaces/XPCF_NullObject.h \
-    interfaces/InterfaceMetadata.h \
-    interfaces/ComponentMetadata.h \
-    interfaces/ContainerMetadata.h \
-    interfaces/MethodMetadata.h \
-    interfaces/IComponentIntrospect.h \
-    interfaces/ComponentBase.h \
-    #interfaces/IComponentManager.h \
-    interfaces/XPCF_definitions.h \
-    interfaces/ComponentFactory.h \
-    interfaces/ContainerFactory.h \
-    interfaces/IComponentManager.h \
-    src/ComponentManager.h
+    src/ComponentManager.h \
+    src/PathBuilder.h \
+    src/ModuleManager.h \
+    src/Enumerator.h \
+    src/Collection.h \
+    src/Property.h \
+    src/PropertyMap.h \
+    src/PropertySequenceWrapper.h \
+    src/PropertyWrapper.h \
+    src/PropertyManager.h \
+    interfaces/xpcf/core/Result.h \
+    interfaces/xpcf/core/Exception.h \
+    interfaces/xpcf/core/XPCFErrorCode.h \
+    interfaces/xpcf/core/refs.h \
+    interfaces/xpcf/core/traits.h \
+    interfaces/xpcf/core/uuid.h \
+    interfaces/xpcf/api/InterfaceTraits.h \
+    interfaces/xpcf/api/IComponentIntrospect.h \
+    interfaces/xpcf/api/IComponentManager.h \
+    interfaces/xpcf/api/IModuleManager.h \
+    interfaces/xpcf/api/IConfigurable.h \
+    interfaces/xpcf/api/ComponentMetadata.h \
+    interfaces/xpcf/api/ModuleMetadata.h \
+    interfaces/xpcf/api/InterfaceMetadata.h \
+    interfaces/xpcf/component/ComponentBase.h \
+    interfaces/xpcf/component/ComponentFactory.h \
+    interfaces/xpcf/component/ComponentTraits.h \
+    interfaces/xpcf/component/ConfigurableBase.h \
+    interfaces/xpcf/module/IModuleIndex.h \
+    interfaces/xpcf/module/ModuleFactory.h \
+    interfaces/xpcf/properties/IProperty.h \
+    interfaces/xpcf/properties/IPropertyMap.h \
+    interfaces/xpcf/collection/IEnumerable.h \
+    interfaces/xpcf/collection/IEnumerator.h \
+    interfaces/xpcf/collection/ICollection.h \
+    interfaces/xpcf/xpcf.h \
+    interfaces/xpcf/xpcf_api_define.h \
+    interfaces/xpcf/threading/BaseTask.h \
+    interfaces/xpcf/threading/SharedBuffer.h \
+    interfaces/xpcf/threading/SharedFifo.h \
+    interfaces/xpcf/threading/ITask.h \
+    interfaces/xpcf/threading/SharedCircularBuffer.h
 
-
-unix {
+linux {
+    QMAKE_LFLAGS += -ldl
 }
 
 macx {
     DEFINES += _MACOS_TARGET_
     QMAKE_MAC_SDK= macosx
-    QMAKE_CFLAGS += -mmacosx-version-min=10.7 -std=c11 #-x objective-c++
-    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c11 -std=c++11 -fPIC#-x objective-c++
+    QMAKE_CFLAGS += -mmacosx-version-min=10.7 #-x objective-c++
+    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7  -std=c++17 -fPIC#-x objective-c++
     QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
     LIBS += -lstdc++ -lc -lpthread
 }
@@ -67,14 +115,30 @@ macx {
 win32 {
     DEFINES += _X86_VC12_TARGET_
     DEFINES += MBCS _MBCS
-	DEFINES += BOOST_ALL_NO_LIB
  }
 
 INCLUDEPATH += $${PWD} $${PWD}/interfaces
+#include(builddefs/qmake/bcom_code_scanner.prf)
 
-header_files.path = $${PROJECTDEPLOYDIR}/interfaces/
-header_files.files = $$files($${PWD}/interfaces/*.h)
+h_api_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/api
+h_api_files.files = $$files($${PWD}/interfaces/xpcf/api/*)
+h_collection_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/collection
+h_collection_files.files = $$files($${PWD}/interfaces/xpcf/collection/*)
+h_component_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/component
+h_component_files.files = $$files($${PWD}/interfaces/xpcf/component/*)
+h_core_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/core
+h_core_files.files = $$files($${PWD}/interfaces/xpcf/core/*)
+h_module_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/module
+h_module_files.files = $$files($${PWD}/interfaces/xpcf/module/*)
+h_properties_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/properties
+h_properties_files.files = $$files($${PWD}/interfaces/xpcf/properties/*)
+h_threading_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/threading
+h_threading_files.files = $$files($${PWD}/interfaces/xpcf/threading/*)
+h_xpcf_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf
+h_xpcf_files.files = $${PWD}/interfaces/xpcf/xpcf.h
+h_xpcf_files.files += $${PWD}/interfaces/xpcf/xpcf_api_define.h
 
-INSTALLS += header_files
+
+INSTALLS += h_api_files h_collection_files h_component_files h_core_files h_module_files h_properties_files h_threading_files h_xpcf_files
 DISTFILES += \
     Makefile

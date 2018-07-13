@@ -20,17 +20,14 @@
  * @date 2017-08-18
  */
 
-#ifndef __ComponentManager_H__
-#define __ComponentManager_H__
+#ifndef ORG_BCOM_XPCF_COMPONENTMANAGER_H
+#define ORG_BCOM_XPCF_COMPONENTMANAGER_H
 
 //#define BOOST_ALL_DYN_LINK 1
-#include "XPCF_definitions.h"
-#include "ComponentMetadata.h"
-#include "InterfaceMetadata.h"
-#include "IComponentIntrospect.h"
-#include "IComponentManager.h"
-#include "ComponentBase.h"
 
+#include "xpcf/api/IComponentManager.h"
+#include "xpcf/component/ComponentBase.h"
+#include "tinyxmlhelper.h"
 /*#include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/attributes.hpp>*/
@@ -42,60 +39,58 @@
 #include <thread>
 #include <vector>
 
-namespace org {
-namespace bcom {
-namespace xpcf {
-//ComponentLibrary or ContainerManager ?
+namespace org { namespace bcom { namespace xpcf {
+
 class XPCF_EXPORT_API ComponentManager : public ComponentBase,
-                                         public IComponentManager {
+        public virtual IComponentManager {
 public:
-  static ComponentManager* instance();
-  unsigned long load();
-  unsigned long load(const char* libraryFilePath);
-  bool isLoaded() const;
-  unsigned long createComponent(const uuids::uuid& componentUUID, SRef<IComponentIntrospect> & componentRef) final;
+    static ComponentManager* instance();
+    XPCFErrorCode load() override;
+    XPCFErrorCode load(const char* libraryFilePath) override;
+    XPCFErrorCode load(const char* folderPathStr, bool bRecurse) override;
+    SRef<IComponentIntrospect> createComponent(const uuids::uuid& componentUUID) final;
+    SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid& componentUUID) override;
+    void unloadComponent () override final;
 
-  void unloadComponent ();
- // SRef<T> createComponent(uuids::uuid& componentUUID,uuids::uuid& riid);
-  SPtr<ContainerMetadata> introspectContainer(const char* containerFilePath);
-  SPtr<ContainerMetadata> getContainerComponentList(const uuids::uuid& componentUUID);
-  unsigned long saveContainerInformations(const SPtr<ContainerMetadata> & containerInfos);
-  void addContainerRef(const uuids::uuid& containerUUID);
-  void releaseContainerRef(const uuids::uuid& containerUUID);
+    XPCFErrorCode addComponentMetadata(SPtr<ComponentMetadata> metadata);
+    uint32_t getNbComponentMetadatas() const override;
+    SPtr<ComponentMetadata> getComponentMetadata(uint32_t index) const override;
+    SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid &) const override;
 
-  unsigned long addComponentMetadata(SPtr<ComponentMetadata> aClass);
-  int getNbComponentMetadatas() const;
-  SPtr<ComponentMetadata> getComponentMetadata(int) const;
-  SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid &) const;
-
-  unsigned long addInterfaceMetadata(SPtr<InterfaceMetadata>);
-  int getNbInterfaceMetadatas() const;
-  SPtr<InterfaceMetadata> getInterfaceMetadata(int) const;
-  SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid&) const;
-
-  static constexpr const char * UUID = "F905BCCD-9658-4871-87B8-B328C27675E0";
-
+    XPCFErrorCode addInterfaceMetadata(SPtr<InterfaceMetadata> metadata);
+    uint32_t getNbInterfaceMetadatas() const override;
+    SPtr<InterfaceMetadata> getInterfaceMetadata(uint32_t index) const override;
+    SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid&) const override;
 
 private:
-  ComponentManager();
-    ~ComponentManager()= default;
+    ComponentManager();
+    ~ComponentManager() override = default;
     ComponentManager(const ComponentManager&)= delete;
     ComponentManager& operator=(const ComponentManager&)= delete;
-  static std::atomic<ComponentManager*> m_instance;
-  static std::mutex m_mutex;
+    static std::atomic<ComponentManager*> m_instance;
+    static std::mutex m_mutex;
 
-  unsigned long loadLibrary(boost::filesystem::path aPath);
-  unsigned long getContainerComponentList(const char* containerFilePath ,SPtr<ContainerMetadata> containerInfos);
+    template <class T> void load(fs::path folderPath);
+    XPCFErrorCode loadLibrary(boost::filesystem::path aPath);
+    XPCFErrorCode declareInterface(uuids::uuid componentUuid, tinyxml2::XMLElement *interfaceElt);
+    XPCFErrorCode declareComponent(uuids::uuid moduleUuid, tinyxml2::XMLElement *componentElt);
+    XPCFErrorCode declareModule(tinyxml2::XMLElement * xmlModuleElt, fs::path modulePath);
+    //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 
-  //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+    std::vector<SPtr<ComponentMetadata>> m_componentsVector;
+    std::vector<SPtr<InterfaceMetadata>> m_interfacesVector;
+    std::map<uuids::uuid, SPtr<ComponentMetadata>> m_componentsMap;
+    std::map<uuids::uuid, SPtr<InterfaceMetadata>> m_interfacesMap;
+    std::map<uuids::uuid, SPtr<ModuleMetadata>> m_moduleMap;
+    std::map<uuids::uuid, fs::path> m_moduleConfigMap;
 
-  std::vector<SPtr<ComponentMetadata>> m_componentsVector;
-  std::vector<SPtr<InterfaceMetadata>> m_interfacesVector;
-  std::map<uuids::uuid,SPtr<ComponentMetadata>> m_componentsMap;
-  std::map<uuids::uuid,SPtr<InterfaceMetadata>> m_interfacesMap;
-  std::map<uuids::uuid,SPtr<ContainerMetadata>> m_containerMap;
-  std::map<uuids::uuid,boost::function<long(const uuids::uuid &, SRef<IComponentIntrospect>&)>> m_funcMap;
-  bool m_libraryLoaded;
+    bool m_libraryLoaded;
+};
+
+template <> struct ComponentTraits<ComponentManager>
+{
+    static constexpr const char * UUID = "F905BCCD-9658-4871-87B8-B328C27675E0";
+    static constexpr const char * DESCRIPTION = "XPCF::ComponentManager";
 };
 
 }}} //namespace org::bcom::xpcf

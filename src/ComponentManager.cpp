@@ -20,19 +20,14 @@
  * @date 2017-04-28
  */
 
-
+#include "xpcf/api/IConfigurable.h"
+#include "xpcf/api/IModuleManager.h"
 #include "ComponentManager.h"
-#include "ContainerFactory.h"
+#include "xpcf/core/Exception.h"
+#include "PathBuilder.h"
+
 #include <iostream>
 #include <fstream>
-#include <boost/dll.hpp>
-#include <boost/dll/shared_library.hpp>
-#include <boost/function.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include "tinyxmlhelper.h"
-
-
 
 using namespace std;
 
@@ -40,9 +35,7 @@ using namespace std;
 
 namespace fs = boost::filesystem;
 
-namespace org {
-namespace bcom {
-namespace xpcf {
+namespace org { namespace bcom { namespace xpcf {
 
 std::atomic<ComponentManager*> ComponentManager::m_instance;
 std::mutex ComponentManager::m_mutex;
@@ -54,32 +47,29 @@ ComponentManager * ComponentManager::instance()
     if ( !compMgrInstance ){
         std::lock_guard<std::mutex> myLock(m_mutex);
         compMgrInstance = m_instance.load(std::memory_order_relaxed);
-        if( !compMgrInstance ){
+        if ( !compMgrInstance ){
             compMgrInstance= new ComponentManager();
-            m_instance.store(compMgrInstance,std::memory_order_release);
+            m_instance.store(compMgrInstance, std::memory_order_release);
         }
     }
     return compMgrInstance;
 }
 
 
-SRef<IComponentManager> getComponentManagerInstance() {
-    SRef<xpcf::IComponentIntrospect> lrIComponentIntrospect;
-    SRef<IComponentManager> lrIComponentManager;
-    xpcf::ComponentFactory::createComponent<ComponentManager>(lrIComponentIntrospect);
-    lrIComponentIntrospect->queryInterface(toUUID(IComponentManager::UUID),lrIComponentManager);
-    return lrIComponentManager;
+SRef<IComponentManager> getComponentManagerInstance()
+{
+    SRef<xpcf::IComponentIntrospect> lrIComponentIntrospect = xpcf::ComponentFactory::create<ComponentManager>();
+    return lrIComponentIntrospect->bindTo<IComponentManager>();
 }
 
-template<> ComponentManager* org::bcom::xpcf::ComponentFactory::createInstance() {
+template<> ComponentManager* ComponentFactory::createInstance()
+{
     return ComponentManager::instance();
 }
 
-ComponentManager::ComponentManager():m_libraryLoaded(false)
+ComponentManager::ComponentManager():ComponentBase(toUUID<ComponentManager>()),m_libraryLoaded(false)
 {
-    uuids::uuid cidComponentManager = org::bcom::xpcf::toUUID(ComponentManager::UUID );
-    setUUID(cidComponentManager);
-    addInterface<IComponentManager>(this,IComponentManager::UUID, "interface IComponentManager");
+    addInterface<IComponentManager>(this);
     //  m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentManager"));
     //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor ComponentManager::ComponentManager () called!";
 }
@@ -89,205 +79,222 @@ void ComponentManager::unloadComponent ()
     //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::unload () called!";
 }
 
-void ComponentManager::addContainerRef(const uuids::uuid& containerUUID)
+
+XPCFErrorCode ComponentManager::load()
 {
-
-}
-
-void ComponentManager::releaseContainerRef(const uuids::uuid& containerUUID)
-{
-
-}
-
-
-unsigned long ComponentManager::load()
-{
-    return load(getenv( "XPCF_REGISTRY_PATH" ));
-}
-
-unsigned long ComponentManager::load(const char* libraryFilePath)
-{
-    unsigned long result = XPCF_OK;
-
-    fs::path libraryConfigFilePath = libraryFilePath;
-    std::ifstream libraryConfig(libraryConfigFilePath.string());
-    if (libraryConfig.good()) {
-        result = loadLibrary(libraryConfigFilePath);
+    const char * registryPath = getenv( "XPCF_REGISTRY_PATH" );
+    if (registryPath == nullptr) {
+        registryPath = PathBuilder::getXPCFHomePath();
     }
-    else result = XPCF_FAIL;
-    return result;
+    return load(registryPath);
 }
 
-unsigned long ComponentManager::createComponent(const uuids::uuid& componentUUID, SRef<IComponentIntrospect>& componentRef)
+XPCFErrorCode ComponentManager::load(const char* libraryFilePath)
 {
-    unsigned long errCode = XPCF_OK;
-
-    if (isLoaded()) {
-        SPtr<ComponentMetadata> componentInfos = findComponentMetadata(componentUUID);
-        if (!componentInfos) {
-            return XPCF_NOGETCOMPONENT;
-        }
-        SPtr<ContainerMetadata> containerInfos;
-        if (m_containerMap.find(componentInfos->getContainerUUID()) != m_containerMap.end()) {
-            containerInfos = m_containerMap.at(componentInfos->getContainerUUID());
-        }
-        if (!containerInfos) {
-            return XPCF_NOGETCOMPONENT;
-        }
-
-        boost::dll::shared_library shlib;
-        shlib.load(containerInfos->getPath());
-        if (shlib.has(XPCF_GETCOMPONENT)) {
-            if (m_funcMap.find(containerInfos->getUUID()) == m_funcMap.end()) {
-                m_funcMap[containerInfos->getUUID()]=boost::dll::import<long(const uuids::uuid &, SRef<IComponentIntrospect>&)>(
-                            containerInfos->getPath(), XPCF_GETCOMPONENT
-                            );
-            }
-
-            if (m_funcMap.at(containerInfos->getUUID())) {
-                m_funcMap.at(containerInfos->getUUID())(componentUUID,componentRef);
-                if (componentRef) {
-                    addContainerRef(containerInfos->getUUID());
-                }
-            }
-
-        }
-        else {
-            errCode = XPCF_NOGETCOMPONENT;
-        }
+    if (libraryFilePath == nullptr) {
+        return XPCFErrorCode::_ERROR_NULL_POINTER;
     }
-    return errCode;
 
+    fs::path libraryConfigFilePath = PathBuilder::replaceRootEnvVars(libraryFilePath);
+    return loadLibrary(libraryConfigFilePath);
 }
 
-SPtr<ContainerMetadata> ComponentManager::introspectContainer(const char* containerFilePath)
+template <class T> void ComponentManager::load(fs::path folderPath)
 {
-    SPtr<ContainerMetadata> containerInfos;
-
-    boost::function<const char* (void)> getContainerUUID = boost::dll::import<const char * (void)>(
-                containerFilePath, XPCF_GETCONTAINERUUID
-                );
-    boost::function<const char* (void)> getContainerName = boost::dll::import<const char * (void)>(
-                containerFilePath, XPCF_GETCONTAINERNAME
-                );
-    if (getContainerUUID && getContainerName) {
-        std::string containerUUID = getContainerUUID();
-        std::string containerName = getContainerName();
-        if (m_containerMap.find(toUUID(containerUUID.c_str())) == m_containerMap.end()) {
-            containerInfos = utils::make_shared<ContainerMetadata>(containerName.c_str(),containerUUID.c_str(),containerFilePath);
-            getContainerComponentList(containerFilePath,containerInfos);
-        }
-        else { //Container has already been loaded in the library
-            containerInfos = m_containerMap.at(toUUID(containerUUID.c_str()));
-        }
-    }
-    return containerInfos;
-}
-
-SPtr<ContainerMetadata> ComponentManager::getContainerComponentList(const uuids::uuid& componentUUID)
-{
-    SPtr<ContainerMetadata> containerInfos;
-
-    if (isLoaded()) {
-        SPtr<ComponentMetadata> componentInfos = findComponentMetadata(componentUUID);
-        if (componentInfos) {
-
-            SPtr<ContainerMetadata> containerInfos;
-            if (m_containerMap.find(componentInfos->getContainerUUID()) != m_containerMap.end()) {
-                containerInfos = m_containerMap.at(componentInfos->getContainerUUID());
+    static_assert(std::is_same<T,fs::directory_iterator>::value || std::is_same<T,fs::recursive_directory_iterator>::value,
+                  "Type passed to ComponentManager::load is neither a directory_iterator nor a recursive_directory_iterator");
+    for (fs::directory_entry& x : T(folderPath)) {
+        if (is_regular_file(x.path())) {
+            if (x.path().extension() == ".xml") {
+                loadLibrary(x.path());
             }
         }
     }
-    return containerInfos;
 }
 
-unsigned long ComponentManager::getContainerComponentList(const char *containerPath, SPtr<ContainerMetadata> containerInfos)
+XPCFErrorCode ComponentManager::load(const char* folderPathStr, bool bRecurse)
 {
-    unsigned long errCode = XPCF_OK;
-    boost::function<unsigned long(void)> getNbComponents = boost::dll::import<unsigned long(void)>(
-                containerPath, XPCF_GETNBCOMPONENTS
-                );
-    boost::function<const char* (unsigned long)> getComponentUUID = boost::dll::import<const char * (unsigned long)>(
-                containerPath, XPCF_GETCOMPONENTUUID
-                );
-    if (getNbComponents && getComponentUUID) {
-        for (unsigned long i = 0 ; i<getNbComponents() ; i++) {
-            containerInfos->addComponent(toUUID(getComponentUUID(i)));
-        }
-    }
-    else {
-        errCode = XPCF_NOGETCOMPONENT;
+    if (folderPathStr == nullptr) {
+        return XPCFErrorCode::_ERROR_NULL_POINTER;
     }
 
-    return errCode;
-}
+    fs::path folderPath = PathBuilder::replaceRootEnvVars(folderPathStr);
 
-unsigned long ComponentManager::addComponentMetadata(SPtr<ComponentMetadata> aClass)
-{
-    unsigned long result = XPCF_OK;
+    if ( ! fs::exists(folderPath)) {
+        return XPCFErrorCode::_FAIL;
+    }
 
-    if (aClass) {
-        SPtr<ComponentMetadata> classExist = findComponentMetadata(aClass->getUUID());
-
-        if (classExist) {
-            result = XPCF_FAIL;
+    if (fs::is_directory(folderPath)) {
+        if (bRecurse) {
+            load<fs::recursive_directory_iterator>(folderPath);
         }
         else {
-            m_componentsVector.push_back(aClass);
+            load<fs::directory_iterator>(folderPath);
         }
     }
     else {
-        result = XPCF_FAIL;
+        loadLibrary(folderPath);
     }
 
+    if (!m_libraryLoaded) {
+        return XPCFErrorCode::_FAIL;
+    }
+    return XPCFErrorCode::_SUCCESS;
+}
+
+SRef<IComponentIntrospect> ComponentManager::createComponent(const uuids::uuid& componentUUID)
+{
+    XPCFErrorCode errCode = XPCFErrorCode::_SUCCESS;
+
+    SPtr<ComponentMetadata> componentInfos = findComponentMetadata(componentUUID);
+    if (!componentInfos) {
+        throw ComponentNotFoundException("No component declared for UUID "+uuids::to_string(componentUUID));
+    }
+
+    if (m_moduleMap.find(componentInfos->getModuleUUID()) == m_moduleMap.end()) {
+        throw ModuleNotFoundException("No module declared for UUID "+uuids::to_string(componentInfos->getModuleUUID()));
+    }
+
+    SPtr<ModuleMetadata> moduleInfos = m_moduleMap.at(componentInfos->getModuleUUID());
+
+    SRef<IComponentIntrospect> componentRef = getModuleManagerInstance()->createComponent(moduleInfos, componentUUID);
+    if (componentRef->implements<IConfigurable>()) {
+       SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
+        iconf->configure(componentInfos->getConfigPath());
+    }
+    return componentRef;
+}
+
+
+SRef<IComponentIntrospect> ComponentManager::createComponent(const char * instanceName, const uuids::uuid& componentUUID)
+{
+    throw NotImplementedException();
+    return nullptr;
+}
+
+template <class T>
+SPtr<T> findMetadata(const uuids::uuid& elementUUID, const std::map<uuids::uuid, SPtr<T>> & elementMap)
+{
+    SPtr<T> result;
+    if (elementMap.find(elementUUID) != elementMap.end()) {
+        result = elementMap.at(elementUUID);
+    }
     return result;
 }
 
-
-unsigned long ComponentManager::addInterfaceMetadata(SPtr<InterfaceMetadata> aClass)
+template <class T>
+XPCFErrorCode addMetadata(SPtr<T> metadata, std::vector<SPtr<T>> & targetContainer, const std::map<uuids::uuid, SPtr<T>> & elementMap)
 {
-    unsigned long result = XPCF_OK;
-
-    if (aClass) {
-        SPtr<InterfaceMetadata> classExist = findInterfaceMetadata(aClass->getUUID());
-
-        if (classExist) {
-            result = XPCF_FAIL;
-        }
-        else {
-            m_interfacesVector.push_back(aClass);
-        }
-    }
-    else {
-        result = XPCF_FAIL;
+    if (! metadata) {
+        return XPCFErrorCode::_ERROR_NULL_POINTER;
     }
 
-    return result;
+    SPtr<T> classExist = findMetadata<T>(metadata->getUUID(), elementMap);
+    if (classExist) {
+        return XPCFErrorCode::_FAIL;
+    }
+
+    targetContainer.push_back(metadata);
+
+    return XPCFErrorCode::_SUCCESS;
 }
 
+XPCFErrorCode ComponentManager::addComponentMetadata(SPtr<ComponentMetadata> metadata)
+{
+    return addMetadata<ComponentMetadata>(metadata, m_componentsVector, m_componentsMap);
+}
+
+
+XPCFErrorCode ComponentManager::addInterfaceMetadata(SPtr<InterfaceMetadata> metadata)
+{
+    return addMetadata<InterfaceMetadata>(metadata, m_interfacesVector, m_interfacesMap);
+}
+
+XPCFErrorCode ComponentManager::declareInterface(uuids::uuid componentUuid, tinyxml2::XMLElement *interfaceElt)
+{
+    SPtr<InterfaceMetadata> interfaceInfo;
+    string interfaceUuidStr = interfaceElt->Attribute("uuid");
+    uuids::uuid interfaceUuid = toUUID(interfaceUuidStr.c_str());
+    m_componentsMap[componentUuid]->addInterface(interfaceUuid);
+    if (m_interfacesMap.find(interfaceUuid) == m_interfacesMap.end()) {
+        string interfaceDescription = interfaceElt->Attribute("description");
+        interfaceInfo = utils::make_shared<InterfaceMetadata>(interfaceDescription.c_str(), interfaceUuid);
+        m_interfacesVector.push_back(interfaceInfo);
+        m_interfacesMap[interfaceUuid]=interfaceInfo;
+    }
+    return XPCFErrorCode::_SUCCESS;
+}
+
+XPCFErrorCode ComponentManager::declareComponent(uuids::uuid moduleUuid, tinyxml2::XMLElement *componentElt)
+{
+    SPtr<ComponentMetadata> componentInfo;
+    string componentUuidStr = componentElt->Attribute("uuid");
+    uuids::uuid componentUuid = toUUID(componentUuidStr.c_str());
+    if (m_componentsMap.find(componentUuid) == m_componentsMap.end()) {
+        string description = componentElt->Attribute("description");
+        fs::path configPath = m_moduleConfigMap[moduleUuid];
+        componentInfo = utils::make_shared<ComponentMetadata>(description.c_str(), componentUuid, moduleUuid, configPath.string().c_str());
+        m_componentsVector.push_back(componentInfo);
+        m_componentsMap[componentUuid] = componentInfo;
+        m_moduleMap[moduleUuid]->addComponent(componentUuid);
+        tinyxml2::XMLElement *interfaceElt = componentElt->FirstChildElement("interface");
+        while (interfaceElt != NULL) {
+            //TODO : check the same IF doesn't appear twice in the vector !! ???
+            declareInterface(componentUuid, interfaceElt);
+            interfaceElt = interfaceElt->NextSiblingElement("interface");
+        }
+    }
+    return XPCFErrorCode::_SUCCESS;
+}
+
+XPCFErrorCode ComponentManager::declareModule(tinyxml2::XMLElement * xmlModuleElt, fs::path modulePath)
+{
+    SPtr<ModuleMetadata> moduleInfo;
+    std::string moduleName = xmlModuleElt->Attribute("name");
+    uuids::uuid moduleUuid = toUUID( xmlModuleElt->Attribute("uuid"));
+    moduleInfo = utils::make_shared<ModuleMetadata>(moduleName.c_str(), moduleUuid, xmlModuleElt->Attribute("path"));
+    fs::path filePath = moduleInfo->getFullPath();
+    // TODO : check lib existenz with file decorations
+    /* if ( !boost::filesystem::exists( filePath ) )
+    {
+        std::cout<<"Error : Module not found at : "<<filePath.c_str()<<std::endl;
+        return XPCFErrorCode::_FAIL;
+    }*/
+
+    if (m_moduleMap.find(moduleUuid) == m_moduleMap.end()) {
+        m_moduleMap[moduleUuid] = moduleInfo;
+        m_moduleConfigMap[moduleUuid] = modulePath;
+        tinyxml2::XMLElement *componentElt = xmlModuleElt->FirstChildElement("component");
+        while (componentElt != NULL) {
+            declareComponent(moduleUuid, componentElt);
+            componentElt = componentElt->NextSiblingElement("component");
+        }
+    }
+    return XPCFErrorCode::_SUCCESS;
+}
 
 // Load the library from the file given
-// by <aPath>
+// by <modulePath>
 //
 /********* The library file looks like this*************************************************
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<xpcf-library>
-    <container uuid="E8CFAED2-1D86-4A5E-BDC9-389CFB9C38FA" filepath="xpcftest01.[so|dll|dylib]">
+<xpcf-registry>
+    <module uuid="E8CFAED2-1D86-4A5E-BDC9-389CFB9C38FA" name="xpcftest01" path="folderpath/">
         <component uuid="097fee80-7bd4-47c2-9cc7-c1750e7beb2a" description="C0 component">
                 TOADD: <constructor arg-0=UUIDOTHERCOMPONENT , arg-1=configoptions/>
                 <interface uuid="87fb1573-defe-4c8f-8cba-304b888639cc" description="IComponentIntrospect"/>
                 <interface uuid="c3eb5521-16ee-458e-9e77-157827753e46" description="I0 openCV scale interface"/>
                 <interface uuid="e0b0a9af-a941-408e-aa10-cac5055af75a" description="I1 openCV rotate interface"/>
             </component>
-    </container>
-    <container uuid="7c8f9f3a-33f6-11d5-bc7f-00d0b7a62da9" filepath="xpcftest02.[so|dll|dylib]">
+    </module>
+    <module uuid="7c8f9f3a-33f6-11d5-bc7f-00d0b7a62da9" name="xpcftest02" path="folderpath2/">
         <component uuid="cf0f569a-2f66-11d5-bc7f-00d0b7a62da9" description="xxx">
                 <interface uuid="5f7c9b5e-ee9f-11d3-8010-000629ee2d57" description="IComponentIntrospect"/>
                 <interface uuid="9db144b8-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
                 <interface uuid="c5d2b99a-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
         </component>
-    </container>
-    <container uuid="b89994bc-3424-11d5-bc7f-00d0b7a62da9" filepath="xpcftest03.[so|dll|dylib]">
+    </module>
+    <module uuid="b89994bc-3424-11d5-bc7f-00d0b7a62da9" name="xpcftest03" path="folderpath3/">
         <component uuid="cf0f569a-2f66-11d5-bc7f-00d0b7a62da9" description="xxx">
                 <interface uuid="5f7c9b5e-ee9f-11d3-8010-000629ee2d57" description="IComponentIntrospect"/>
                 <interface uuid="9db144b8-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
@@ -297,132 +304,49 @@ unsigned long ComponentManager::addInterfaceMetadata(SPtr<InterfaceMetadata> aCl
                 <interface uuid="5f7c9b5e-ee9f-11d3-8010-000629ee2d57" description="IComponentIntrospect"/>
                 <interface uuid="c5d2b99a-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
         </component>
-    </container>
+    </module>
 </xpcf-library>
 
 *********************************************************************************************/
-unsigned long ComponentManager::loadLibrary(fs::path containerPath)
+XPCFErrorCode ComponentManager::loadLibrary(fs::path modulePath)
 {
-    unsigned long result = XPCF_OK;
-    SPtr<ContainerMetadata> containerInfo;
-    SPtr<ComponentMetadata> componentInfo;
-    SPtr<InterfaceMetadata>	  interfaceInfo;
+    if ( ! fs::exists(modulePath)) {
+        return XPCFErrorCode::_FAIL;
+    }
+    if ( modulePath.extension() != ".xml") {
+        return XPCFErrorCode::_FAIL;
+    }
+
+    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
     tinyxml2::XMLDocument doc;
-    enum tinyxml2::XMLError loadOkay = doc.LoadFile(containerPath.string().c_str());
+    enum tinyxml2::XMLError loadOkay = doc.LoadFile(modulePath.string().c_str());
     if (loadOkay == 0) {
         try {
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<containerPath<<" config file";
+            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<modulePath<<" config file";
             //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
             //TODO : check each element exists before using it !
+            // a check should be performed upon announced module uuid and inner module uuid
+            // check xml node is xpcf-registry first !
             tinyxml2::XMLElement * rootElt = doc.RootElement();
-            tinyxml2::XMLElement * xmlContainerElt = rootElt->FirstChildElement("container");
-            while (xmlContainerElt != NULL) {
-                string filepath = xmlContainerElt->Attribute("filepath");
-                string containerUuidStr = xmlContainerElt->Attribute("uuid");
-                uuids::uuid containerUuid = toUUID(containerUuidStr.c_str());
-                if (m_containerMap.find(containerUuid) == m_containerMap.end()) {
-                    string containerDescription = "ContainerDesc";
-                    containerInfo	= utils::make_shared<ContainerMetadata>(containerDescription.c_str(),containerUuid,filepath.c_str());
-                    m_containerMap[containerUuid] = containerInfo;
-                    tinyxml2::XMLElement *componentElt = xmlContainerElt->FirstChildElement("component");
-                    while (componentElt != NULL) {
-                        string componentUuidStr = componentElt->Attribute("uuid");
-                        uuids::uuid componentUuid = toUUID(componentUuidStr.c_str());
-                        if (m_componentsMap.find(componentUuid) == m_componentsMap.end()) {
-                            string description = componentElt->Attribute("description");
-                            componentInfo	= utils::make_shared<ComponentMetadata>(description.c_str(),componentUuid,containerUuid);
-                            m_componentsVector.push_back(componentInfo);
-                            m_componentsMap[componentUuid] = componentInfo;
-                            containerInfo->addComponent(componentUuid);
-                            tinyxml2::XMLElement *interfaceElt = componentElt->FirstChildElement("interface");
-                            while (interfaceElt != NULL) {
-                                //TODO : check the same IF doesn't appear twice in the vector !! ???
-                                string interfaceUuidStr = interfaceElt->Attribute("uuid");
-                                uuids::uuid interfaceUuid = toUUID(interfaceUuidStr.c_str());
-                                componentInfo->addInterface(interfaceUuid);
-                                if (m_interfacesMap.find(interfaceUuid) == m_interfacesMap.end()) {
-                                    string interfaceDescription = interfaceElt->Attribute("description");
-                                    interfaceInfo	= utils::make_shared<InterfaceMetadata>(interfaceDescription.c_str(),interfaceUuid);
-                                    m_interfacesVector.push_back(interfaceInfo);
-                                    m_interfacesMap[interfaceUuid]=interfaceInfo;
-                                }
-                                interfaceElt = interfaceElt->NextSiblingElement("interface");
-                            }
-                        }
-                        componentElt = componentElt->NextSiblingElement("component");
-                    }
-                }
-                xmlContainerElt = xmlContainerElt->NextSiblingElement();
+            string rootName = rootElt->Value();
+            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
+                return XPCFErrorCode::_ERROR_RANGE;
+            }
+            tinyxml2::XMLElement * xmlModuleElt = rootElt->FirstChildElement("module");
+            while (xmlModuleElt != NULL && result == XPCFErrorCode::_SUCCESS) {
+                result = declareModule(xmlModuleElt,modulePath);
+                xmlModuleElt = xmlModuleElt->NextSiblingElement("module");
             }
         }
         catch (const std::runtime_error & e) {
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<containerPath<<" failed with error : "<<e.what();
-            return -1;
+            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<modulePath<<" failed with error : "<<e.what();
+            return XPCFErrorCode::_FAIL;
         }
     }
-    m_libraryLoaded = true;
+    m_libraryLoaded = (result == XPCFErrorCode::_SUCCESS);
     return result;
 }
 
-// TODO : study which method signature ? with container ID ? or ContainerMetadata ?
-// What about default configuration for the component ?
-unsigned long ComponentManager::saveContainerInformations(const SPtr<ContainerMetadata> & containerInfos)
-{
-    fs::path containerPath = containerInfos->getPath();
-    unsigned long result = XPCF_OK;
-    SPtr<ContainerMetadata> containerInfo;
-    SPtr<ComponentMetadata> componentInfo;
-    SPtr<InterfaceMetadata>	  interfaceInfo;
-    tinyxml2::XMLDocument doc;
-    enum tinyxml2::XMLError loadOkay = doc.LoadFile(containerPath.string().c_str());
-    if (loadOkay == 0) {
-        try {
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<containerPath<<" config file";
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
-            //TODO : check each element exists before using it !
-            tinyxml2::XMLElement * rootElt = doc.RootElement();
-            tinyxml2::XMLElement * xmlContainerElt = rootElt->FirstChildElement("container");
-            while (xmlContainerElt != NULL) {
-                string filepath = xmlContainerElt->Attribute("filepath");
-                string containerUuidStr = xmlContainerElt->Attribute("uuid");
-                uuids::uuid containerUuid = toUUID(containerUuidStr.c_str());
-                string containerDescription = "ContainerDesc";
-                containerInfo	= utils::make_shared<ContainerMetadata>(containerDescription.c_str(),containerUuid,filepath.c_str());
-                m_containerMap[containerUuid] = containerInfo;
-                tinyxml2::XMLElement *componentElt = xmlContainerElt->FirstChildElement("component");
-                while (componentElt != NULL) {
-                    string componentUuidStr = componentElt->Attribute("uuid");
-                    uuids::uuid componentUuid = toUUID(componentUuidStr.c_str());
-                    string componentDescription = componentElt->Attribute("description");
-                    componentInfo	= utils::make_shared<ComponentMetadata>(componentDescription.c_str(),componentUuid,containerUuid);
-                    m_componentsVector.push_back(componentInfo);
-                    m_componentsMap[componentUuid] = componentInfo;
-                    containerInfo->addComponent(componentUuid);
-                    tinyxml2::XMLElement *interfaceElt = componentElt->FirstChildElement("interface");
-                    while (interfaceElt != NULL) {
-                        //TODO : check the same IF doesn't appear twice in the vector !! ???
-                        string interfaceUuidStr = interfaceElt->Attribute("uuid");
-                        uuids::uuid interfaceUuid = toUUID(interfaceUuidStr.c_str());
-                        string interfaceDescription = interfaceElt->Attribute("description");
-                        componentInfo->addInterface(interfaceUuid);
-                        interfaceInfo	= utils::make_shared<InterfaceMetadata>(interfaceDescription.c_str(),interfaceUuid);
-                        m_interfacesMap[interfaceUuid] = interfaceInfo;
-                        m_interfacesVector.push_back(interfaceInfo);
-                        interfaceElt = interfaceElt->NextSiblingElement("interface");
-                    }
-                    componentElt = componentElt->NextSiblingElement("component");
-                }
-                xmlContainerElt = xmlContainerElt->NextSiblingElement();
-            }
-        }
-        catch (const std::runtime_error & e) {
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<containerPath<<" failed with error : "<<e.what();
-            return -1;
-        }
-    }
-    m_libraryLoaded = true;
-    return result;
-}
 
 // Given a UUID, we return a ComponentMetadata
 // if no component is found with the UUID <clsid>
@@ -430,43 +354,30 @@ unsigned long ComponentManager::saveContainerInformations(const SPtr<ContainerMe
 //
 SPtr<ComponentMetadata> ComponentManager::findComponentMetadata(const uuids::uuid& componentUUID) const
 {
-    SPtr<ComponentMetadata> result;
-    if (m_componentsMap.find(componentUUID) != m_componentsMap.end()) {
-        result = m_componentsMap.at(componentUUID);
-    }
-    return result;
+    return findMetadata(componentUUID, m_componentsMap);
 }
 
 SPtr<InterfaceMetadata> ComponentManager::findInterfaceMetadata(const uuids::uuid& interfaceUUID) const
 {
-    SPtr<InterfaceMetadata> result;
-    if (m_interfacesMap.find(interfaceUUID) != m_interfacesMap.end()) {
-        result = m_interfacesMap.at(interfaceUUID);
-    }
-    return result;
+    return findMetadata(interfaceUUID, m_interfacesMap);
 }
 
-bool ComponentManager::isLoaded() const
-{
-    return m_libraryLoaded;
-}
-
-int ComponentManager::getNbComponentMetadatas() const
+uint32_t ComponentManager::getNbComponentMetadatas() const
 {
     return m_componentsVector.size();
 }
 
-SPtr<ComponentMetadata> ComponentManager::getComponentMetadata(int numComponent) const
+SPtr<ComponentMetadata> ComponentManager::getComponentMetadata(uint32_t numComponent) const
 {
     return m_componentsVector[numComponent];
 }
 
-int ComponentManager::getNbInterfaceMetadatas() const
+uint32_t ComponentManager::getNbInterfaceMetadatas() const
 {
     return m_interfacesVector.size();
 }
 
-SPtr<InterfaceMetadata> ComponentManager::getInterfaceMetadata(int i) const
+SPtr<InterfaceMetadata> ComponentManager::getInterfaceMetadata(uint32_t i) const
 {
     return m_interfacesVector[i];
 }
