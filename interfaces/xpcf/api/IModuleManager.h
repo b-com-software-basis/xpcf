@@ -80,7 +80,9 @@ public:
 template <> struct InterfaceTraits<IModuleManager>
 {
     static constexpr const char * UUID = "5FE6CCDF-2938-41C7-83F4-43C773AF0B05";
-    static constexpr const char * DESCRIPTION = "XPCF::IModuleManager interface";
+    static constexpr const char * NAME = "XPCF::IModuleManager";
+    static constexpr const char * DESCRIPTION = "Provides module management functionality to introspect module content and component creation from an XPCF module";
+
 };
 
 /**

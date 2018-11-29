@@ -22,16 +22,38 @@
 #ifndef ORG_BCOM_XPCF_ITASK_H
 #define ORG_BCOM_XPCF_ITASK_H
 
+#include "xpcf/xpcf_api_define.h"
+#include <xpcf/core/refs.h>
+#include <functional>
+
 namespace org { namespace bcom { namespace xpcf {
 
-class ITask
+class XPCF_EXPORT_API ITask
 {
 public:
 	ITask() = default;
 	virtual ~ITask() = default;
     virtual void start() = 0;
     virtual void stop() = 0;
+    virtual void process() = 0;
+    virtual void awaitStart() = 0;
     virtual bool stopped() const = 0;
+};
+
+class XPCF_EXPORT_API ITaskFactory
+{
+public:
+    ITaskFactory() = default;
+    virtual ~ITaskFactory() = default;
+    virtual SRef<ITask> newTask(std::function<void(void)> command) = 0;
+};
+
+class XPCF_EXPORT_API IExecutor
+{
+public:
+    IExecutor() = default;
+    virtual ~IExecutor() = default;
+    virtual void execute(std::function<void(void)> command) = 0;
 };
 
 }}}

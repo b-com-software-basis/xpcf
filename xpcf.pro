@@ -4,10 +4,10 @@ CONFIG -= app_bundle qt
 TARGET = xpcf
 INSTALLSUBDIR = bcomBuild
 FRAMEWORK = $${TARGET}
-VERSION=2.0.0
+VERSION=2.1.0
 DEFINES += MYVERSION=$${VERSION}
 
-CONFIG += c++17
+CONFIG += c++1z
 CONFIG += shared
 
 DEPENDENCIESCONFIG = sharedlib
@@ -66,6 +66,7 @@ HEADERS += \
     src/PropertySequenceWrapper.h \
     src/PropertyWrapper.h \
     src/PropertyManager.h \
+    src/BlockEnumerator.h \
     interfaces/xpcf/core/Result.h \
     interfaces/xpcf/core/Exception.h \
     interfaces/xpcf/core/XPCFErrorCode.h \
@@ -97,7 +98,10 @@ HEADERS += \
     interfaces/xpcf/threading/SharedBuffer.h \
     interfaces/xpcf/threading/SharedFifo.h \
     interfaces/xpcf/threading/ITask.h \
-    interfaces/xpcf/threading/SharedCircularBuffer.h
+    interfaces/xpcf/threading/SharedCircularBuffer.h \
+    interfaces/xpcf/threading/FiberFifos.h \
+    interfaces/xpcf/threading/SharedLifo.h \
+    interfaces/xpcf/threading/DropBuffer.h
 
 linux {
     QMAKE_LFLAGS += -ldl

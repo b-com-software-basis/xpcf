@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <xpcf-registry>
-    <module uuid="ff7780d6-744d-4561-821d-714aad763afd" name="xpcfSampleComponent" path="$BCOMDEVROOT/bcomBuild/xpcfSampleComponent/1.0.0/lib/x86_64/shared">
-        <component uuid="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" description="C0 component">
-            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
-            <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" description="I0 openCV scale interface"/>
-            <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" description="I1 openCV rotate interface"/>
+    <module uuid="ff7780d6-744d-4561-821d-714aad763afd" name="xpcfSampleComponent" description="Sample component module" path="$BCOMDEVROOT/bcomBuild/xpcfSampleComponent/1.0.0/lib/x86_64/shared">
+        <component uuid="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" name="C0 component" description="C0 component">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
+            <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" name="I0" description="I0 openCV scale interface"/>
+            <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" name="I1" description="I1 openCV rotate interface"/>
         </component>
-        <component uuid="63FF193D-93E6-4EDE-9947-22F864AC843F" description="C1 component">
-            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
-            <interface uuid="41348765-1017-47a7-ab9F-6b59d39e4b95" description="I2 interface"/>
-            <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" description="I1 openCV rotate interface"/>
+        <component uuid="63FF193D-93E6-4EDE-9947-22F864AC843F" name="C1" description="C1 component">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
+            <interface uuid="41348765-1017-47a7-ab9F-6b59d39e4b95" name="I2" description="I2 interface"/>
+            <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" name="I1" description="I1 openCV rotate interface"/>
         </component>
     </module>
     <configuration>
@@ -29,6 +29,25 @@
                         <value>0.7</value>
                         <value>0.3</value>
                         <value>2.7</value>
+                    </property>
+                </property>
+        </component>
+        <component uuid="63FF193D-93E6-4EDE-9947-22F864AC843F" name="testInstance">
+                <property name="blurFactor" type="double" value="1.0"/>
+                <property name="blurScale" type="double" access="ro">
+                    <value>2.1</value>
+                    <value>2.7</value>
+                    <value>2.8</value>
+                    <value>2.1</value>
+                </property>
+                <property name="blurMatrixRepartition"  type = "structure">
+                    <property name="cols" type="long" value="2"/>
+                    <property name="rows" type="long" value="2"/><!-- rowmajormode only-->
+                    <property name="values" type="double">
+                        <value>3.1</value>
+                        <value>2.7</value>
+                        <value>2.3</value>
+                        <value>3.7</value>
                     </property>
                 </property>
         </component>

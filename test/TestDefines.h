@@ -3,19 +3,19 @@
 
 #include "xpcfSampleComponent_traits.h"
 #include "xpcf/xpcf.h"
-#include "I0.h"
-#include "I1.h"
-#include "I2.h"
+#include "IHuman.h"
+#include "IMusician.h"
+#include "IGuitarist.h"
 
 namespace xpcf  = org::bcom::xpcf;
 
 #include <boost/uuid/uuid_generators.hpp>
 
-extern xpcf::uuids::uuid clsid_C0;
+extern xpcf::uuids::uuid clsid_HumanMusician;
 extern xpcf::uuids::uuid iid_IComponentIntrospect;
-extern xpcf::uuids::uuid iid_I0;
-extern xpcf::uuids::uuid iid_I1;
-extern xpcf::uuids::uuid iid_I2;
+extern xpcf::uuids::uuid iid_IHuman;
+extern xpcf::uuids::uuid iid_IMusician;
+extern xpcf::uuids::uuid iid_IGuitarist;
 
 class fakeComponent;
 

@@ -87,18 +87,27 @@ ConfigurableBase::~ConfigurableBase()
 XPCFErrorCode ConfigurableBase::serialize(const char * filepath, uint32_t mode)
 {
     SRef<xpcf::IPropertyManager> xpcfPropertyManager = xpcf::getPropertyManagerInstance();
-    return xpcfPropertyManager->serialize(getUUID(), this->bindTo<IComponentIntrospect>(), filepath, mode);
+    return xpcfPropertyManager->serialize(getUUID(), this->bindTo<IConfigurable>(), filepath, mode);
 }
 
 XPCFErrorCode ConfigurableBase::configure(const char * filepath)
 {
     SRef<xpcf::IPropertyManager> xpcfPropertyManager = xpcf::getPropertyManagerInstance();
-    return xpcfPropertyManager->configure(getUUID(), this->bindTo<IComponentIntrospect>(), filepath);
+    XPCFErrorCode result = xpcfPropertyManager->configure(getUUID(), this->bindTo<IConfigurable>(), filepath);
+    if (result != XPCFErrorCode::_SUCCESS) {
+        return result;
+    }
+    return onConfigured();
 }
 
 XPCFErrorCode ConfigurableBase::configure(const char * filepath, const char * xpath)
 {
-    return XPCFErrorCode::_ERROR_NOT_IMPLEMENTED;
+    SRef<xpcf::IPropertyManager> xpcfPropertyManager = xpcf::getPropertyManagerInstance();
+    XPCFErrorCode result = xpcfPropertyManager->configure(xpath, getUUID(), this->bindTo<IConfigurable>(), filepath);
+    if (result != XPCFErrorCode::_SUCCESS) {
+        return result;
+    }
+    return onConfigured();
 }
 
 SRef<IPropertyMap> ConfigurableBase::getPropertyRootNode() const
@@ -114,6 +123,11 @@ SRef<IProperty> ConfigurableBase::getProperty(const char * name) const
 bool ConfigurableBase::hasProperties() const
 {
     return (m_internalImpl->getPropertyRootNode()->getProperties().size() != 0);
+}
+
+SRef<IEnumerator<SRef<IProperty>>> ConfigurableBase::getPropertiesEnumerator() const
+{
+    return m_internalImpl->getPropertyRootNode()->getProperties().getEnumerator();
 }
 
 IEnumerable<SRef<IProperty>> & ConfigurableBase::getProperties() const

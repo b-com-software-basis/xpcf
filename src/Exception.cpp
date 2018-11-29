@@ -20,11 +20,14 @@ std::map<XPCFErrorCode, std::string> xpcfErrorCodeToMessageMap = {
 { XPCFErrorCode::_ERROR_SYSTEM , "ERROR: system" },
 { XPCFErrorCode::_ERROR_UNKNOWN , "ERROR: unknown" },
 { XPCFErrorCode::_ERROR_ACCESS_DENIED , "ERROR: access denied " },
+{ XPCFErrorCode::_ERROR_TIMEOUT , "ERROR: timeout " },
+{ XPCFErrorCode::_ERROR_ILLEGAL_STATE, "ERROR: illegal state " },
 { XPCFErrorCode::_ERROR_COMPONENT_UNKNOWN , "ERROR: unknown component " },
 { XPCFErrorCode::_ERROR_INTERFACE_UNKNOWN , "ERROR: unknown interface" },
 { XPCFErrorCode::_ERROR_MODULE_UNKNOWN , "ERROR: unknown module" },
 { XPCFErrorCode::_ERROR_MODULE_NOGETCOMPONENT , "ERROR: no getcomponent method in module" }
 };
+
 
 
 Exception::Exception(XPCFErrorCode errCode):std::runtime_error(xpcfErrorCodeToMessageMap[errCode]),m_errCode(errCode)
@@ -55,6 +58,31 @@ AccessDeniedException::AccessDeniedException(const std::string & what):Exception
 {
 }
 
+IllegalStateException::IllegalStateException():Exception(XPCFErrorCode::_ERROR_ACCESS_DENIED)
+{
+}
+
+IllegalStateException::IllegalStateException(const char * what):Exception(what, XPCFErrorCode::_ERROR_ACCESS_DENIED)
+{
+}
+
+IllegalStateException::IllegalStateException(const std::string & what):Exception(what, XPCFErrorCode::_ERROR_ILLEGAL_STATE)
+{
+}
+
+ModuleException::ModuleException():Exception(XPCFErrorCode::_ERROR_MODULE_NOGETCOMPONENT)
+{
+}
+
+ModuleException::ModuleException(const char * what, XPCFErrorCode errCode):Exception(what, errCode)
+{
+}
+
+ModuleException::ModuleException(const std::string & what, XPCFErrorCode errCode):Exception(what, errCode)
+{
+}
+
+
 NotImplementedException::NotImplementedException():Exception(XPCFErrorCode::_ERROR_NOT_IMPLEMENTED)
 {
 }
@@ -67,16 +95,53 @@ NotImplementedException::NotImplementedException(const std::string & what):Excep
 {
 }
 
+NullPointerException::NullPointerException():Exception(XPCFErrorCode::_ERROR_NULL_POINTER)
+{
+}
+
+NullPointerException::NullPointerException(const char * what):Exception(what)
+{
+}
+
+NullPointerException::NullPointerException(const std::string & what):Exception(what)
+{
+}
+
+TimeoutException::TimeoutException():Exception(XPCFErrorCode::_ERROR_TIMEOUT)
+{
+}
+
+TimeoutException::TimeoutException(const char * what):Exception(what)
+{
+}
+
+TimeoutException::TimeoutException(const std::string & what):Exception(what)
+{
+}
+
+UUIDNotFoundException::UUIDNotFoundException(const uuids::uuid & uuid)
+    :UUIDNotFoundException("xpcf::UUIDNotFoundException: " + uuids::to_string(uuid))
+{
+}
+
+UUIDNotFoundException::UUIDNotFoundException(const char * what, XPCFErrorCode errCode):Exception(what, errCode)
+{
+}
+
+UUIDNotFoundException::UUIDNotFoundException(const std::string & what, XPCFErrorCode errCode):Exception(what, errCode)
+{
+}
+
 ComponentNotFoundException::ComponentNotFoundException(const uuids::uuid & componentUUID)
     :ComponentNotFoundException("xpcf::ComponentNotFoundException: " + uuids::to_string(componentUUID))
 {
 }
 
-ComponentNotFoundException::ComponentNotFoundException(const char * what):Exception(what, XPCFErrorCode::_ERROR_COMPONENT_UNKNOWN)
+ComponentNotFoundException::ComponentNotFoundException(const char * what):UUIDNotFoundException(what, XPCFErrorCode::_ERROR_COMPONENT_UNKNOWN)
 {
 }
 
-ComponentNotFoundException::ComponentNotFoundException(const std::string & what):Exception(what, XPCFErrorCode::_ERROR_COMPONENT_UNKNOWN)
+ComponentNotFoundException::ComponentNotFoundException(const std::string & what):UUIDNotFoundException(what, XPCFErrorCode::_ERROR_COMPONENT_UNKNOWN)
 {
 }
 
@@ -102,11 +167,11 @@ ModuleNotFoundException::ModuleNotFoundException(const uuids::uuid & moduleUUID)
 {
 }
 
-ModuleNotFoundException::ModuleNotFoundException(const char * what):Exception(what, XPCFErrorCode::_ERROR_MODULE_UNKNOWN)
+ModuleNotFoundException::ModuleNotFoundException(const char * what):UUIDNotFoundException(what, XPCFErrorCode::_ERROR_MODULE_UNKNOWN)
 {
 }
 
-ModuleNotFoundException::ModuleNotFoundException(const std::string & what):Exception(what, XPCFErrorCode::_ERROR_MODULE_UNKNOWN)
+ModuleNotFoundException::ModuleNotFoundException(const std::string & what):UUIDNotFoundException(what, XPCFErrorCode::_ERROR_MODULE_UNKNOWN)
 {
 }
 

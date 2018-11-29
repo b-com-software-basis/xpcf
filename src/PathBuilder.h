@@ -38,7 +38,7 @@ public:
     static fs::path replaceRootEnvVars(std::string sourcePath);
     static fs::path buildModuleFilePath(std::string moduleName, std::string filePath);
     static fs::path getHomePath();
-    static const char * getXPCFHomePath();
+    static fs::path getXPCFHomePath();
 };
 
 }}}

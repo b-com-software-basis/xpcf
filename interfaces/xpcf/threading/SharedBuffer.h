@@ -26,19 +26,21 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-template <class T>
-class SharedBuffer : public SharedFifo<T>
+template <class T, class NS = StdThreadedNamespace>
+class SharedBuffer : public SharedFifo<T,NS>
 {
 public:
-    SharedBuffer(unsigned long max, unsigned long startAt = 0) :
+    SharedBuffer(std::size_t max, std::size_t startAt = 0) :
         m_maxSize(max),
         m_bufferedStartOffset( max < startAt ? max : startAt),
-        m_started(startAt == 0 ? true : false) {}
+        m_started(startAt == 0 ? true : false) {
+        m_data.resize(m_maxSize);
+    }
     
     ~SharedBuffer() = default;
     
     virtual inline void push(const T & value) override {
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::unique_lock<typename NS::MutexType> lock(m_mutex);
 
         while(m_nbNotified >= m_maxSize) {
             m_condQueueNotFull.wait(lock);
@@ -57,18 +59,18 @@ public:
     }
 
 private:
-    unsigned long m_maxSize;
-    unsigned long m_bufferedStartOffset;
+    std::size_t m_maxSize;
+    std::size_t m_bufferedStartOffset;
     bool m_started = false;
-    std::condition_variable m_condQueueNotFull;
-    using SharedFifo<T>::m_condQueueNotEmpty;
-    using SharedFifo<T>::m_nbNotified;
-    using SharedFifo<T>::m_data;
-    using SharedFifo<T>::m_mutex;
+    typename NS::ConditionVariableType m_condQueueNotFull;
+    using SharedFifo<T,NS>::m_condQueueNotEmpty;
+    using SharedFifo<T,NS>::m_nbNotified;
+    using SharedFifo<T,NS>::m_data;
+    using SharedFifo<T,NS>::m_mutex;
 
     virtual inline void doPop( T& value ) override
     {
-        SharedFifo<T>::doPop(value);
+        SharedFifo<T,NS>::doPop(value);
         m_condQueueNotFull.notify_one();
     }
 };

@@ -20,8 +20,8 @@
  * @date 2017-03-07
  */
 
-#ifndef I0_h
-#define I0_h 1
+#ifndef IHUMAN_H
+#define IHUMAN_H 1
 
 #include "xpcf/api/IComponentIntrospect.h"
 /**
@@ -35,16 +35,16 @@
    * @note The InterfaceTraits<I0> template struct defines the I0 UUID and description.
    * It allows I0 users to use directly the I0 type instead of its UUID to bind the component to this interface.
    */
-class I0 : public virtual org::bcom::xpcf::IComponentIntrospect
+class IHuman : public virtual org::bcom::xpcf::IComponentIntrospect
 {
 
 public:
-    virtual ~I0() = default;
-    virtual void I0_opname () = 0;
-    virtual void I0_opname2 () = 0;
-    virtual void I0_opname3 () = 0;
-    virtual void I0_opname4 () = 0;
-    virtual void I0_opname5 () = 0;
+    virtual ~IHuman() = default;
+    virtual void play () = 0;
+    virtual void eat () = 0;
+    virtual void sleep () = 0;
+    virtual void kiss () = 0;
+    virtual void work () = 0;
 
 };
 
@@ -54,10 +54,11 @@ public:
    * The code below shows the instanciation of the InterfaceTraits template struct for I0 interface type.
    * The syntax is the full template instanciation syntax.
    */
-template <> struct org::bcom::xpcf::InterfaceTraits<::I0>
+template <> struct org::bcom::xpcf::InterfaceTraits<::IHuman>
 {
     static constexpr const char * UUID = "46333fd5-9eeb-4c9a-9912-b7df96ccf5fc";
-    static constexpr const char * DESCRIPTION = "I0 interface";
+    static constexpr const char * NAME = "IHuman";
+    static constexpr const char * DESCRIPTION = "provides human related methods";
 };
 
 

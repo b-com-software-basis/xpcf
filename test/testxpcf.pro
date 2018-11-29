@@ -1,7 +1,7 @@
 TARGET = testxpcf
 VERSION=1.0.0
 
-CONFIG += c++17
+CONFIG += c++1z
 CONFIG += console
 CONFIG -= qt
 
@@ -32,13 +32,18 @@ HEADERS += \
 SOURCES += \
     \   # xpcf_dynamic_test.cpp #\
     xpcf_properties_test.cpp \
-    xpcf_dynamic_test.cpp
+    xpcf_dynamic_test.cpp \
+    xpcf_threading_test.cpp
     #xpcf_dynamic_test_copy.cpp
  #   xpcf_in_code_test.cpp
 
 unix {
     QMAKE_CXXFLAGS += --coverage
     QMAKE_LFLAGS += --coverage
+}
+
+linux {
+    LIBS += -ldl
 }
 
 macx {

@@ -40,27 +40,25 @@ namespace org { namespace bcom { namespace xpcf {
 class XPCF_EXPORT_API ModuleMetadata : public InterfaceMetadata, public IModuleIndex
 {
 public:
-  ModuleMetadata() = delete;
-  ModuleMetadata(const char* name, const uuids::uuid& moduleID, const char *modulePath);
-  ModuleMetadata(const char* name, const char *moduleID, const char *modulePath);
-  virtual ~ModuleMetadata() override;
+    ModuleMetadata() = delete;
+    ModuleMetadata(const char* name, const uuids::uuid& moduleID, const char * description, const char *modulePath);
+    ModuleMetadata(const char* name, const char *moduleID, const char * description, const char *modulePath);
+    virtual ~ModuleMetadata() override;
 
-  void addComponent(const uuids::uuid& componentUUID);
-  const char *getPath() const { return m_modulePath.c_str(); }
-  inline fs::path getFullPath() const { return m_moduleFullPath; }
+    void addComponent(SPtr<ComponentMetadata> componentInfo);
+    void removeComponent(const uuids::uuid & componentUUID);
+    const char * getPath() const;
+    const fs::path & getFullPath() const;
 
-  uuids::uuid getComponent(uint32_t index) const override;
-  inline uint32_t getNbComponents() const override { return m_componentUUIDs.size(); }
-  const char * getComponentName(const uuids::uuid & componentUUID) const override;
-  void declareComponent(const char * uuid, const char * name) override;
-
+    const IEnumerable<uuids::uuid> & getComponents() const override;
+    const IEnumerable<SPtr<ComponentMetadata>> & getComponentsMetadata() const override;
+    SPtr<ComponentMetadata> getComponentMetadata(const uuids::uuid & componentUUID) const override;
+    void declareComponent(const char * uuid, const char * name, const char * description) override;
 
 private:
-  void setPath(const char* modulePath);
-  std::vector<uuids::uuid> m_componentUUIDs;
-  std::map<uuids::uuid, std::string> m_moduleComponentMap;
-  std::basic_string<char> m_modulePath;
-  fs::path m_moduleFullPath;
+    void setPath(const char* modulePath);
+    class ModuleMetadataImpl;
+    UniqueRef<ModuleMetadataImpl> m_pimpl;
 };
 
 }}} //namespace org::bcom::xpcf

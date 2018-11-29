@@ -124,16 +124,11 @@ XPCFErrorCode configureValue(string valueStr, SRef<IProperty> property,uint32_t 
                 property->setUnsignedLongValue(std::stoull(valueStr,nullptr,0), valueIndex);
             break;
         case IProperty::IProperty_FLOAT:
-        {
-                char* pEnd;
-                property->setFloatingValue(std::stof(valueStr,nullptr), valueIndex);
+             property->setFloatingValue(std::stof(valueStr,nullptr), valueIndex);
             break;
-        }
         case IProperty::IProperty_DOUBLE:
-        {       char* pEnd;
-                property->setDoubleValue(std::stod(valueStr,nullptr), valueIndex);
+            property->setDoubleValue(std::stod(valueStr,nullptr), valueIndex);
             break;
-        }
         case IProperty::IProperty_CHARSTR:
                 property->setStringValue(valueStr.c_str(), valueIndex);
             break;
@@ -212,7 +207,7 @@ XPCFErrorCode configureElement(tinyxml2::XMLElement *element, SRef<IPropertyMap>
     return XPCFErrorCode::_SUCCESS;
 }
 
-XPCFErrorCode PropertyManager::configure(const uuids::uuid & componentUUID, SRef<IComponentIntrospect> componentRef, const char * filepath)
+XPCFErrorCode configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredicate, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath)
 {
     //#1 load conf file
     //#2 find first configuration child node
@@ -236,9 +231,10 @@ XPCFErrorCode PropertyManager::configure(const uuids::uuid & componentUUID, SRef
             tinyxml2::XMLElement * xmlComponentElt = xmlConfigElt->FirstChildElement("component");
             while (xmlComponentElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
                 string uuid = xmlComponentElt->Attribute("uuid");
-                if (toUUID(uuid) == componentUUID) {
-                    SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
-                    result = configureElement(xmlComponentElt, iconf->getPropertyRootNode());
+                if (xmlNodePredicate(xmlComponentElt)) {
+                    if (toUUID(uuid) == componentUUID) {
+                        result = configureElement(xmlComponentElt, componentRef->getPropertyRootNode());
+                    }
                 }
                 xmlComponentElt = xmlComponentElt->NextSiblingElement("component");
             }
@@ -249,6 +245,45 @@ XPCFErrorCode PropertyManager::configure(const uuids::uuid & componentUUID, SRef
         }
     }
     return result;
+}
+
+XPCFErrorCode PropertyManager::configure(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath)
+{
+    std::function<bool(tinyxml2::XMLElement *)> unnamedPredicate = [](tinyxml2::XMLElement * element) {
+        const char * name = element->Attribute("name");
+        if (name == nullptr) {
+                return true;
+        }
+        return false;
+    };
+
+    return org::bcom::xpcf::configure(unnamedPredicate, componentUUID, componentRef, filepath);
+}
+
+
+XPCFErrorCode PropertyManager::configure(const char * instanceName, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath)
+{
+    //#1 load conf file
+    //#2 find first configuration child node
+    //#3 find matching component node
+    //#4 map parameter to inner parameter : NOTE : what happens if new param exists in file but not in implementation ?
+    if (instanceName == nullptr) {
+        return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
+    }
+
+    // NOTE : here we capture a const char pointer as the calling scope of the predicate is inside a function called within the method
+    // Otherwise, we should have made a copy of the string to distinguish the string lifecycle from the pointer lifecycle
+    std::function<bool(tinyxml2::XMLElement *)> namedPredicate = [instanceName](tinyxml2::XMLElement * element) {
+        const char * name = element->Attribute("name");
+        if (name != nullptr) {
+            if (!strcmp(name, instanceName)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    return org::bcom::xpcf::configure(namedPredicate, componentUUID, componentRef, filepath);
 }
 
 void serializeParameter(tinyxml2::XMLDocument & xmlDoc, tinyxml2::XMLElement * nodeElement,SRef<xpcf::IProperty> p)
@@ -318,7 +353,7 @@ void serializeParameter(tinyxml2::XMLDocument & xmlDoc, tinyxml2::XMLElement * n
     nodeElement->InsertEndChild(xmlPropertyElt);
 }
 
-XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef<IComponentIntrospect> componentRef, const char * filepath, uint32_t mode)
+XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath, uint32_t mode)
 {
 
     XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
@@ -340,8 +375,7 @@ XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef
         tinyxml2::XMLElement * xmlConfigurationElt = xmlDoc.NewElement("configuration");
         tinyxml2::XMLElement * xmlComponentElt = xmlDoc.NewElement("component");
         xmlComponentElt->SetAttribute("uuid", boost::uuids::to_string(componentUUID).c_str());
-        SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
-        for (auto property : iconf->getProperties()) {
+        for (auto property : componentRef->getProperties()) {
             serializeParameter(xmlDoc, xmlComponentElt, property);
         }
         xmlConfigurationElt->InsertEndChild(xmlComponentElt);

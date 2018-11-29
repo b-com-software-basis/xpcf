@@ -48,6 +48,12 @@ public:
     virtual ~IComponentManager() = default;
 
     /**
+     * Clear all previously loaded registries.
+     * @NOTE created components are not released, and their module counterparts are still loaded in memory.
+     */
+    virtual void clear() = 0;
+
+    /**
      * Search the registry file and load it with all the components
      * @return
      */
@@ -93,18 +99,12 @@ public:
      * @param [in]
      * @return
      */
-    virtual uint32_t getNbComponentMetadatas() const = 0;
+    virtual const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const = 0;
 
     /**
      *
      * @param [in]
-     * @return
-     */
-    virtual SPtr<ComponentMetadata> getComponentMetadata(uint32_t) const = 0;
-
-    /**
-     *
-     * @param [in]
+     * @throws ComponentNotFoundException
      * @return
      */
     virtual SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid &) const = 0;
@@ -112,22 +112,31 @@ public:
     /**
      *
      * @param [in]
+     * @throws ModuleNotFoundException
      * @return
      */
-    virtual uint32_t getNbInterfaceMetadatas() const = 0;
+    virtual uuids::uuid getModuleUUID(uuids::uuid componentUUID) const = 0;
 
+    /**
+     *
+     * @param [in]
+     * @throws ModuleNotFoundException
+     * @return
+     */
+    virtual SPtr<ModuleMetadata> findModuleMetadata(const uuids::uuid &) const = 0;
     /**
      *
      * @param [in]
      * @return
      */
-    virtual SPtr<InterfaceMetadata> getInterfaceMetadata(uint32_t) const = 0;
+    virtual const IEnumerable<SPtr<InterfaceMetadata>> & getInterfacesMetadata() const = 0;
 
     /**
-     *
+     * deprecatd ?? TODO : check
      * @param [in]
      * @return
      */
+    [[deprecated]]
     virtual SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid&) const = 0;
 
 };
@@ -135,7 +144,8 @@ public:
 template <> struct InterfaceTraits<IComponentManager>
 {
     static constexpr const char * UUID = "F3DBCB05-B8C6-47FB-BF80-E86D97DA46B8";
-    static constexpr const char * DESCRIPTION = "XPCF::IComponentManager interface";
+    static constexpr const char * NAME = "XPCF::IComponentManager";
+    static constexpr const char * DESCRIPTION = "Provides component factory facility to create components from modules declared in a registry";
 };
 
 template <class I>

@@ -29,18 +29,40 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-template <class T>
+template <typename T>
 class IEnumerable
 {
 public:
     virtual ~IEnumerable() = default;
+    virtual SRef<IEnumerator<T>> getEnumerator() const  = 0;
+    virtual SRef<IEnumerator<T>> getEnumerator(uint32_t offset, uint32_t chunkSize) const = 0;
     virtual uint32_t size() const = 0;
-    virtual Iterator<T> begin() = 0;
-    virtual Iterator<T> end() = 0;
-    virtual const Iterator<T> begin() const = 0;
-    virtual const Iterator<T> end() const = 0;
-
 };
+
+
+template <typename T>
+const Iterator<T> begin(const IEnumerable<T> & ref)
+{
+    return begin(ref.getEnumerator());
+}
+
+template <typename T>
+const Iterator<T> end(const IEnumerable<T> & ref)
+{
+    return end(ref.getEnumerator());
+}
+
+template <typename T>
+Iterator<T> begin(IEnumerable<T> & ref)
+{
+    return begin(ref.getEnumerator());
+}
+
+template <typename T>
+Iterator<T> end(IEnumerable<T> & ref)
+{
+    return end(ref.getEnumerator());
+}
 
 extern template class IEnumerable<uuids::uuid>;
 

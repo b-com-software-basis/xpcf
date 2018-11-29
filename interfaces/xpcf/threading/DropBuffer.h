@@ -19,40 +19,29 @@
  * @date 2018-07-10
  */
 
-#ifndef ORG_BCOM_XPCF_SHAREDCIRCULARBUFFER_HPP
-#define ORG_BCOM_XPCF_SHAREDCIRCULARBUFFER_HPP
+#ifndef ORG_BCOM_XPCF_DROPBUFFER_H
+#define ORG_BCOM_XPCF_DROPBUFFER_H
 
-#include "xpcf/threading/SharedFifo.h"
+#include "xpcf/threading/SharedLifo.h"
+
 
 namespace org { namespace bcom { namespace xpcf {
 
 template <class T, class NS = StdThreadedNamespace>
-class SharedCircularBuffer  : public SharedFifo<T,NS>
+class DropBuffer : public SharedLifo<T,NS>
 {
 public:
-    SharedCircularBuffer( unsigned int size )
-        : SharedFifo<T,NS>()
-        , m_pushCursor( 0 )
-        , m_popCursor( 0 )
-    {
-        m_data = std::deque<T>( size );
-    }
+    DropBuffer() = default;
+    ~DropBuffer() = default;
 
-    ~SharedCircularBuffer() = default;
-
-    virtual inline void push(const T & value) override
-    {
+    virtual inline void push(const T & value) override {
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
-        m_data[m_pushCursor] = value;
-        increaseCursor( m_pushCursor );
-        ++m_nbNotified;
-
-        if( m_nbNotified > m_data.size() )
-        {
-            increaseCursor(m_popCursor);
-            --m_nbNotified;
+        if (m_nbNotified > 0) {
+            m_data.clear();
+            m_nbNotified = 0;
         }
-
+        m_data.push_front(value);
+        m_nbNotified++;
         m_condQueueNotEmpty.notify_one();
     }
 
@@ -62,26 +51,19 @@ protected:
     using SharedFifo<T,NS>::m_data;
     using SharedFifo<T,NS>::m_mutex;
 
-    std::size_t m_pushCursor;
-    std::size_t m_popCursor;
-
-    inline void increaseCursor( std::size_t& cursor )
-    {
-        ++cursor;
-        if( cursor == m_data.size() )
-        {
-            cursor = 0;
-        }
-    }
 
     virtual inline void doPop( T& value )
     {
-        value = m_data[m_popCursor];
-        increaseCursor(m_popCursor);
-        --m_nbNotified;
+        value = m_data.front();
+        m_data.pop_front();
+        m_nbNotified--;
     }
 };
 
+template < class T, class NS = StdThreadedNamespace> SRef<IFifo<T>> createDropBuffer() {
+    return utils::make_shared<DropBuffer<T,NS>>();
+}
+
 }}}
 
-#endif //__SHAREDCIRCULARBUFFER_HPP__
+#endif

@@ -41,8 +41,8 @@ public:
     XPCFErrorCode saveModuleInformations(const char * xmlFilePath,
                                          const SPtr<ModuleMetadata> & moduleInfos) override;
     SRef<IComponentIntrospect> createComponent(SPtr<ModuleMetadata> moduleInfos, const uuids::uuid& componentUUID) override;
-
     void unloadComponent () override final;
+    void releaseModuleRef(const uuids::uuid& moduleUUID);
 
 private:
     ModuleManager();
@@ -50,7 +50,7 @@ private:
     ModuleManager(const ModuleManager&)= delete;
     ModuleManager& operator=(const ModuleManager&)= delete;
     void addModuleRef(const uuids::uuid& moduleUUID);
-    void releaseModuleRef(const uuids::uuid& moduleUUID);
+   // void releaseModuleRef(const uuids::uuid& moduleUUID);
     std::vector<SRef<InterfaceMetadata>> getComponentInterfaceList(SPtr<ModuleMetadata> moduleInfos,
                                                                    const uuids::uuid& componentUUID);
     static std::atomic<ModuleManager*> m_instance;

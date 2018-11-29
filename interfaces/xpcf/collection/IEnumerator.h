@@ -23,38 +23,48 @@
 
 #ifndef ORG_BCOM_XPCF_IENUMERATOR_H
 #define ORG_BCOM_XPCF_IENUMERATOR_H
+#include <iostream>
+
+#include "xpcf/core/refs.h"
 
 namespace org { namespace bcom { namespace xpcf {
 
-template <class T>
-class IEnumerator;
-// FOR range-based for usage ONLY
-template <class T>
+template <typename T>
+class IEnumerator {
+public:
+    virtual ~IEnumerator() = default;
+    virtual bool moveNext() = 0;
+    virtual void reset() = 0;
+    virtual T current() = 0;
+    virtual bool endReached() = 0;
+    virtual bool operator ==(IEnumerator<T> & it) const = 0;
+};
+
+template <typename T>
 class Iterator {
 public:
-    Iterator(IEnumerator<T> * enumerator):m_enumerator(enumerator) {}
-    Iterator(const Iterator<T> & it) {
-        this->m_enumerator = it.m_enumerator;
+    Iterator(SRef<IEnumerator<T>> enumerator):m_enumerator(enumerator) {}
+    Iterator(const Iterator<T> & it) = default;
+    Iterator(Iterator<T> && it) = default;
+    Iterator & operator=(const Iterator & other) = default;
+    Iterator & operator=(Iterator && other) = default;
+
+    using value_type = T;
+    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::input_iterator_tag ;
+    using pointer = T*;
+    using reference = T&;
+
+       difference_type operator- (Iterator const &rhs) const
+       {
+         return 0;//sm_it - rhs.m_it;
+       }
+    inline bool operator !=(const Iterator<T> & it) {
+      return !m_enumerator->endReached();
     }
 
-    Iterator(const Iterator<T> && it) {
-        this->m_enumerator = it.m_enumerator;
-    }
-
-    inline bool operator !=(Iterator<T> & it) {
-        //check underlying enumerator is the same, i.e. begin and end iterators come from the same enumerator
-        if (!(*this == it)) {
-            return true;
-        }
-        return !m_enumerator->endReached();
-    }
-
-    inline bool operator ==(Iterator<T> & it) {
-        //check underlying enumerator is the same, i.e. begin and end iterators come from the same enumerator
-        if (it.m_enumerator == m_enumerator) {
-            return true;
-        }
-        return false;
+    inline bool operator ==(const Iterator<T> & it) {
+      return m_enumerator == it.m_enumerator;
     }
 
     inline T operator*() {
@@ -65,27 +75,23 @@ public:
         m_enumerator->moveNext();
     }
 
-    inline void operator = (const Iterator<T> & it) {
-        this->m_endReached = it.m_endReached;
-        this->m_enumerator = it.m_enumerator;
-    }
-
 private:
-    IEnumerator<T> * m_enumerator;
+    SRef<IEnumerator<T>> m_enumerator;
 };
 
-template <class T>
-class IEnumerator { //: public virtual IComponentIntrospect {
-public:
-    virtual ~IEnumerator() = default;
-    virtual bool moveNext() = 0;
-    virtual void reset() = 0;
-    virtual T current() = 0;
-    virtual bool endReached() = 0;
-    virtual Iterator<T> begin() = 0;
-    virtual Iterator<T> end() = 0;
+template <typename T>
+Iterator<T> begin(SRef<IEnumerator<T>> ref)
+{
+    ref->reset();
+    ref->moveNext();
+    return Iterator<T>(ref);
+}
 
-};
+template <typename T>
+Iterator<T> end(SRef<IEnumerator<T>> ref)
+{
+    return Iterator<T>(ref);
+}
 
 }}}
 

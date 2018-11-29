@@ -26,7 +26,9 @@
 
 #include "xpcf/xpcf_api_define.h"
 #include "xpcf/core/uuid.h"
+#include "xpcf/core/refs.h"
 #include "xpcf/api/InterfaceMetadata.h"
+#include "xpcf/collection/IEnumerable.h"
 
 #include <boost/filesystem.hpp>
 
@@ -38,28 +40,32 @@ namespace org { namespace bcom { namespace xpcf {
 
 class XPCF_EXPORT_API ComponentMetadata : public InterfaceMetadata {
 public:
-  ComponentMetadata() = delete;
-  ComponentMetadata(const char* name, const uuids::uuid& componentID,
-                    const uuids::uuid& moduleUUID, const char * configFilePath);
-  ComponentMetadata(const char* name, const char *componentID, const char *moduleUUID, const char * configFilePath);
-  virtual ~ComponentMetadata();
+    ComponentMetadata() = delete;
+    ComponentMetadata(const ComponentMetadata & other);
+    ComponentMetadata(ComponentMetadata && other);
+    ComponentMetadata(const char* name, const uuids::uuid& componentID, const char* description);
+    ComponentMetadata(const char* name, const char *componentID, const char* description);
+    virtual ~ComponentMetadata();
 
-  void addInterface(const uuids::uuid& interfaceUUID);
-  uuids::uuid getInterface(int i) const;
-  int getNbInterfaces() const;
+    void addInterface(const uuids::uuid& interfaceUUID);
+    const IEnumerable<uuids::uuid> & getInterfaces() const;
 
-  uuids::uuid getModuleUUID() const;
-  const char *getConfigPath() const { return m_configPath.c_str(); }
-  inline fs::path getFullConfigPath() const { return m_configFullPath; }
+    ComponentMetadata& operator=(const ComponentMetadata & other);
+    ComponentMetadata& operator=(ComponentMetadata && other);
+    bool operator==(const ComponentMetadata & other);
 
 private:
-  void setPath(const char* path);
-  void setModuleUUID(const char * moduleUUID);
-  std::basic_string<char> m_configPath;
-  fs::path m_configFullPath;
-  std::vector<uuids::uuid> m_interfaceUUIDs;
-  uuids::uuid m_moduleUUID;
+    class ComponentMetadataImpl;
+    UniqueRef<ComponentMetadataImpl> m_pimpl;
+
 };
+
+
+//template<typename C>
+//struct inferTrait<ComponentMetadata, C>
+//{
+//    typedef ComponentTraits<C> InnerType;
+//};
 
 }}} //namespace org::bcom::xpcf
 

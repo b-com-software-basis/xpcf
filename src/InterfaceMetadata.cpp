@@ -27,16 +27,92 @@ namespace org { namespace bcom { namespace xpcf {
 
 using namespace uuids;
 
-InterfaceMetadata::InterfaceMetadata(const char* name, const uuid& interfaceUUID):m_description(name), m_uuid(interfaceUUID)
+
+class InterfaceMetadata::InterfaceMetadataImpl {
+public:
+    InterfaceMetadataImpl(const char * name, const uuids::uuid& interfaceUUID, const char * description);
+    InterfaceMetadataImpl(const char * name, const char * interfaceUUID, const char * description);
+    std::basic_string<char> m_name;
+    std::basic_string<char> m_description;
+    uuids::uuid m_uuid;
+    void setUUID(const char * elementUUID);
+};
+
+InterfaceMetadata::InterfaceMetadata(const char* name, const uuid& interfaceUUID, const char * description):
+    m_pimpl(new InterfaceMetadataImpl(name,interfaceUUID,description))
 {
 }
 
-InterfaceMetadata::InterfaceMetadata(const char* name, const char * interfaceUUID):m_description(name)
+InterfaceMetadata::InterfaceMetadata(const char* name, const char * interfaceUUID, const char * description):
+    m_pimpl(new InterfaceMetadataImpl(name,interfaceUUID,description))
+{
+}
+
+InterfaceMetadata::InterfaceMetadata(const InterfaceMetadata & other)
+{
+    m_pimpl = unixpcf::make_unique<InterfaceMetadataImpl>(other.name(),other.getUUID(),other.description());
+}
+
+InterfaceMetadata::InterfaceMetadata(InterfaceMetadata && other)
+{
+    this->m_pimpl = std::move(other.m_pimpl);
+}
+
+InterfaceMetadata::~InterfaceMetadata()
+{
+}
+
+const char * InterfaceMetadata::name() const
+{
+    return m_pimpl->m_name.c_str();
+}
+
+const char * InterfaceMetadata::description() const
+{
+    return m_pimpl->m_description.c_str();
+}
+
+uuids::uuid InterfaceMetadata::getUUID() const
+{
+    return m_pimpl->m_uuid;
+}
+
+InterfaceMetadata & InterfaceMetadata::operator=(const InterfaceMetadata & other)
+{
+    m_pimpl->m_description = other.description();
+    m_pimpl->m_name = other.name();
+    m_pimpl->m_uuid = other.getUUID();
+    return * this;
+}
+
+InterfaceMetadata & InterfaceMetadata::operator=(InterfaceMetadata && other)
+{
+    this->m_pimpl = std::move(other.m_pimpl);
+    return * this;
+}
+
+bool InterfaceMetadata::operator==(const InterfaceMetadata & c)
+{
+    if ((strcmp(c.description(),this->description()) ==0) &&
+            c.getUUID() == this->getUUID() &&
+            (strcmp(c.name(),this->name()) ==0)) {
+        return true;
+    }
+    return false;
+}
+
+InterfaceMetadata::InterfaceMetadataImpl::InterfaceMetadataImpl(const char * name, const uuids::uuid& interfaceUUID, const char * description):
+    m_name(name),m_uuid(interfaceUUID),m_description(description)
+{
+}
+
+InterfaceMetadata::InterfaceMetadataImpl::InterfaceMetadataImpl(const char * name, const char * interfaceUUID, const char * description):
+    m_name(name),m_description(description)
 {
     setUUID(interfaceUUID);
 }
 
-void InterfaceMetadata::setUUID(const char *elementUUID)
+void InterfaceMetadata::InterfaceMetadataImpl::setUUID(const char *elementUUID)
 {
     if (elementUUID != nullptr) {
         string_generator gen;

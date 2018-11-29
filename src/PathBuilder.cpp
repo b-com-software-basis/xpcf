@@ -96,33 +96,39 @@ fs::path PathBuilder::buildModuleFilePath(std::string moduleName, std::string fi
 
 fs::path PathBuilder::getHomePath()
 {
+    char * homePathStr;
     fs::path homePath;
 #ifdef WIN32
-    homePath = getenv("USERPROFILE");
-    if (homePath == nullptr) {
-        homePath = getenv("HOMEDRIVE");
-        homePath /= getenv("HOMEPATH");
+    homePathStr = getenv("USERPROFILE");
+    if (homePathStr == nullptr) {
+        homePathStr = getenv("HOMEDRIVE");
+        if (homePathStr) {
+            homePath = getUTF8PathObserver(homePathStr);
+            homePath /= getenv("HOMEPATH");
+        }
+    }
+    else {
+        homePath = getUTF8PathObserver(homePathStr);
     }
 #else
     struct passwd* pwd = getpwuid(getuid());
     if (pwd) {
-        homePath = pwd->pw_dir;
+        homePathStr = pwd->pw_dir;
     }
     else {
         // try the $HOME environment variable
-        homePath = getenv("HOME");
+        homePathStr = getenv("HOME");
     }
-    fs::detail::utf8_codecvt_facet utf8;
+    homePath = getUTF8PathObserver(homePathStr);
 #endif
     return homePath;
 }
 
-const char * PathBuilder::getXPCFHomePath()
+fs::path PathBuilder::getXPCFHomePath()
 {
     fs::path xpcfHomePath = getHomePath();
     xpcfHomePath /= ".xpcf";
-    fs::detail::utf8_codecvt_facet utf8;
-    return xpcfHomePath.generic_string(utf8).c_str();
+    return xpcfHomePath;
 }
 
 }}}

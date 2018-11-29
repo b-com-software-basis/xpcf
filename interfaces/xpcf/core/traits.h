@@ -14,7 +14,7 @@ template < typename T >
 inline uuids::uuid toUUID()
 {
     static_assert(is_interface<T>::value || is_component<T>::value,
-                  "Type passed to toUUID is neither a component nor an interface"
+                  "Type passed to toUUID is neither a component nor an interface "
                   "or [Interface/Component]Traits not defined for T !!");
     std::string uuidString;
     if (is_interface<T>::value) {
@@ -28,15 +28,17 @@ inline uuids::uuid toUUID()
 
 template <typename T> std::map<std::string,std::string> toMap() {
     static_assert(is_interface<T>::value || is_component<T>::value,
-                  "Type passed to toMap is neither a component nor an interface"
+                  "Type passed to toMap is neither a component nor an interface "
                   "or [Interface/Component]Traits not defined for T !!");
     std::map<std::string,std::string> traitMap;
     if (is_interface<T>::value) {
         traitMap["UUID"] = InterfaceTraits<T>::UUID;
+        traitMap["NAME"] = ComponentTraits<T>::NAME;
         traitMap["DESCRIPTION"] = InterfaceTraits<T>::DESCRIPTION;
     }
     if (is_component<T>::value) {
         traitMap["UUID"] = ComponentTraits<T>::UUID;
+        traitMap["NAME"] = ComponentTraits<T>::NAME;
         traitMap["DESCRIPTION"] = ComponentTraits<T>::DESCRIPTION;
     }
     return traitMap;
@@ -45,17 +47,19 @@ template <typename T> std::map<std::string,std::string> toMap() {
 }}}
 
 
-#define XPCF_DEFINE_INTERFACE_TRAITS(fullComponentType,uuidString,descriptionString) \
+#define XPCF_DEFINE_INTERFACE_TRAITS(fullComponentType,uuidString,nameString,descriptionString) \
 template <> struct org::bcom::xpcf::InterfaceTraits<fullComponentType> \
 { \
     static constexpr const char * UUID = uuidString; \
+    static constexpr const char * NAME = nameString; \
     static constexpr const char * DESCRIPTION = descriptionString; \
 };
 
-#define XPCF_DEFINE_COMPONENT_TRAITS(fullComponentType,uuidString,descriptionString) \
+#define XPCF_DEFINE_COMPONENT_TRAITS(fullComponentType,uuidString,nameString,descriptionString) \
 template <> struct org::bcom::xpcf::ComponentTraits<fullComponentType> \
 { \
     static constexpr const char * UUID = uuidString; \
+    static constexpr const char * NAME = nameString; \
     static constexpr const char * DESCRIPTION = descriptionString; \
 };
 

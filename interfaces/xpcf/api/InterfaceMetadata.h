@@ -25,25 +25,54 @@
 
 #include "xpcf/core/uuid.h"
 #include "xpcf/xpcf_api_define.h"
+#include "xpcf/core/refs.h"
+#include "xpcf/core/traits.h"
 
 namespace org { namespace bcom { namespace xpcf {
 
 class XPCF_EXPORT_API InterfaceMetadata {
 public:
     InterfaceMetadata() = delete;
-    InterfaceMetadata(const char * name, const uuids::uuid& interfaceUUID);
-    InterfaceMetadata(const char * name, const char * interfaceUUID);
-    virtual ~InterfaceMetadata() = default;
+    InterfaceMetadata(const InterfaceMetadata & other);
+    InterfaceMetadata(InterfaceMetadata && other);
+    InterfaceMetadata(const char * name, const uuids::uuid& interfaceUUID, const char * description);
+    InterfaceMetadata(const char * name, const char * interfaceUUID, const char * description);
+    virtual ~InterfaceMetadata();
+    const char * name() const;
+    const char * description() const;
+    uuids::uuid getUUID() const;
 
-    inline const char * getDescription() const { return m_description.c_str(); }
-
-    inline uuids::uuid getUUID() const { return m_uuid; }
+    InterfaceMetadata & operator=(const InterfaceMetadata & other);
+    InterfaceMetadata & operator=(InterfaceMetadata && other);
+    bool operator==(const InterfaceMetadata & other);
 
 private:
-    void setUUID(const char * elementUUID);
-    std::basic_string<char> m_description;
-    uuids::uuid m_uuid;
+    class InterfaceMetadataImpl;
+    UniqueRef<InterfaceMetadataImpl> m_pimpl;
 };
+
+
+template<typename M, typename C>
+struct inferTrait
+{
+};
+
+template<typename C>
+struct inferTrait<InterfaceMetadata,C>
+{
+    typedef InterfaceTraits<C> InnerType;
+};
+
+template <typename M, typename C, typename T = typename inferTrait<M,C>::InnerType>
+M to_metadata()
+{
+    static_assert(is_interface<C>::value || is_component<C>::value,
+                  "Type passed to to_metadata is not an interface neither a component"
+                  "or Traits not defined !!");
+    return M( T::NAME, toUUID<T::UUID>(), T::DESCRIPTION);
+}
+
+
 
 }}} //namespace org::bcom::xpcf
 

@@ -41,6 +41,8 @@ typedef enum {
     _ERROR_SYSTEM  = -24, /**<  */
     _ERROR_UNKNOWN  = -25, /**<  */
     _ERROR_ACCESS_DENIED  = -26, /**<  */
+    _ERROR_TIMEOUT = -27, /**<  */
+    _ERROR_ILLEGAL_STATE = -28, /**<  */
     _ERROR_COMPONENT_UNKNOWN = -30,
     _ERROR_INTERFACE_UNKNOWN = -40,
     _ERROR_MODULE_UNKNOWN = -50,

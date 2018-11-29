@@ -48,6 +48,15 @@ public:
     virtual XPCFErrorCode configure(const char * filepath, const char * xpath) = 0;
 
     /**
+     * onConfigured is called after configuration step has occurred.
+     * It can be overriden in concrete components to add post-configuration code,
+     * for instance code that relies on xml properties.
+     * @return XPCFErrorCode::_SUCCESS upon successfull completion, one of the other
+     * XPCFErrorCode error otherwise (it's up to the component implementation to return appropriate error code).
+     */
+    virtual XPCFErrorCode onConfigured() = 0;
+
+    /**
      *
      * @param [in] filepath
      * @param [in] mode append, create
@@ -86,12 +95,20 @@ public:
      */
     virtual const IEnumerable<SRef<IProperty>> & getProperties() const = 0;
 
+    /**
+     * Retrieve an enumerator above properties contained in the propertyRootNode.
+     *
+     * @return the properties' enumerator
+     */
+    virtual SRef<IEnumerator<SRef<IProperty>>> getPropertiesEnumerator() const = 0;
+
 };
 
 template <> struct InterfaceTraits<IConfigurable>
 {
     static constexpr const char * UUID = "98DBA14F-6EF9-462E-A387-34756B4CBA80";
-    static constexpr const char * DESCRIPTION = "XPCF::IConfigurable interface";
+    static constexpr const char * NAME = "XPCF::IConfigurable";
+    static constexpr const char * DESCRIPTION = "Provides generic configuration ability to any component through metadata parameters";
 };
 
 }}}

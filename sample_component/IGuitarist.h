@@ -20,25 +20,26 @@
  * @date 2017-03-07
  */
 
-#ifndef I2_H
-#define I2_H
-#include "I1.h"
+#ifndef IGUITARIST_H
+#define IGUITARIST_H
+#include "IMusician.h"
 
 /**
  *  @ingroup interfaces
  */
-class I2 : public virtual I1
+class IGuitarist : public virtual IMusician
 {
 public:
-    virtual ~I2() = default;
-    virtual void I2_opname () = 0;
-    virtual void I2_opname2 () = 0;
+    virtual ~IGuitarist() = default;
+    virtual void playSolo () = 0;
+    virtual void playRhythm () = 0;
 };
 
-template <> struct org::bcom::xpcf::InterfaceTraits<I2>
+template <> struct org::bcom::xpcf::InterfaceTraits<IGuitarist>
 {
     static constexpr const char * UUID = "41348765-1017-47a7-ab9F-6b59d39e4b95";
-    static constexpr const char * DESCRIPTION = "I2 interface";
- };
+    static constexpr const char * NAME = "IGuitarist";
+    static constexpr const char * DESCRIPTION = "provides guitar player specific methods";
+};
 
-#endif // I2_H
+#endif // IGUITARIST_H

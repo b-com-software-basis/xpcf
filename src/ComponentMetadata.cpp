@@ -22,7 +22,7 @@
 
 #include "xpcf/api/ComponentMetadata.h"
 #include "PathBuilder.h"
-
+#include "Collection.h"
 #include <string.h>
 
 #include <boost/uuid/uuid_generators.hpp>
@@ -33,62 +33,76 @@ namespace org { namespace bcom { namespace xpcf {
 
 using namespace uuids;
 
-ComponentMetadata::ComponentMetadata(const char* name, const uuid& componentID, const uuid& moduleUUID, const char * configFilePath):InterfaceMetadata(name, componentID), m_moduleUUID(moduleUUID)
-{
 
-    setPath(configFilePath);
+class ComponentMetadata::ComponentMetadataImpl {
+public:
+    ComponentMetadataImpl() = default;
+    ComponentMetadataImpl(const ComponentMetadataImpl & copy ) = default;
+    Collection<uuids::uuid,std::vector> m_interfaceUUIDs;
+};
+
+
+ComponentMetadata::ComponentMetadata(const char* name, const uuid& componentID, const char* description):
+    InterfaceMetadata(name, componentID, description),m_pimpl(new ComponentMetadataImpl())
+{
 }
 
-ComponentMetadata::ComponentMetadata(const char *name, const char *componentID, const char *moduleUUID,  const char * configFilePath):InterfaceMetadata(name, componentID)
+ComponentMetadata::ComponentMetadata(const char *name, const char *componentID, const char* description):
+    InterfaceMetadata(name, componentID, description),m_pimpl(new ComponentMetadataImpl())
 {
+}
 
-    setPath(configFilePath);
-    setModuleUUID(moduleUUID);
+ComponentMetadata::ComponentMetadata(const ComponentMetadata & copy):InterfaceMetadata (copy),m_pimpl(new ComponentMetadataImpl())
+{
+    for (auto i : copy.getInterfaces()) {
+        m_pimpl->m_interfaceUUIDs.add(i);
+    }
+}
+
+ComponentMetadata::ComponentMetadata(ComponentMetadata && other):InterfaceMetadata (other)
+{
+    this->m_pimpl = std::move(other.m_pimpl);
 }
 
 ComponentMetadata::~ComponentMetadata()
 {
 }
 
-void ComponentMetadata::setPath(const char* path)
+ComponentMetadata & ComponentMetadata::operator=(const ComponentMetadata & copy)
 {
-    if (path != nullptr) {
-        m_configPath = path;
+    InterfaceMetadata::operator=(copy);
+    m_pimpl->m_interfaceUUIDs.clear();
+    for (auto i : copy.getInterfaces()) {
+        m_pimpl->m_interfaceUUIDs.add(i);
     }
-    m_configFullPath =PathBuilder::replaceRootEnvVars(path);
-    if ( !boost::filesystem::exists( m_configFullPath ) )
-    {
-        //std::cout<<"Error : Module not found at : "<<m_moduleFullPath.c_str()<<std::endl;
-    }
+    return *this;
 }
 
-void ComponentMetadata::setModuleUUID(const char* moduleUUID)
+ComponentMetadata& ComponentMetadata::operator=(ComponentMetadata && other)
 {
-    if (moduleUUID != nullptr) {
-        string_generator gen;
-        m_moduleUUID = gen(moduleUUID);
-    }
+    this->InterfaceMetadata::operator=(other);
+    this->m_pimpl = std::move(other.m_pimpl);
+    return *this;
 }
 
+bool ComponentMetadata::operator==(const ComponentMetadata & c)
+{
+    if ((strcmp(c.description(),this->description()) ==0) &&
+            c.getUUID() == this->getUUID() &&
+            (strcmp(c.name(),this->name()) ==0)) {
+        return true;
+    }
+    return false;
+}
 
 void ComponentMetadata::addInterface(const uuid& interfaceUUID)
 {
-    m_interfaceUUIDs.push_back(interfaceUUID);
+    m_pimpl->m_interfaceUUIDs.add(interfaceUUID);
 }
 
-uuid ComponentMetadata::getInterface(int i) const
+const IEnumerable<uuids::uuid> & ComponentMetadata::getInterfaces() const
 {
-    return m_interfaceUUIDs[i];
-}
-
-int ComponentMetadata::getNbInterfaces() const
-{
-    return m_interfaceUUIDs.size();
-}
-
-uuid ComponentMetadata::getModuleUUID() const
-{
-    return m_moduleUUID;
+    return m_pimpl->m_interfaceUUIDs;
 }
 
 }}} //namespace org::bcom::xpcf

@@ -18,18 +18,18 @@ DEFINES += BOOST_ALL_NO_LIB
 DEFINES += BOOST_ALL_DYN_LINK
 
 SOURCES += \
-    C0.cpp \
-    C1.cpp \
-    xpcfSampleComponent_main.cpp
+    xpcfSampleComponent_main.cpp \
+    HumanMusician.cpp \
+    VirtualGuitarist.cpp
 
 HEADERS += \
-    C0.h \
-    I0.h \
-    I1.h \
-    I2.h \
     xpcfSampleComponentAPI.h \
     xpcfSampleComponent_traits.h \
-    C1.h
+    IHuman.h \
+    IMusician.h \
+    IGuitarist.h \
+    HumanMusician.h \
+    VirtualGuitarist.h
  
 unix {
 }

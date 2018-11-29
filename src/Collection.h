@@ -25,6 +25,7 @@
 
 #include "xpcf/collection/ICollection.h"
 #include "Enumerator.h"
+#include "BlockEnumerator.h"
 #include <algorithm>
 
 namespace org { namespace bcom { namespace xpcf {
@@ -45,15 +46,17 @@ public:
     bool remove(T value) override;
 
     // IEnumerable
-    Iterator<T> begin() override;
-    Iterator<T>  end() override;
-    const Iterator<T>  begin() const override;
-    const Iterator<T>  end() const override;
+    SRef<IEnumerator<T>> getEnumerator() const override;
+    SRef<IEnumerator<T>> getEnumerator(uint32_t offset, uint32_t chunkSize) const override;
+
+    template <class B>
+    UniqueRef<IEnumerator<B>> getEnumerator() const;
 
     uint32_t size() const override;
+    //    void unloadComponent() override final;
 
 private:
-    S<T, ::std::allocator<T>> m_sequence;
+    mutable S<T, ::std::allocator<T>> m_sequence;
     UniqueRef<IEnumerator<T>> m_enumerator;
 };
 
@@ -83,31 +86,26 @@ inline bool Collection<T, S>::remove(T value)
 }
 
 template <class T, template<typename, typename> class S>
-inline Iterator<T>  Collection<T, S>::begin()
+inline SRef<IEnumerator<T>> Collection<T, S>::getEnumerator() const
 {
-    m_enumerator->reset();
-    m_enumerator->moveNext();
-    return Iterator<T>(m_enumerator.get());
+    return utils::make_shared<Enumerator<T,S>>(m_sequence);
 }
 
 template <class T, template<typename, typename> class S>
-inline Iterator<T>  Collection<T, S>::end()
+inline SRef<IEnumerator<T>> Collection<T, S>::getEnumerator(uint32_t offset, uint32_t chunkSize) const
 {
-    return Iterator<T>(m_enumerator.get());
+    return utils::make_shared<BlockEnumerator<T,S>>(m_sequence,offset,chunkSize);
 }
 
 template <class T, template<typename, typename> class S>
-inline const Iterator<T>  Collection<T, S>::begin() const
+template <class B>
+inline UniqueRef<IEnumerator<B>> Collection<T, S>::getEnumerator() const
 {
-    m_enumerator->reset();
-    m_enumerator->moveNext();
-    return Iterator<T>(m_enumerator.get());
-}
-
-template <class T, template<typename, typename> class S>
-inline const Iterator<T>  Collection<T, S>::end() const
-{
-    return Iterator<T>(m_enumerator.get());
+    //return unixpcf::make_unique<Enumerator<T,S>>(m_sequence);
+    UniqueRef<IEnumerator<B>> ref;
+    Enumerator<B, S> * penum = new Enumerator<B, S>(m_sequence);
+    ref.reset(penum);
+    return ref;
 }
 
 
@@ -133,15 +131,17 @@ public:
     bool remove(const char * value) override;
 
     // IEnumerable
-    Iterator<const char*> begin() override;
-    Iterator<const char*> end() override;
-    const Iterator<const char*> begin() const override;
-    const Iterator<const char*> end() const override;
+    SRef<IEnumerator<const char *>> getEnumerator() const override;
+    SRef<IEnumerator<const char *>> getEnumerator(uint32_t offset, uint32_t chunkSize) const override;
+
+    template <class B>
+    UniqueRef<IEnumerator<B>> getEnumerator() const;
 
     uint32_t size() const override;
+    //    void unloadComponent() override final;
 
 private:
-    S<std::string, ::std::allocator<std::string>> m_sequence;
+    mutable S<std::string, ::std::allocator<std::string>> m_sequence;
     UniqueRef<IEnumerator<const char *>> m_enumerator;
 };
 
@@ -171,32 +171,27 @@ inline bool Collection<const char *, S>::remove(const char * value)
     return true;
 }
 
-template < template<typename, typename> class S>
-inline Iterator<const char*> Collection<const char *, S>::begin()
+template <template<typename, typename> class S>
+inline SRef<IEnumerator<const char *>> Collection<const char *, S>::getEnumerator() const
 {
-    m_enumerator->reset();
-    m_enumerator->moveNext();
-    return Iterator<const char*>(m_enumerator.get());;
+    return utils::make_shared<Enumerator<const char *,S>>(m_sequence);
 }
 
 template <template<typename, typename> class S>
-inline Iterator<const char*> Collection<const char *, S>::end()
+inline SRef<IEnumerator<const char *>> Collection<const char *, S>::getEnumerator(uint32_t offset, uint32_t chunkSize) const
 {
-    return Iterator<const char*>(m_enumerator.get());
-}
-
-template < template<typename, typename> class S>
-inline const Iterator<const char*> Collection<const char *, S>::begin() const
-{
-    m_enumerator->reset();
-    m_enumerator->moveNext();
-    return Iterator<const char*>(m_enumerator.get());
+    return utils::make_shared<BlockEnumerator<const char *,S>>(m_sequence,offset,chunkSize);
 }
 
 template <template<typename, typename> class S>
-inline  const Iterator<const char*> Collection<const char *, S>::end() const
+template <class B>
+inline UniqueRef<IEnumerator<B>> Collection<const char *, S>::getEnumerator() const
 {
-    return Iterator<const char*>(m_enumerator.get());
+    //return unixpcf::make_unique<Enumerator<T,S>>(m_sequence);
+    UniqueRef<IEnumerator<B>> ref;
+    Enumerator<B, S> * penum = new Enumerator<B, S>(m_sequence);
+    ref.reset(penum);
+    return ref;
 }
 
 template <template<typename, typename> class S>

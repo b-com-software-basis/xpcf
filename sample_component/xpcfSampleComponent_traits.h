@@ -42,26 +42,27 @@
  */
 
 namespace component {
-    class C0;
-    class C1;
+    class HumanMusician;
+    class VirtualGuitarist;
 }
 
 /**
-   * @struct ComponentTraits<C0> instanciation
-   * The code below shows the instanciation of the ComponentTraits template struct for C0 type.
+   * @struct ComponentTraits<HumanMusician> instanciation
+   * The code below shows the instanciation of the ComponentTraits template struct for HumanMusician type.
    * The syntax is the full template instanciation syntax.
    * It only requires "ComponentTraits.h" inclusion.
    */
-template <> struct org::bcom::xpcf::ComponentTraits<component::C0>
+template <> struct org::bcom::xpcf::ComponentTraits<component::HumanMusician>
 {
     static constexpr const char * UUID = "ae9d10bb-4bd1-462b-8c01-43f1815c6ae0";
-    static constexpr const char * DESCRIPTION = "C0 component - not configurable";
+    static constexpr const char * NAME = "HumanMusician component - not configurable";
+    static constexpr const char * DESCRIPTION = "HumanMusician is not Configurable, it implements I0 and I1 interfaces";
 };
 
 
 /**
-   * @struct ComponentTraits<C1> instanciation
-   * The code below shows the instanciation of the ComponentTraits template struct for C1 type.
+   * @struct ComponentTraits<VirtualGuitarist> instanciation
+   * The code below shows the instanciation of the ComponentTraits template struct for VirtualGuitarist type.
    * The syntax uses the XPCF_DEFINE_COMPONENT_TRAITS helper macro.
    * It requires "traits.h" inclusion.
    *
@@ -69,9 +70,10 @@ template <> struct org::bcom::xpcf::ComponentTraits<component::C0>
    * thus can lead to misunderstanding upon later compilation issues (typically when the XXX_traits.h header inclusion is forgotten).
    */
 #include "xpcf/core/traits.h"
-XPCF_DEFINE_COMPONENT_TRAITS(component::C1,
+XPCF_DEFINE_COMPONENT_TRAITS(component::VirtualGuitarist,
                              "63FF193D-93E6-4EDE-9947-22F864AC843F",
-                             "C1 component - configurable");
+                             "VirtualGuitarist component",
+                             "VirtualGuitarist implements IConfigurable, I2 and I1 interfaces");
 
 /** @}*/
 #endif

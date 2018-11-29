@@ -74,32 +74,40 @@ void ModuleManager::unloadComponent ()
 {
 }
 
-
 SPtr<ModuleMetadata> ModuleManager::introspectModule(const char* moduleName, const char* moduleFilePath)
 {
     SPtr<ModuleMetadata> moduleInfos;
     fs::path filePath = PathBuilder::buildModuleFilePath(moduleName, moduleFilePath);
-    boost::function<const char* (void)> getModuleUUID = boost::dll::import<const char * (void)>(
-                filePath, XPCF_GETMODULEUUID, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
-                );
-    boost::function<const char* (void)> getModuleName = boost::dll::import<const char * (void)>(
-                filePath, XPCF_GETMODULENAME, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
-                );
-    boost::function<void (SRef<IModuleIndex>)> getModuleIndex = boost::dll::import<void (SRef<IModuleIndex>)>(
-                filePath, XPCF_GETMODULEINDEX, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
-                );
-    if (getModuleUUID && getModuleName && getModuleIndex) {
-        std::string moduleUUIDStr = getModuleUUID();
-        std::string moduleName = getModuleName();
-        xpcf::uuids::uuid moduleUUID = toUUID(moduleUUIDStr.c_str());
-        if (m_moduleMap.find(moduleUUID) == m_moduleMap.end()) {
-            moduleInfos = utils::make_shared<ModuleMetadata>(moduleName.c_str(), moduleUUIDStr.c_str(), moduleFilePath);
-            getModuleIndex(moduleInfos);
-            m_moduleMap[moduleUUID] = moduleInfos;
+    try {
+        boost::function<const char* (void)> getModuleUUID = boost::dll::import<const char * (void)>(
+                    filePath, XPCF_GETMODULEUUID, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
+                    );
+        boost::function<const char* (void)> getModuleName = boost::dll::import<const char * (void)>(
+                    filePath, XPCF_GETMODULENAME, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
+                    );
+        boost::function<const char* (void)> getModuleDescription = boost::dll::import<const char * (void)>(
+                    filePath, XPCF_GETMODULEDESCRIPTION, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
+                    );
+        boost::function<void (SRef<IModuleIndex>)> getModuleIndex = boost::dll::import<void (SRef<IModuleIndex>)>(
+                    filePath, XPCF_GETMODULEINDEX, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
+                    );
+        if (getModuleUUID && getModuleName && getModuleIndex) {
+            std::string moduleUUIDStr = getModuleUUID();
+            std::string moduleName = getModuleName();
+            std::string moduleDescription = getModuleDescription();
+            xpcf::uuids::uuid moduleUUID = toUUID(moduleUUIDStr.c_str());
+            if (m_moduleMap.find(moduleUUID) == m_moduleMap.end()) {
+                moduleInfos = utils::make_shared<ModuleMetadata>(moduleName.c_str(), moduleUUIDStr.c_str(), moduleDescription.c_str(), moduleFilePath);
+                getModuleIndex(moduleInfos);
+                m_moduleMap[moduleUUID] = moduleInfos;
+            }
+            else { //Module has already been loaded in the library
+                moduleInfos = m_moduleMap.at(moduleUUID);
+            }
         }
-        else { //Module has already been loaded in the library
-            moduleInfos = m_moduleMap.at(moduleUUID);
-        }
+    }
+    catch (boost::system::system_error & e) {
+        throw ModuleException(e.what());
     }
     return moduleInfos;
 }
@@ -118,7 +126,12 @@ SRef<IComponentIntrospect> ModuleManager::createComponent(SPtr<ModuleMetadata> m
 {
     SRef<IComponentIntrospect> componentRef;
     boost::dll::shared_library shlib;
-    shlib.load(moduleInfos->getFullPath(), boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path);
+    try {
+        shlib.load(moduleInfos->getFullPath(), boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path);
+    }
+    catch (boost::system::system_error & e) {
+        throw ModuleException(e.what());
+    }
     if (shlib.has(XPCF_GETCOMPONENT)) {
         if (m_funcMap.find(moduleInfos->getUUID()) == m_funcMap.end()) {
             m_funcMap[moduleInfos->getUUID()]=boost::dll::import<XPCFErrorCode(const uuids::uuid &, SRef<IComponentIntrospect>&)>(
@@ -135,7 +148,7 @@ SRef<IComponentIntrospect> ModuleManager::createComponent(SPtr<ModuleMetadata> m
 
     }
     else {
-        throw Exception("No XPCF_getComponent entry point declared for module " + moduleInfos->getFullPath().string() , XPCFErrorCode::_ERROR_MODULE_NOGETCOMPONENT);
+        throw ModuleException("No XPCF_getComponent entry point declared for module " + moduleInfos->getFullPath().string() , XPCFErrorCode::_ERROR_MODULE_NOGETCOMPONENT);
     }
     return componentRef;
 }
@@ -146,7 +159,7 @@ std::vector<SRef<InterfaceMetadata>> ModuleManager::getComponentInterfaceList(SP
     SRef<xpcf::IComponentIntrospect> rIntrospect = createComponent(moduleInfos, componentUUID);
 
     for (uuids::uuid interfaceUUID : rIntrospect->getInterfaces()) {
-        SRef<InterfaceMetadata> interfaceMdata = utils::make_shared<InterfaceMetadata>(rIntrospect->getDescription(interfaceUUID), interfaceUUID);
+        SRef<InterfaceMetadata> interfaceMdata = utils::make_shared<InterfaceMetadata>(rIntrospect->getMetadata(interfaceUUID));
         interfaceVector.push_back(interfaceMdata);
     }
     return interfaceVector;
@@ -177,26 +190,24 @@ XPCFErrorCode ModuleManager::saveModuleInformations(const char * xmlFilePath, co
         std::cout<<"ModuleManager::saveModuleInformations ===> creating module XmlNode"<<std::endl;
         tinyxml2::XMLElement * xmlModuleElt = xmlDoc.NewElement("module");
         xmlModuleElt->SetAttribute("uuid", boost::uuids::to_string(moduleInfos->getUUID()).c_str());
-        xmlModuleElt->SetAttribute("name", moduleInfos->getDescription());
+        xmlModuleElt->SetAttribute("name", moduleInfos->name());
         xmlModuleElt->SetAttribute("path", moduleInfos->getPath());
-        for (uint32_t i = 0 ; i<moduleInfos->getNbComponents() ; i++) {
-            std::cout<<"ModuleManager::saveModuleInformations ===> retrieving component #"<<i<<std::endl;
-            xpcf::uuids::uuid componentUUID = moduleInfos->getComponent(i);
-            const char * componentName = moduleInfos->getComponentName(componentUUID);
+        xmlModuleElt->SetAttribute("description", moduleInfos->description());
+        for (SRef<ComponentMetadata> componentInfo : moduleInfos->getComponentsMetadata()) {
+            std::cout<<"ModuleManager::saveModuleInformations ===> retrieving component #"<<componentInfo->getUUID()<<std::endl;
             std::cout<<"ModuleManager::saveModuleInformations ===> creating component XmlNode"<<std::endl;
             tinyxml2::XMLElement * xmlComponentElt = xmlDoc.NewElement("component");
-            xmlComponentElt->SetAttribute("uuid", boost::uuids::to_string(componentUUID).c_str());
-            xmlComponentElt->SetAttribute("description", componentName);
+            xmlComponentElt->SetAttribute("uuid", boost::uuids::to_string(componentInfo->getUUID()).c_str());
+            xmlComponentElt->SetAttribute("name", componentInfo->name());
+            xmlComponentElt->SetAttribute("description", componentInfo->description());
             xmlModuleElt->InsertEndChild(xmlComponentElt);
-            std::vector<SRef<InterfaceMetadata>> interfaceList = getComponentInterfaceList(moduleInfos, componentUUID);
-            uint32_t size = interfaceList.size();
-            //for (auto interface : interfaceList) {
-            for (uint32_t ifindex = 0 ; ifindex<size ; ifindex++) {
-                SRef<InterfaceMetadata> interface = interfaceList[ifindex];
+            std::vector<SRef<InterfaceMetadata>> interfaceList = getComponentInterfaceList(moduleInfos, componentInfo->getUUID());
+            for (SRef<InterfaceMetadata> interface : interfaceList) {
                 std::cout<<"ModuleManager::saveModuleInformations ===> creating interface XmlNode"<<std::endl;
                 tinyxml2::XMLElement * xmlInterfaceElt = xmlDoc.NewElement("interface");
                 xmlInterfaceElt->SetAttribute("uuid", boost::uuids::to_string(interface->getUUID()).c_str());
-                xmlInterfaceElt->SetAttribute("description", interface->getDescription());
+                xmlInterfaceElt->SetAttribute("name", interface->name());
+                xmlInterfaceElt->SetAttribute("description", interface->description());
                 xmlComponentElt->InsertEndChild(xmlInterfaceElt);
             }
         }

@@ -25,6 +25,7 @@
 
 #include "xpcf/collection/IEnumerable.h"
 #include "xpcf/core/traits.h"
+#include "xpcf/api/InterfaceMetadata.h"
 
 // NOTE : ALL COMPONENTS MUST THROW EXCEPTIONS DERIVED from std::exception,
 // in order to be able to catch all exceptions in a uniform way
@@ -60,6 +61,11 @@ public:
      */
     virtual const IEnumerable<uuids::uuid> & getInterfaces() const = 0;
 
+    /**
+     * Runtime checks whether the component implements an interface
+     * @param [in] interfaceUUID the interface unique ID
+     * @return true when the component implements the interface @em interfaceUUID, false otherwise.
+     */
     virtual bool implements(const uuids::uuid& interfaceUUID) const = 0;
 
     /**
@@ -68,6 +74,14 @@ public:
      * @return               the interface description
      */
     virtual const char* getDescription(const uuids::uuid& interfaceUUID) const = 0;
+
+    /**
+     * Retrieves an interface metadata from its UUID
+     * @param [in] interfaceUUID the interface unique ID
+     * @throws  InterfaceNotImplementedException when there is no interface metadata for @em interfaceUUID
+     * @return  the interface metadata
+     */
+    virtual InterfaceMetadata getMetadata(const uuids::uuid& interfaceUUID) const = 0;
 
     /**
      * Queries the interface referenced with @em interfaceUUID and returns a reference to the interface I.
@@ -147,7 +161,8 @@ private:
 template <> struct InterfaceTraits<IComponentIntrospect>
 {
     static constexpr const char * UUID = "125f2007-1bf9-421d-9367-fbdc1210d006";
-    static constexpr const char * DESCRIPTION = "XPCF::IComponentIntrospect interface";
+    static constexpr const char * NAME = "XPCF::IComponentIntrospect";
+    static constexpr const char * DESCRIPTION = "Component introspection interface.\nProvides:\n- browsing of component interfaces'\n- component binding to its implemented interfaces";
 };
 
 template <class T, class B> void IComponentIntrospect::acquireComponentRef(T* component,

@@ -20,8 +20,8 @@
  * @date 2017-03-07
  */
 
-#ifndef I1_h
-#define I1_h 1
+#ifndef IMUSICIAN_H
+#define IMUSICIAN_H 1
 
 #include "xpcf/api/IComponentIntrospect.h"
 /**
@@ -35,15 +35,15 @@
    * @note The InterfaceTraits<I1> template struct defines the I1 UUID and description.
    * It allows I1 users to use directly the I0 type instead of its UUID to bind the component to this interface.
    */
-class I1 : public virtual org::bcom::xpcf::IComponentIntrospect
+class IMusician : public virtual org::bcom::xpcf::IComponentIntrospect
 {
 public:
-    virtual ~I1() = default;
-    virtual void I1_opname () = 0;
-    virtual void I1_opname2 () = 0;
-    virtual void I1_opname3 () = 0;
-    virtual void I1_opname4 () = 0;
-    virtual void I1_opname5 () = 0;
+    virtual ~IMusician() = default;
+    virtual void learn () = 0;
+    virtual void playMusic () = 0;
+    virtual void listen () = 0;
+    virtual void practice () = 0;
+    virtual void party () = 0;
 
 };
 
@@ -56,8 +56,9 @@ public:
    * @note although the syntax seems easier, it obfuscates the InterfaceTraits<InterfaceType> expansion.
    */
 
-XPCF_DEFINE_INTERFACE_TRAITS(::I1,
+XPCF_DEFINE_INTERFACE_TRAITS(::IMusician,
                              "3bc8f5ea-ee24-473e-8afd-4f5b1b21c018",
-                             "I1 interface");
+                             "IMusician",
+                             "provides musician related methods");
 
 #endif

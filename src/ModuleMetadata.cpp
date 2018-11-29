@@ -23,7 +23,7 @@
 #include "xpcf/api/ModuleMetadata.h"
 #include "PathBuilder.h"
 #include <string.h>
-
+#include "Collection.h"
 #include <boost/uuid/uuid_generators.hpp>
 // implement Component
 //
@@ -33,14 +33,27 @@ namespace org { namespace bcom { namespace xpcf {
 
 using namespace uuids;
 
-ModuleMetadata::ModuleMetadata(const char* name, const uuid& moduleID, const char *modulePath):InterfaceMetadata(name, moduleID)
+class ModuleMetadata::ModuleMetadataImpl {
+public:
+    Collection<uuids::uuid,std::vector> m_componentUUIDs;
+    Collection<SPtr<ComponentMetadata>,std::vector> m_components;
+    std::map<uuids::uuid, SPtr<ComponentMetadata>> m_moduleComponentMap;
+    std::basic_string<char> m_modulePath;
+    fs::path m_moduleFullPath;
+};
+
+ModuleMetadata::ModuleMetadata(const char* name, const uuid& moduleID,
+                               const char * description, const char *modulePath):
+    InterfaceMetadata(name, moduleID, description),m_pimpl(new ModuleMetadataImpl())
 {
 
     //TODO : null pointer exception ??? partial construction to avoid !!!
     setPath(modulePath);
 }
 
-ModuleMetadata::ModuleMetadata(const char *name, const char *moduleID, const char *modulePath):InterfaceMetadata(name, moduleID)
+ModuleMetadata::ModuleMetadata(const char *name, const char *moduleID,
+                               const char * description, const char *modulePath):
+    InterfaceMetadata(name, moduleID,description),m_pimpl(new ModuleMetadataImpl())
 {
     setPath(modulePath);
 }
@@ -52,38 +65,66 @@ ModuleMetadata::~ModuleMetadata()
 void ModuleMetadata::setPath(const char* modulePath)
 {
     if (modulePath != nullptr) {
-        m_modulePath = modulePath;
+        m_pimpl->m_modulePath = modulePath;
     }
-    m_moduleFullPath = PathBuilder::buildModuleFilePath(getDescription(), m_modulePath);
-    if ( !boost::filesystem::exists( m_moduleFullPath ) )
+    m_pimpl->m_moduleFullPath = PathBuilder::buildModuleFilePath(name(), m_pimpl->m_modulePath);
+    if ( !boost::filesystem::exists( m_pimpl->m_moduleFullPath ) )
     {
         //std::cout<<"Error : Module not found at : "<<m_moduleFullPath.c_str()<<std::endl;
     }
 }
 
-void ModuleMetadata::addComponent(const uuid& componentUUID)
+void ModuleMetadata::addComponent(SPtr<ComponentMetadata> componentInfo)
 {
-    m_componentUUIDs.push_back(componentUUID);
+    if (m_pimpl->m_moduleComponentMap.find(componentInfo->getUUID()) == m_pimpl->m_moduleComponentMap.end()) {
+        m_pimpl->m_componentUUIDs.add(componentInfo->getUUID());
+        m_pimpl->m_moduleComponentMap[componentInfo->getUUID()] = componentInfo;
+        m_pimpl->m_components.add(componentInfo);
+    }
 }
 
-uuid ModuleMetadata::getComponent(uint32_t index) const
+void ModuleMetadata::removeComponent(const uuids::uuid & componentUUID)
 {
-    return m_componentUUIDs[index];
+    if (m_pimpl->m_moduleComponentMap.find(componentUUID) != m_pimpl->m_moduleComponentMap.end()) {
+        m_pimpl->m_componentUUIDs.remove(componentUUID);
+        SPtr<ComponentMetadata> componentInfo = m_pimpl->m_moduleComponentMap.at(componentUUID);
+        m_pimpl->m_components.remove(componentInfo);
+    }
 }
 
-const char * ModuleMetadata::getComponentName(const uuids::uuid & componentUUID) const
+const char * ModuleMetadata::getPath() const
 {
-    if (m_moduleComponentMap.find(componentUUID) != m_moduleComponentMap.end()) {
-        return m_moduleComponentMap.at(componentUUID).c_str();
+    return m_pimpl->m_modulePath.c_str();
+}
+
+const fs::path & ModuleMetadata::getFullPath() const
+{
+    return m_pimpl->m_moduleFullPath;
+}
+
+
+const IEnumerable<uuids::uuid> & ModuleMetadata::getComponents() const
+{
+    return m_pimpl->m_componentUUIDs;
+}
+
+const IEnumerable<SPtr<ComponentMetadata>> & ModuleMetadata::getComponentsMetadata() const
+{
+    return m_pimpl->m_components;
+}
+
+SPtr<ComponentMetadata> ModuleMetadata::getComponentMetadata(const uuids::uuid & componentUUID) const
+{
+    if (m_pimpl->m_moduleComponentMap.find(componentUUID) != m_pimpl->m_moduleComponentMap.end()) {
+        return m_pimpl->m_moduleComponentMap.at(componentUUID);
     }
     return nullptr;
 }
 
-void ModuleMetadata::declareComponent(const char * uuid, const char * name)
+void ModuleMetadata::declareComponent(const char * uuid, const char * name, const char * description)
 {//TODO : check
-    uuids::uuid componentUUID = toUUID(uuid);
-    m_componentUUIDs.push_back(componentUUID);
-    m_moduleComponentMap[componentUUID] = name;
+    SPtr<ComponentMetadata> componentInfo = utils::make_shared<ComponentMetadata>(name, uuid, description);
+    addComponent(componentInfo);
 }
 
 }}} //namespace org::bcom::xpcf

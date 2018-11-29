@@ -20,8 +20,8 @@
  * @date 2018-06-25
  */
 
-#include "C0.h"
-#include "C1.h"
+#include "HumanMusician.h"
+#include "VirtualGuitarist.h"
 
 #include "xpcf/module/ModuleFactory.h"
 #include <iostream>
@@ -34,7 +34,7 @@ namespace xpcf=org::bcom::xpcf;
 /**
   * Declare module.
   */
-XPCF_DECLARE_MODULE("3b899ff0-e098-4218-bdaa-82abdec22960","xpcfSampleComponent")
+XPCF_DECLARE_MODULE("3b899ff0-e098-4218-bdaa-82abdec22960","xpcfSampleComponent","XPCF component example");
 
 /**
  * This method is the module entry point.
@@ -45,9 +45,9 @@ XPCF_DECLARE_MODULE("3b899ff0-e098-4218-bdaa-82abdec22960","xpcfSampleComponent"
 extern "C" XPCF_MODULEHOOKS_API xpcf::XPCFErrorCode XPCF_getComponent(const xpcf::uuids::uuid& componentUUID,SRef<xpcf::IComponentIntrospect>& interfaceRef)
 {
     xpcf::XPCFErrorCode errCode = xpcf::XPCFErrorCode::_FAIL;
-    errCode = xpcf::tryCreateComponent<component::C0>(componentUUID,interfaceRef);
+    errCode = xpcf::tryCreateComponent<component::HumanMusician>(componentUUID,interfaceRef);
     if (errCode != xpcf::XPCFErrorCode::_SUCCESS) {
-        errCode = xpcf::tryCreateComponent<component::C1>(componentUUID,interfaceRef);
+        errCode = xpcf::tryCreateComponent<component::VirtualGuitarist>(componentUUID,interfaceRef);
     }
     return errCode;
 }
@@ -57,6 +57,6 @@ extern "C" XPCF_MODULEHOOKS_API xpcf::XPCFErrorCode XPCF_getComponent(const xpcf
   * XPCF uses this index to introspect the components available in a module, providing the ability to generate the configuration file skeleton from the code.
   */
 XPCF_BEGIN_COMPONENTS_DECLARATION
-XPCF_ADD_COMPONENT(component::C0)
-XPCF_ADD_COMPONENT(component::C1)
+XPCF_ADD_COMPONENT(component::HumanMusician)
+XPCF_ADD_COMPONENT(component::VirtualGuitarist)
 XPCF_END_COMPONENTS_DECLARATION

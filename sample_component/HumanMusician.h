@@ -20,13 +20,11 @@
  * @date 2017-03-07
  */
 
-#ifndef C0_H
-#define C0_H 1
+#ifndef HUMANMUSICIAN_H
+#define HUMANMUSICIAN_H 1
 
-// I0
-#include "I0.h"
-// I1
-#include "I1.h"
+#include "IHuman.h"
+#include "IMusician.h"
 
 #include "xpcfSampleComponent_traits.h"
 
@@ -40,36 +38,36 @@ namespace component {
 
 
 /**
-   * @class C0
+   * @class HumanMusician
    * This component shows the implementation of a simple component.
    * It inherits the ComponentBase class, hence it does not provide IConfigurable capabilities (no property handling).
    * ComponentBase provides the minimum implementation for interface introspection.
    *
-   * @note The needed ComponentTraits<C0> template struct defining the C0 UUID and description is located
+   * @note The needed ComponentTraits<HumanMusician> template struct defining the HumanMusician UUID and description is located
    * in the xpcfSampleComponent_traits.h header file.
-   * It allows C0 users to use directly a forward declared type
-   * to invoke C0 creation without depending on the concrete implementation.
+   * It allows HumanMusician users to use directly a forward declared type
+   * to invoke HumanMusician creation without depending on the concrete implementation.
    */
-class C0 : public org::bcom::xpcf::ComponentBase,
-        public I0,
-        public I1
+class HumanMusician : public org::bcom::xpcf::ComponentBase,
+        public IHuman,
+        public IMusician
 
 {
 public:
-    C0 ();
-    ~C0() override;
+    HumanMusician ();
+    ~HumanMusician() override;
     void unloadComponent () override final;
-    void I0_opname () override;
-    void I0_opname2 () override;
-    void I0_opname3 () override;
-    void I0_opname4 () override;
-    void I0_opname5 () override;
+    void play () override;
+    void eat () override;
+    void sleep () override;
+    void kiss () override;
+    void work () override;
 
-    void I1_opname () override;
-    void I1_opname2 () override;
-    void I1_opname3 () override;
-    void I1_opname4 () override;
-    void I1_opname5 () override;
+    void learn () override;
+    void playMusic () override;
+    void listen () override;
+    void practice () override;
+    void party () override;
 
 private:
     std::string m_name;

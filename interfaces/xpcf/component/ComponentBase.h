@@ -45,6 +45,7 @@ public:
     const IEnumerable<uuids::uuid> & getInterfaces() const final;
 
     const char*       getDescription(const uuids::uuid& interfaceUUID) const final;
+    InterfaceMetadata getMetadata(const uuids::uuid& interfaceUUID) const final;
 
     // It is the component that decides if it must or must not unload when all
     // refs are out
@@ -59,13 +60,13 @@ private:
     SRef<IComponentIntrospect> introspect() final;
     void addComponentRef() final;
     void releaseComponentRef() final;
-    void addInterface(uuids::uuid& interfaceUUID, utils::any componentThis, const char * name);
+    void addInterface(uuids::uuid& interfaceUUID, utils::any componentThis, const char * name, const char * description);
 
     utils::any queryInterface(const uuids::uuid& interfaceUUID) const final;
     bool implements(const uuids::uuid& interfaceUUID) const final;
 
     class InternalImpl;
-    UniqueRef<InternalImpl> m_internalImpl;
+    UniqueRef<InternalImpl> m_pimpl;
 
     std::map<std::string,std::string> m_componentTrait;
 
@@ -84,7 +85,7 @@ void ComponentBase::addInterface(T* componentThis)
                   "Interface type passed to addInterface is not a derived class of IComponentIntrospect !!");
 
     uuids::uuid interfaceId = toUUID<T>();
-    addInterface(interfaceId, componentThis, InterfaceTraits<T>::DESCRIPTION);
+    addInterface(interfaceId, componentThis, InterfaceTraits<T>::NAME, InterfaceTraits<T>::DESCRIPTION);
 }
 
 }}} //namespace org::bcom::xpcf

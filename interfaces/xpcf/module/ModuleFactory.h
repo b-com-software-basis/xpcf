@@ -34,6 +34,7 @@ namespace org { namespace bcom { namespace xpcf {
 #define XPCF_GETCOMPONENT "XPCF_getComponent"
 #define XPCF_GETMODULEUUID "XPCF_getModuleUUID"
 #define XPCF_GETMODULENAME "XPCF_getModuleName"
+#define XPCF_GETMODULEDESCRIPTION "XPCF_getModuleDescription"
 #define XPCF_GETMODULEINDEX "XPCF_getModuleIndex"
 
 // getComponent signature is :
@@ -51,6 +52,12 @@ extern "C" XPCF_MODULEHOOKS_API const char * XPCF_getModuleName() \
     return moduleName.c_str(); \
 }
 
+#define EXPORT_XPCF_getModuleDescription_FUNCTION \
+extern "C" XPCF_MODULEHOOKS_API const char * XPCF_getModuleDescription() \
+{ \
+    return moduleDescription.c_str(); \
+}
+
 
 #define XPCF_BEGIN_COMPONENTS_DECLARATION \
 extern "C" XPCF_MODULEHOOKS_API \
@@ -61,10 +68,12 @@ moduleIndexRef->declareComponent<fullComponentType>();
 
 #define XPCF_END_COMPONENTS_DECLARATION }
 
-#define XPCF_DECLARE_MODULE(UUID, name) static std::string moduleUUID = UUID; \
+#define XPCF_DECLARE_MODULE(UUID, name, description) static std::string moduleUUID = UUID; \
     static std::string moduleName = name; \
+    static std::string moduleDescription = description; \
     EXPORT_XPCF_getModuleUUID_FUNCTION \
-    EXPORT_XPCF_getModuleName_FUNCTION
+    EXPORT_XPCF_getModuleName_FUNCTION \
+    EXPORT_XPCF_getModuleDescription_FUNCTION
 
 
 template <class C> XPCFErrorCode tryCreateComponent(const uuids::uuid& expectedComponentUUID,

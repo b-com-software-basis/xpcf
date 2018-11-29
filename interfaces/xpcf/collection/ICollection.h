@@ -28,7 +28,7 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-template <class T>
+template <typename T>
 class ICollection : public virtual IEnumerable<T> {
 public:
     virtual ~ICollection() = default;

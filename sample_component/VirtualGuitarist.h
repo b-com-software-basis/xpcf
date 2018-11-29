@@ -20,10 +20,10 @@
  * @date 2018-06-25
  */
 
-#ifndef C1_H
-#define C1_H 1
+#ifndef VIRTUALGUITARIST_H
+#define VIRTUALGUITARIST_H 1
 
-#include "I2.h"
+#include "IGuitarist.h"
 
 #include "xpcfSampleComponent_traits.h"
 
@@ -36,35 +36,37 @@
 namespace component {
 
 /**
-   * @class C1
+   * @class VirtualGuitarist
    * This component shows the implementation of a configurable component.
    * It inherits the ConfigurableBase class, hence it provides IConfigurable capabilities.
-   * C1 implementation wraps some of its inner members' data as IProperties, giving a generic and public access to those members.
-   * C1 configuration is declared in the components' configuration file.
+   * VirtualGuitarist implementation wraps some of its inner members' data as IProperties, giving a generic and public access to those members.
+   * VirtualGuitarist configuration is declared in the components' configuration file.
    *
-   * @note When a C1 component is created through the XPCF ComponentManager it is also configured with the default values declared in the xpcf_registry_test.xml.
-   * @note The needed ComponentTraits<C1> template struct defining the C1 UUID and description is located
+   * @note When a VirtualGuitarist component is created through the XPCF ComponentManager it is also configured with the default values declared in the xpcf_registry_test.xml.
+   * @note The needed ComponentTraits<VirtualGuitarist> template struct defining the VirtualGuitarist UUID and description is located
    * in the xpcfSampleComponent_traits.h header file.
-   * It allows C1 users to use directly a forward declared type
-   * to invoke C1 creation without depending on the concrete implementation.
+   * It allows VirtualGuitarist users to use directly a forward declared type
+   * to invoke VirtualGuitarist creation without depending on the concrete implementation.
    */
-class C1 : public org::bcom::xpcf::ConfigurableBase,
-        public I2
+class VirtualGuitarist : public org::bcom::xpcf::ConfigurableBase,
+        public IGuitarist
 
 {
 public:
-    C1 ();
-    ~C1() override;
+    VirtualGuitarist ();
+    ~VirtualGuitarist() override;
     void unloadComponent () override final;
 
-    void I1_opname () override;
-    void I1_opname2 () override;
-    void I1_opname3 () override;
-    void I1_opname4 () override;
-    void I1_opname5 () override;
+    void learn () override;
+    void playMusic () override;
+    void listen () override;
+    void practice () override;
+    void party () override;
 
-    void I2_opname () override;
-    void I2_opname2 () override;
+    void playSolo () override;
+    void playRhythm () override;
+
+    org::bcom::xpcf::XPCFErrorCode onConfigured() override;
 
 private:
     std::string m_name;

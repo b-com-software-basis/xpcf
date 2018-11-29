@@ -141,15 +141,14 @@ int main(int argc, char **argv) {
     xpcfModuleManager->saveModuleInformations(outputFilePath.c_str(),modMdata);
 
     std::cout<<"=> Component list "<<std::endl;
-    for (uint32_t i = 0 ; i<modMdata->getNbComponents() ; i++) {
-        xpcf::uuids::uuid componentUUID = modMdata->getComponent(i);
+    for (xpcf::uuids::uuid componentUUID : modMdata->getComponents()) {
         xpcf::XPCFErrorCode res=xpcf::XPCFErrorCode::_SUCCESS;
         try {
             rIComponentIntrospect = xpcfModuleManager->createComponent(modMdata,componentUUID);
-            std::cout<<"===> Component["<<i<<"] UUID='"<<componentUUID<<"'"<<std::endl;
+            std::cout<<"===> Component UUID='"<<componentUUID<<"'"<<std::endl;
             int nbInterfaces = rIComponentIntrospect->getNbInterfaces();
             for (xpcf::uuids::uuid interfaceUUID : rIComponentIntrospect->getInterfaces()) {
-                std::cout<<"===> interface["<<i<<"] UUID='"<<interfaceUUID<<"' Description='"<<rIComponentIntrospect->getDescription(interfaceUUID)<<"'"<<std::endl;
+                std::cout<<"===> interface UUID='"<<interfaceUUID<<"' Description='"<<rIComponentIntrospect->getDescription(interfaceUUID)<<"'"<<std::endl;
             }
 
             if (rIComponentIntrospect->implements<xpcf::IConfigurable>()) {

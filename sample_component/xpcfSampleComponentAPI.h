@@ -4,11 +4,11 @@
 #if _WIN32
 #ifdef xpcfSampleComponent_API_DLLEXPORT
 #define XPCFSAMPLECOMPONENT_EXPORT_API __declspec(dllexport)
-#else //SOLAROPENCV_API_DLLEXPORT
+#else
 #define XPCFSAMPLECOMPONENT_EXPORT_API __declspec(dllimport)
-#endif //SOLAROPENCV_API_DLLEXPORT
-#else //_WIN32
+#endif
+#else //!_WIN32
 #define XPCFSAMPLECOMPONENT_EXPORT_API
-#endif //_WIN32
+#endif //!_WIN32
 
 #endif // XPCFSAMPLECOMPONENTAPI_H

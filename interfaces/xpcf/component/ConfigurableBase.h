@@ -35,19 +35,21 @@ public:
     ConfigurableBase() = delete;
     ConfigurableBase(const uuids::uuid & uuid, const SRef<IPropertyMap> configuration = nullptr);
     ConfigurableBase(std::map<std::string,std::string> componentTrait, const SRef<IPropertyMap> configuration = nullptr);
-    virtual ~ConfigurableBase();
+    virtual ~ConfigurableBase() override;
 
     // It is the component that decides if it must or must not unload when all
     // refs are out
-    virtual void unloadComponent() = 0;
+    virtual void unloadComponent() override = 0;
 
     // IConfigurable
     XPCFErrorCode configure(const char * filepath) final;
     XPCFErrorCode configure(const char * filepath, const char * xpath) final;
+    inline virtual XPCFErrorCode onConfigured() override { return XPCFErrorCode::_SUCCESS; }
     XPCFErrorCode serialize(const char * filepath, uint32_t mode) final;
     SRef<IPropertyMap> getPropertyRootNode() const final;
     SRef<IProperty> getProperty(const char * name) const final;
     IEnumerable<SRef<IProperty>> & getProperties() const final;
+    SRef<IEnumerator<SRef<IProperty>>> getPropertiesEnumerator() const final;
     bool hasProperties() const final;
 
 private:

@@ -24,6 +24,7 @@
 #define ORG_BCOM_XPCF_ENUMERATOR_H
 
 #include "xpcf/collection/IEnumerator.h"
+#include "xpcf/core/refs.h"
 #include <vector>
 #include <deque>
 
@@ -42,9 +43,7 @@ public:
     void reset() override;
     T current() override;
     bool endReached() override;
-
-    Iterator<T> begin() override;
-    Iterator<T>  end() override;
+    bool operator ==(IEnumerator<T> & it) const override;
     //    void unloadComponent() override final;
 
 protected:
@@ -82,25 +81,15 @@ inline void Enumerator<T, S>::reset() {
 }
 
 template <class T, template<typename, typename> class S>
-T Enumerator<T, S>::current() { return m_sequence.at(m_index) ; }
+inline T Enumerator<T, S>::current() { return m_sequence.at(m_index) ; }
 
 template <class T, template<typename, typename> class S>
-bool Enumerator<T, S>::endReached() {
+inline bool Enumerator<T, S>::endReached() {
     return m_endReached;
 }
-
 template <class T, template<typename, typename> class S>
-inline Iterator<T> Enumerator<T, S>::begin()
-{
-    reset();
-    moveNext();
-    return Iterator<T>(this);
-}
-
-template <class T, template<typename, typename> class S>
-inline Iterator<T> Enumerator<T, S>::end()
-{
-    return Iterator<T>(this);
+bool Enumerator<T, S>::operator ==(IEnumerator<T> & it) const {
+return false;
 }
 
 template <template<typename, typename> class S>
@@ -116,9 +105,7 @@ public:
     void reset() override;
     const char * current() override;
     bool endReached() override;
-
-    Iterator<const char*> begin() override;
-    Iterator<const char*> end() override;
+    bool operator ==(IEnumerator<const char *> & it) const override;
     //    void unloadComponent() override final;
 
 protected:
@@ -158,25 +145,16 @@ inline void Enumerator<const char *, S>::reset() {
 }
 
 template <template<typename, typename> class S>
-const char * Enumerator<const char *, S>::current() { return m_sequence.at(m_index).c_str() ; }
+inline const char * Enumerator<const char *, S>::current() { return m_sequence.at(m_index).c_str() ; }
 
 template <template<typename, typename> class S>
-bool Enumerator<const char *, S>::endReached() {
+inline bool Enumerator<const char *, S>::endReached() {
     return m_endReached;
 }
 
-template < template<typename, typename> class S>
-inline Iterator<const char*> Enumerator<const char *, S>::begin()
-{
-    reset();
-    moveNext();
-    return Iterator<const char*>(this);
-}
-
 template <template<typename, typename> class S>
-inline Iterator<const char*> Enumerator<const char *, S>::end()
-{
-    return Iterator<const char*>(this);
+bool Enumerator<const char *, S>::operator ==(IEnumerator<const char *> & it) const {
+return false;
 }
 
 }}}

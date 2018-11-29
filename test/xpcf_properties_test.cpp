@@ -112,9 +112,11 @@ void displayParameter(SRef<xpcf::IProperty> p)
         case xpcf::IProperty::IProperty_STRUCTURE :
         {
             SRef<xpcf::IPropertyMap> propertyMap = p->getStructureValue(i);
-            BOOST_TEST_MESSAGE("Accessing class values for C0 from IProperty/IPropertyMap interfaces");
-            for (auto property : propertyMap->getProperties()) {
-                displayParameter(property);
+            SRef<xpcf::IEnumerator<SRef<xpcf::IProperty>>> propertyEnum =
+                    propertyMap->getProperties().getEnumerator();
+            BOOST_TEST_MESSAGE("Accessing class values for structure from IProperty/IPropertyMap interfaces");
+            while (propertyEnum->moveNext()) {
+                displayParameter(propertyEnum->current());
             }
             break;
         }
@@ -136,12 +138,15 @@ BOOST_AUTO_TEST_CASE( test_propertyWrapper )
     }
     /* BOOST_CHECK_THROW(w.getIntParams().at(w.getIntParams().size()),std::out_of_range);*/
 
+    SRef<xpcf::IEnumerator<SRef<xpcf::IProperty>>> propertyEnum =
+            w.getPropertyRootNode()->getProperties().getEnumerator();
     BOOST_TEST_MESSAGE("Accessing class values from IProperty/IPropertyMap interfaces");
     try {
         /*xpcf::Iterator<SRef<xpcf::IProperty>> itend = w.getPropertyRootNode()->getProperties().end();
         for (xpcf::Iterator<SRef<xpcf::IProperty>> it = w.getPropertyRootNode()->getProperties().begin() ; it != itend ; ++it) {*/
         for(auto p : w.getPropertyRootNode()->getProperties()) {
-
+            //while (propertyEnum->moveNext()) {
+            //    SRef<xpcf::IProperty> p = *it;
             displayParameter(p);
         }
     }
@@ -151,6 +156,60 @@ BOOST_AUTO_TEST_CASE( test_propertyWrapper )
     catch (boost::bad_weak_ptr & e) {
         BOOST_TEST_MESSAGE("Catched : "<<e.what());
     }
+}
+
+bool pred(const SRef<xpcf::IProperty> & elem)
+{
+    if (!strcmp(elem->getName(),"charstr")) {
+        return true;
+    }
+    return false;
+}
+
+bool falsePred(const SRef<xpcf::IProperty> & elem)
+{
+    return false;
+}
+
+BOOST_AUTO_TEST_CASE( test_blockEnumerator )
+{
+    TestPropertyWrapper w;
+    auto & props = w.getPropertyRootNode()->getProperties();
+    BOOST_TEST_MESSAGE("Iterating with blockenum(0,2)");
+    SRef<xpcf::IEnumerator<SRef<xpcf::IProperty>>> propertyEnum = props.getEnumerator(0,2);
+    for(auto p : propertyEnum) {
+        displayParameter(p);
+    }
+     BOOST_TEST_MESSAGE("Iterating with blockenum(2,2)");
+    for(auto p : props.getEnumerator(2,2)) {
+        displayParameter(p);
+    }
+    propertyEnum = props.getEnumerator(4,1);
+     BOOST_TEST_MESSAGE("Iterating with blockenum(4,1)");
+    for(auto p : propertyEnum) {
+        displayParameter(p);
+    }
+    // NOTE : missing movable & comparable upon iterator to check for end iterator upon return
+    auto result1 = std::find_if(xpcf::begin(props), xpcf::end(props), pred );
+    // SHOULD BE ABLE TO WRITE if (result1 != end(props) ) ... play with endReached inside iterator construction ?
+    BOOST_TEST_MESSAGE("Testing std::algorithm upon enumerators with valid result");
+    auto endIt = xpcf::end(props);
+    if (result1 != endIt) {
+        displayParameter(*result1);
+    }
+
+    // NOTE : missing movable & comparable upon iterator to check for end iterator upon return
+    result1 = std::find_if(xpcf::begin(props), xpcf::end(props), falsePred );
+    // SHOULD BE ABLE TO WRITE if (result1 != end(props) ) ... play with endReached inside iterator construction ?
+    BOOST_TEST_MESSAGE("Testing std::algorithm upon enumerators without result");
+    if (result1 != endIt) {
+        displayParameter(*result1);
+    }
+    BOOST_TEST_MESSAGE("Checking exception while constructing BlockEnumerator with values above sequence size");
+    BOOST_TEST_MESSAGE("1- testing too many elements exception");
+    BOOST_CHECK_THROW( props.getEnumerator(4,2),std::out_of_range);
+    BOOST_TEST_MESSAGE("2- testing offset at end of sequence");
+    BOOST_CHECK_THROW( props.getEnumerator(5,1),std::out_of_range);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

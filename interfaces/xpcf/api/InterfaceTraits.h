@@ -29,6 +29,7 @@ template <typename T>
 struct InterfaceTraits
 {
     static constexpr const char * UUID = nullptr;
+    static constexpr const char * NAME = nullptr;
     static constexpr const char * DESCRIPTION = nullptr;
 };
 

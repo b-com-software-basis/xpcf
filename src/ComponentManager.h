@@ -27,6 +27,7 @@
 
 #include "xpcf/api/IComponentManager.h"
 #include "xpcf/component/ComponentBase.h"
+#include "Collection.h"
 #include "tinyxmlhelper.h"
 /*#include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
@@ -48,18 +49,20 @@ public:
     XPCFErrorCode load() override;
     XPCFErrorCode load(const char* libraryFilePath) override;
     XPCFErrorCode load(const char* folderPathStr, bool bRecurse) override;
+    void clear() override;
     SRef<IComponentIntrospect> createComponent(const uuids::uuid& componentUUID) final;
     SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid& componentUUID) override;
     void unloadComponent () override final;
+    void releaseComponent(uuids::uuid componentUUID);
 
-    XPCFErrorCode addComponentMetadata(SPtr<ComponentMetadata> metadata);
-    uint32_t getNbComponentMetadatas() const override;
-    SPtr<ComponentMetadata> getComponentMetadata(uint32_t index) const override;
+    XPCFErrorCode addModuleMetadata(SPtr<ModuleMetadata> metadata);
+    const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const override;
     SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid &) const override;
+    uuids::uuid getModuleUUID(uuids::uuid componentUUID) const override;
+    SPtr<ModuleMetadata> findModuleMetadata(const uuids::uuid &) const override;
 
     XPCFErrorCode addInterfaceMetadata(SPtr<InterfaceMetadata> metadata);
-    uint32_t getNbInterfaceMetadatas() const override;
-    SPtr<InterfaceMetadata> getInterfaceMetadata(uint32_t index) const override;
+    const IEnumerable<SPtr<InterfaceMetadata>> & getInterfacesMetadata() const override;
     SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid&) const override;
 
 private:
@@ -70,18 +73,21 @@ private:
     static std::atomic<ComponentManager*> m_instance;
     static std::mutex m_mutex;
 
-    template <class T> void load(fs::path folderPath);
-    XPCFErrorCode loadLibrary(boost::filesystem::path aPath);
-    XPCFErrorCode declareInterface(uuids::uuid componentUuid, tinyxml2::XMLElement *interfaceElt);
-    XPCFErrorCode declareComponent(uuids::uuid moduleUuid, tinyxml2::XMLElement *componentElt);
-    XPCFErrorCode declareModule(tinyxml2::XMLElement * xmlModuleElt, fs::path modulePath);
+    template <class T> XPCFErrorCode load(fs::path folderPath);
+    XPCFErrorCode loadLibrary(fs::path aPath);
+    fs::path getConfigPath(uuids::uuid componentUUID) const;
+    XPCFErrorCode declareInterface(SRef<ComponentMetadata> componentInfo, tinyxml2::XMLElement *interfaceElt);
+    XPCFErrorCode declareComponent(SRef<ModuleMetadata> moduleInfo, tinyxml2::XMLElement *componentElt);
+    XPCFErrorCode declareModule(tinyxml2::XMLElement * xmlModuleElt, fs::path configurationFilePath);
+    SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
+
     //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 
-    std::vector<SPtr<ComponentMetadata>> m_componentsVector;
-    std::vector<SPtr<InterfaceMetadata>> m_interfacesVector;
-    std::map<uuids::uuid, SPtr<ComponentMetadata>> m_componentsMap;
+    Collection<SPtr<ModuleMetadata>,std::vector> m_modulesVector;
+    Collection<SPtr<InterfaceMetadata>,std::vector> m_interfacesVector;
+    std::map<uuids::uuid, uuids::uuid> m_componentModuleUUIDMap;
     std::map<uuids::uuid, SPtr<InterfaceMetadata>> m_interfacesMap;
-    std::map<uuids::uuid, SPtr<ModuleMetadata>> m_moduleMap;
+    std::map<uuids::uuid, SPtr<ModuleMetadata>> m_modulesMap;
     std::map<uuids::uuid, fs::path> m_moduleConfigMap;
 
     bool m_libraryLoaded;

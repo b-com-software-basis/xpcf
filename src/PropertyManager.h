@@ -26,6 +26,7 @@
 //#define BOOST_ALL_DYN_LINK 1
 #include "xpcf/component/ComponentBase.h"
 #include "xpcf/core/XPCFErrorCode.h"
+#include "xpcf/api/IConfigurable.h"
 
 #include <atomic>
 #include <mutex>
@@ -36,15 +37,17 @@ namespace org { namespace bcom { namespace xpcf {
 class IPropertyManager : public virtual IComponentIntrospect {
   public:
     virtual ~IPropertyManager() = default;
-    virtual XPCFErrorCode configure(const uuids::uuid & componentUUID, SRef<IComponentIntrospect> componentRef,const char * filepath) = 0;
-    virtual XPCFErrorCode serialize(const uuids::uuid & componentUUID, SRef<IComponentIntrospect> componentRef, const char * filepath, uint32_t mode) = 0;
+    virtual XPCFErrorCode configure(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) = 0;
+    virtual XPCFErrorCode configure(const char * instanceName, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) = 0;
+    virtual XPCFErrorCode serialize(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath, uint32_t mode) = 0;
 };
 
 
 template <> struct InterfaceTraits<IPropertyManager>
 {
     static constexpr const char * UUID = "C939A7FB-B0C2-47BA-9458-48F4AB228D92";
-    static constexpr const char * DESCRIPTION = "XPCF::IPropertyManager interface";
+    static constexpr const char * NAME = "XPCF::IPropertyManager";
+    static constexpr const char * DESCRIPTION = "Configuration and serialization functionality for component properties";
 };
 
 class XPCF_EXPORT_API PropertyManager : public ComponentBase,
@@ -52,8 +55,9 @@ class XPCF_EXPORT_API PropertyManager : public ComponentBase,
 public:
     static PropertyManager* instance();
     void unloadComponent () override final;
-    XPCFErrorCode configure(const uuids::uuid & componentUUID, SRef<IComponentIntrospect> componentRef,const char * filepath) final;
-    XPCFErrorCode serialize(const uuids::uuid & componentUUID, SRef<IComponentIntrospect> componentRef, const char * filepath, uint32_t mode) final;
+    XPCFErrorCode configure(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) final;
+    XPCFErrorCode configure(const char * instanceName, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) final;
+    XPCFErrorCode serialize(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath, uint32_t mode) final;
 
 private:
     PropertyManager();
@@ -68,7 +72,8 @@ private:
 template <> struct ComponentTraits<PropertyManager>
 {
     static constexpr const char * UUID = "FF18E038-8D17-41FF-AFEB-5927DF713DD2";
-    static constexpr const char * DESCRIPTION = "XPCF::PropertyManager";
+    static constexpr const char * NAME = "XPCF::PropertyManager";
+    static constexpr const char * DESCRIPTION = "Property manager component";
 };
 
 /**
