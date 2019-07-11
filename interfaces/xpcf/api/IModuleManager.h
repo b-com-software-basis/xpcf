@@ -51,14 +51,29 @@ public:
      */
     virtual ~IModuleManager() = default;
 
+
+    virtual bool isXpcfModule(const char* modulePath) = 0;
+    virtual bool isXpcfModule(const char* moduleName, const char* moduleFolderPath) = 0;
+    virtual bool isXpcfModule(SPtr<ModuleMetadata> moduleInfos) = 0;
+    virtual const char * getXpcfVersion(const char* moduleName, const char* moduleFolderPath) = 0;
     //virtual SPtr<tinyxml2::XMLDocument> introspectModule(const char* moduleFilePath) = 0;
     /**
-     * Instropect the module to figure out the components contained in the module
-     * @param [in] the module file path
-     * @return
+     * Instropect the module to list‡ the components contained in the module
+     * @param [in] the module complete file path
+     * @throw ModuleException
+     * @return the module metadata
+     */
+    virtual SPtr<ModuleMetadata> introspectModule(const char* moduleFilePath) = 0;
+
+    /**
+     * Instropect the module to list the components contained in the module
+     * @param [in] the module name
+     * @param [in] the module folder path
+     * @throw ModuleException
+     * @return the module metadata
      */
     virtual SPtr<ModuleMetadata> introspectModule(const char* moduleName,
-                                                  const char* moduleFilePath) = 0;
+                                                  const char* moduleFolderPath) = 0;
 
     virtual XPCFErrorCode saveModuleInformations(const char * xmlFilePath,
                                                  const SPtr<ModuleMetadata> & moduleInfos) = 0;

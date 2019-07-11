@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xpcf-configuration>
+    <aliases>
+       <alias name="VirtualGuitarist" type="component" uuid="63FF193D-93E6-4EDE-9947-22F864AC843F"/>
+    </aliases>
+    <properties>
+        <configure component="VirtualGuitarist">
+                <property name="blurFactor" type="double" value="20.0"/>
+                <property name="blurScale" type="double" access="ro">
+                    <value>100.2</value>
+                    <value>100.5</value>
+                    <value>100.8</value>
+                    <value>100.1</value>
+                </property>
+                <property name="blurMatrixRepartition"  type = "structure">
+                    <property name="cols" type="long" value="70"/>
+                    <property name="rows" type="long" value="70"/><!-- rowmajormode only-->
+                    <property name="values" type="double">
+                        <value>100.1</value>
+                        <value>100.7</value>
+                        <value>100.3</value>
+                        <value>200.7</value>
+                    </property>
+                </property>
+        </configure>
+        <configure component="63FF193D-93E6-4EDE-9947-22F864AC843F" name="testInstance">
+                <property name="blurFactor" type="double" value="100.0"/>
+                <property name="blurScale" type="double" access="ro">
+                    <value>200.1</value>
+                    <value>200.7</value>
+                    <value>200.8</value>
+                    <value>200.1</value>
+                </property>
+                <property name="blurMatrixRepartition"  type = "structure">
+                    <property name="cols" type="long" value="50"/>
+                    <property name="rows" type="long" value="50"/><!-- rowmajormode only-->
+                    <property name="values" type="double">
+                        <value>300.1</value>
+                        <value>200.7</value>
+                        <value>200.3</value>
+                        <value>300.7</value>
+                    </property>
+                </property>
+        </configure>
+    </properties>
+    <!--<metadatas>
+    <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect">
+    <slots>
+    </slots>
+    <methods>
+    <method name="f">
+    <attribute order=0 type="type" name="name"/>
+    </methods>
+    </interface>
+    </metadatas>-->
+</xpcf-configuration>

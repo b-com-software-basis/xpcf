@@ -32,5 +32,6 @@ struct XpcfFixture {
     SRef<xpcf::IComponentManager> xpcfComponentManager;
 };
 
+extern void displayParameter(SRef<xpcf::IProperty> p);
 
 #endif // TESTDEFINES_H

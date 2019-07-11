@@ -23,6 +23,7 @@
 #include "xpcf/component/ComponentBase.h"
 #include "PropertyManager.h"
 #include "xpcf/core/Exception.h"
+#include "xpcf/core/helpers.h"
 #include "xpcf/api/IModuleManager.h"
 #include <iostream>
 #include <boost/log/core.hpp>
@@ -44,8 +45,8 @@ class ComponentBase::InternalImpl {
 public:
     InternalImpl(const uuids::uuid& componentUUID):m_componentUUID(componentUUID) {}
     ~InternalImpl() = default;
-    void addInterface(uuids::uuid& interfaceUUID, utils::any aThis, const char * name, const char * description);
-    InterfaceMetadata getMetadata(const uuids::uuid& interfaceUUID) const;
+    void declareInterface(const uuids::uuid & interfaceUUID, utils::any aThis, const char * name, const char * description);
+    const InterfaceMetadata & getMetadata(const uuids::uuid& interfaceUUID) const;
     utils::any queryInterface(const uuids::uuid& interfaceUUID) const;
     bool implements(const uuids::uuid& interfaceUUID) const;
 
@@ -59,6 +60,11 @@ public:
     }
 
     inline uint32_t size() { return m_interfacesUUID.size(); }*/
+
+    Collection<SPtr<Injector>,vector> m_injectablesCollection;
+    //std::map<uuids::uuid,std::reference_wrapper<utils::any>> m_injectablesMap;
+    std::map<uuids::uuid, utils::any> m_injectablesMap;
+    std::map<std::pair<uuids::uuid, std::string>, utils::any> m_namedInjectablesMap;
 
 private:
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
@@ -81,16 +87,14 @@ ComponentBase::ComponentBase(const uuids::uuid & uuid)
 {
     m_pimpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentBase"));
     BOOST_LOG_SEV(m_pimpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::ComponentBase construction";
-    addInterface<IComponentIntrospect>(this);
+    declareInterface<IComponentIntrospect>(this);
+    declareInterface<IInjectable>(this);
 }
 
 ComponentBase::ComponentBase(std::map<std::string,std::string> componentTrait)
-    : m_UUID(toUUID(componentTrait.at("UUID"))), m_componentTrait(componentTrait),
-      m_pimpl(new InternalImpl(toUUID(componentTrait.at("UUID")))), m_usageRefCount(0)
+    : ComponentBase(toUUID(componentTrait.at("UUID")))
 {
-    m_pimpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentBase"));
-    BOOST_LOG_SEV(m_pimpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::ComponentBase construction";
-    addInterface<IComponentIntrospect>(this);
+    m_componentTrait = componentTrait;
 }
 
 ComponentBase::~ComponentBase()
@@ -125,9 +129,9 @@ const IEnumerable<uuids::uuid> & ComponentBase::getInterfaces() const
     return m_pimpl->getInterfaces();
 }
 
-InterfaceMetadata ComponentBase::getMetadata(const uuids::uuid& interfaceUUID) const
+const InterfaceMetadata & ComponentBase::getMetadata(const uuids::uuid& interfaceUUID) const
 {
-   return m_pimpl->getMetadata(interfaceUUID);
+    return m_pimpl->getMetadata(interfaceUUID);
 }
 
 SRef<IComponentIntrospect> ComponentBase::introspect()
@@ -140,9 +144,9 @@ const char * ComponentBase::getDescription(const uuids::uuid& interfaceUUID) con
     return m_pimpl->getMetadata(interfaceUUID).description();
 }
 
-void ComponentBase::addInterface(uuids::uuid& interfaceUUID, utils::any componentThis, const char * name, const char * description)
+void ComponentBase::declareInterface(const uuids::uuid & interfaceUUID, utils::any componentThis, const char * name, const char * description)
 {
-    m_pimpl->addInterface(interfaceUUID, componentThis, name, description);
+    m_pimpl->declareInterface(interfaceUUID, componentThis, name, description);
 }
 
 utils::any ComponentBase::queryInterface(const uuids::uuid& interfaceUUID) const
@@ -150,9 +154,67 @@ utils::any ComponentBase::queryInterface(const uuids::uuid& interfaceUUID) const
     return m_pimpl->queryInterface(interfaceUUID);
 }
 
+void ComponentBase::declareInjectable(const uuids::uuid & interfaceUUID, utils::any injectable, const std::function<void(SRef<IComponentIntrospect>)> & injector, const char * instanceName, bool optional)
+{
+    pair<uuids::uuid,string> key = make_pair(interfaceUUID,instanceName);
+    SPtr<Injector> injMdata = utils::make_shared<Injector>(injector,interfaceUUID,instanceName,optional);
+    if (mapContains(m_pimpl->m_namedInjectablesMap, key)) {
+         throw InjectableDeclarationException(injMdata);
+    }
+    m_pimpl->m_namedInjectablesMap[key] = injectable;
+    m_pimpl->m_injectablesCollection.add(injMdata);
+}
+
+void ComponentBase::declareInjectable(const uuids::uuid &  interfaceUUID, utils::any injectable, const std::function<void(SRef<IComponentIntrospect>)> & injector, bool optional)
+{
+    SPtr<Injector> injMdata = utils::make_shared<Injector>(injector,interfaceUUID,optional);
+    if (mapContains(m_pimpl->m_injectablesMap, interfaceUUID)) {
+         throw InjectableDeclarationException(injMdata);
+    }
+    m_pimpl->m_injectablesMap[interfaceUUID] = injectable;
+    m_pimpl->m_injectablesCollection.add(injMdata);
+}
+
+
+utils::any ComponentBase::retrieveInjectable(const uuids::uuid & interfaceUUID) const
+{
+    if (!mapContains(m_pimpl->m_injectablesMap, interfaceUUID)) {
+        SPtr<InjectableMetadata> injMdata = utils::make_shared<InjectableMetadata>(interfaceUUID);
+         throw InjectionException(injMdata, XPCFErrorCode::_ERROR_INJECTABLE_UNKNOWN);
+    }
+    return m_pimpl->m_injectablesMap.at(interfaceUUID);
+}
+
+utils::any ComponentBase::retrieveInjectable(const uuids::uuid & interfaceUUID, const char * name) const
+{
+    pair<uuids::uuid,string> key = make_pair(interfaceUUID,name);
+    if (!mapContains(m_pimpl->m_namedInjectablesMap, key)) {
+        SPtr<InjectableMetadata> injMdata = utils::make_shared<InjectableMetadata>(interfaceUUID,name);
+        throw InjectionException(injMdata, XPCFErrorCode::_ERROR_INJECTABLE_UNKNOWN);
+    }
+    return m_pimpl->m_namedInjectablesMap.at(key);
+}
+
+bool ComponentBase::injectExists(const uuids::uuid & interfaceUUID) const
+{
+    return mapContains(m_pimpl->m_injectablesMap, interfaceUUID);
+}
+
+bool ComponentBase::injectExists(const uuids::uuid & interfaceUUID, const char * name) const
+{
+    pair<uuids::uuid,string> key = make_pair(interfaceUUID,name);
+    return mapContains(m_pimpl->m_namedInjectablesMap, key);
+}
+
+
+const IEnumerable<SPtr<Injector>> & ComponentBase::getInjectables() const
+{
+    return m_pimpl->m_injectablesCollection;
+}
+
 bool ComponentBase::implements(const uuids::uuid& interfaceUUID) const
 {
-     return m_pimpl->implements(interfaceUUID);
+    return m_pimpl->implements(interfaceUUID);
 }
 
 uint32_t ComponentBase::InternalImpl::getNbInterfaces() const
@@ -160,9 +222,9 @@ uint32_t ComponentBase::InternalImpl::getNbInterfaces() const
     return m_interfaces.size();
 }
 
-void ComponentBase::InternalImpl::addInterface(uuids::uuid& interfaceUUID, utils::any componentThis, const char * name, const char * description)
+void ComponentBase::InternalImpl::declareInterface(const uuids::uuid & interfaceUUID, utils::any componentThis, const char * name, const char * description)
 {
-    if (m_interfaces.find(interfaceUUID) == m_interfaces.end()) {
+    if (! mapContains(m_interfaces,interfaceUUID)) {
         InterfaceMetadata data(name,interfaceUUID, description);
         m_interfaces[interfaceUUID] = unixpcf::make_unique<struct XPCF_ObjectInterface>(data);
         m_interfaces[interfaceUUID]->m_component = componentThis;
@@ -172,9 +234,8 @@ void ComponentBase::InternalImpl::addInterface(uuids::uuid& interfaceUUID, utils
 
 utils::any ComponentBase::InternalImpl::queryInterface(const uuids::uuid& interfaceUUID) const
 {
-    //TODO : handle error case : or document sptr must be tested for validity upon call
     utils::any component;
-    if (m_interfaces.find(interfaceUUID) != m_interfaces.end()) {
+    if (mapContains(m_interfaces,interfaceUUID)) {
         component = m_interfaces.at(interfaceUUID)->m_component;
     }
     else {
@@ -185,12 +246,12 @@ utils::any ComponentBase::InternalImpl::queryInterface(const uuids::uuid& interf
 
 bool ComponentBase::InternalImpl::implements(const uuids::uuid& interfaceUUID) const
 {
-     return (m_interfaces.find(interfaceUUID) != m_interfaces.end());
+    return mapContains(m_interfaces,interfaceUUID);
 }
 
-InterfaceMetadata ComponentBase::InternalImpl::getMetadata(const uuids::uuid& interfaceUUID) const
+const InterfaceMetadata & ComponentBase::InternalImpl::getMetadata(const uuids::uuid& interfaceUUID) const
 {
-    if (m_interfaces.find(interfaceUUID) == m_interfaces.end()) {
+    if (! mapContains(m_interfaces,interfaceUUID)) {
         throw InterfaceNotImplementedException("Interface not found");
     }
     return m_interfaces.at(interfaceUUID)->m_metadata;

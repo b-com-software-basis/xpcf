@@ -37,10 +37,16 @@ class ModuleManager : public ComponentBase,
         public virtual IModuleManager {
 public:
     static ModuleManager* instance();
-    SPtr<ModuleMetadata> introspectModule(const char* moduleName, const char* moduleFilePath) override;
+    bool isXpcfModule(const char* modulePath) override;
+    bool isXpcfModule(const char* moduleName, const char* moduleFolderPath) override;
+    bool isXpcfModule(SPtr<ModuleMetadata> moduleInfos)  override;
+    const char * getXpcfVersion(const char* moduleName, const char* moduleFolderPath) override;
+    SPtr<ModuleMetadata> introspectModule(const char* moduleFilePath) override;
+    SPtr<ModuleMetadata> introspectModule(const char* moduleName, const char* moduleFolderPath) override;
     XPCFErrorCode saveModuleInformations(const char * xmlFilePath,
                                          const SPtr<ModuleMetadata> & moduleInfos) override;
     SRef<IComponentIntrospect> createComponent(SPtr<ModuleMetadata> moduleInfos, const uuids::uuid& componentUUID) override;
+
     void unloadComponent () override final;
     void releaseModuleRef(const uuids::uuid& moduleUUID);
 
@@ -51,6 +57,8 @@ private:
     ModuleManager& operator=(const ModuleManager&)= delete;
     void addModuleRef(const uuids::uuid& moduleUUID);
    // void releaseModuleRef(const uuids::uuid& moduleUUID);
+    bool isXpcfModule(fs::path modulePath);
+    SPtr<ModuleMetadata> introspectModule(fs::path modulePath);
     std::vector<SRef<InterfaceMetadata>> getComponentInterfaceList(SPtr<ModuleMetadata> moduleInfos,
                                                                    const uuids::uuid& componentUUID);
     static std::atomic<ModuleManager*> m_instance;

@@ -1,0 +1,129 @@
+{
+    "version": 1,
+    "supportedProjectTypes": [ "CMakeProjectManager.CMakeProject", "Qbs.QbsProject", "Qt4ProjectManager.Qt4Project" ],
+    "id": "R.RemakeLibrary",
+    "category": "I.Projects",
+    "trDescription": "Creates a simple remake library.",
+    "trDisplayName": "Remake library",
+    "trDisplayCategory": "Non-Qt Project",
+    "icon": "../../global/consoleapplication.png",
+    "enabled": "%{JS: [ %{Plugins} ].indexOf('CppEditor') >= 0 && ([ %{Plugins} ].indexOf('QmakeProjectManager') >= 0 || [ %{Plugins} ].indexOf('CMakeProjectManager') >= 0)}",
+
+    "options":
+    [
+        { "key": "ProjectFile", "value": "%{JS: '%{BuildSystem}' === 'qmake' ? '%{ProFile}' : ('%{BuildSystem}' === 'cmake' ? '%{CMakeFile}' : '%{QbsFile}')}" },
+        { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
+        { "key": "CMakeFile", "value": "%{ProjectDirectory}/CMakeLists.txt" },
+        { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
+        { "key": "ModuleName", "value": "%{ProjectName}"},
+        { "key": "XPCFVersion", "value": "%{JS: Util.fileName(Util.baseName('%{XPCFVersionPath}') , Util.completeSuffix('%{XPCFVersionPath}'))}"}
+    ],
+
+    "pages":
+    [
+        {
+            "trDisplayName": "Project Location",
+            "trShortTitle": "Location",
+            "typeId": "Project"
+        },
+        {
+            "trDisplayName": "Define Build System",
+            "trShortTitle": "Build System",
+            "typeId": "Fields",
+            "enabled": "%{JS: ! %{IsSubproject}}",
+            "data":
+            [
+                {
+                    "name": "BuildSystem",
+                    "trDisplayName": "Build system:",
+                    "type": "ComboBox",
+                    "data":
+                    {
+                        "index": 0,
+                        "items":
+                        [
+                            {
+                                "trKey": "qmake",
+                                "value": "qmake",
+                                "condition": "%{JS: [ %{Plugins} ].indexOf('QmakeProjectManager') >= 0}"
+                            },
+                            {
+                                "trKey": "CMake",
+                                "value": "cmake",
+                                "condition": "%{JS: [ %{Plugins} ].indexOf('CMakeProjectManager') >= 0}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "trDisplayName": "Choose XPCF version",
+            "trShortTitle": "XPCF Version",
+            "typeId": "Fields",
+            "enabled": "%{JS: ! %{IsSubproject}}",
+            "data":
+            [
+                {
+                    "name": "XPCFVersionPath",
+                    "trDisplayName": "XPCF version directory:",
+                    "type": "PathChooser",
+                    "mandatory": true,
+                    "data":
+                    {
+                    "kind": "existingDirectory",
+                    "basePath": "%{InitialPath}",
+                    "path": "%{InitialPath}"
+                    }
+                }
+            ]
+        },
+        {
+            "trDisplayName": "Kit Selection",
+            "trShortTitle": "Kits",
+            "typeId": "Kits",
+            "enabled": "%{JS: ! %{IsSubproject}}",
+            "data": { "projectFilePath": "%{ProjectFile}" }
+        },
+        {
+            "trDisplayName": "Project Management",
+            "trShortTitle": "Summary",
+            "typeId": "Summary"
+        }
+    ],
+    "generators":
+    [
+        {
+            "typeId": "File",
+            "data":
+            [
+                {
+                    "source": "module.pro",
+                    "target": "%{ProFile}",
+                    "openAsProject": true,
+                    "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
+                },
+                {
+                    "source": "CMakeLists.txt",
+                    "openAsProject": true,
+                    "condition": "%{JS: '%{BuildSystem}' === 'cmake'}"
+                },
+                {
+                    "source": "main.cpp",
+                    "target": "%{CppFileName}",
+                    "openInEditor": true
+                },
+                {
+                    "source": "packagedependencies_tmpl.txt",
+                    "target": "packagedependencies.txt",
+                    "openInEditor": true
+                },
+                {
+                    "source": "../git.ignore",
+                    "target": ".gitignore",
+                    "condition": "%{JS: ! %{IsSubproject} && '%{VersionControl}' === 'G.Git'}"
+                }
+            ]
+        }
+    ]
+}

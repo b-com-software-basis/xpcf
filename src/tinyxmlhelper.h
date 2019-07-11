@@ -25,8 +25,33 @@
 
 #include <string>
 #include "tinyxml2.h"
+#include <functional>
+#include <xpcf/core/XPCFErrorCode.h>
+#include <xpcf/core/refs.h>
 
 std::string xmlGetTextSecure(tinyxml2::XMLElement * elt, const std::string & nodeName,
                              bool optional = false, const std::string & defaultValue = "");
 
+namespace org { namespace bcom { namespace xpcf {
+
+inline void processXmlNode(tinyxml2::XMLElement * xmlElt, const char * nodeName, std::function<void(tinyxml2::XMLElement*)>  func)
+{
+    tinyxml2::XMLElement *element = xmlElt->FirstChildElement(nodeName);
+    while (element != nullptr) {
+        func(element);
+        element = element->NextSiblingElement(nodeName);
+    }
+}
+/*
+template <typename T>
+void processXmlNode(SRef<T> element, tinyxml2::XMLElement * xmlParentElt, const char * nodeName, std::function<XPCFErrorCode(SRef<T>, tinyxml2::XMLElement*)>  func)
+{
+    tinyxml2::XMLElement *xmlElt = xmlParentElt->FirstChildElement(nodeName);
+    while (xmlElt != nullptr) {
+        func(element, xmlElt);
+        element = element->NextSiblingElement(nodeName);
+    }
+}*/
+
+}}}
 #endif // TINYXMLHELPER_H

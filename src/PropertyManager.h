@@ -27,6 +27,7 @@
 #include "xpcf/component/ComponentBase.h"
 #include "xpcf/core/XPCFErrorCode.h"
 #include "xpcf/api/IConfigurable.h"
+#include "AliasManager.h"
 
 #include <atomic>
 #include <mutex>
@@ -64,6 +65,9 @@ private:
     ~PropertyManager() override = default;
     PropertyManager(const PropertyManager&)= delete;
     PropertyManager& operator=(const PropertyManager&)= delete;
+    XPCFErrorCode configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredicate, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath);
+
+    SRef<IAliasManager> m_aliasManager;
     static std::atomic<PropertyManager*> m_instance;
     static std::mutex m_mutex;
 

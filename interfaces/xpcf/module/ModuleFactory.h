@@ -36,6 +36,7 @@ namespace org { namespace bcom { namespace xpcf {
 #define XPCF_GETMODULENAME "XPCF_getModuleName"
 #define XPCF_GETMODULEDESCRIPTION "XPCF_getModuleDescription"
 #define XPCF_GETMODULEINDEX "XPCF_getModuleIndex"
+#define XPCF_GETXPCFVERSION "XPCF_getVersion"
 
 // getComponent signature is :
 // XPCFErrorCode XPCF_getComponent(const uuids::uuid &, SRef<IComponentIntrospect>&)
@@ -58,6 +59,11 @@ extern "C" XPCF_MODULEHOOKS_API const char * XPCF_getModuleDescription() \
     return moduleDescription.c_str(); \
 }
 
+#define EXPORT_XPCF_getVersion_FUNCTION \
+extern "C" XPCF_MODULEHOOKS_API const char * XPCF_getVersion() \
+{ \
+    return xpcfVersion.c_str(); \
+}
 
 #define XPCF_BEGIN_COMPONENTS_DECLARATION \
 extern "C" XPCF_MODULEHOOKS_API \
@@ -71,9 +77,11 @@ moduleIndexRef->declareComponent<fullComponentType>();
 #define XPCF_DECLARE_MODULE(UUID, name, description) static std::string moduleUUID = UUID; \
     static std::string moduleName = name; \
     static std::string moduleDescription = description; \
+    static std::string xpcfVersion = XPCFVERSION; \
     EXPORT_XPCF_getModuleUUID_FUNCTION \
     EXPORT_XPCF_getModuleName_FUNCTION \
-    EXPORT_XPCF_getModuleDescription_FUNCTION
+    EXPORT_XPCF_getModuleDescription_FUNCTION \
+    EXPORT_XPCF_getVersion_FUNCTION
 
 
 template <class C> XPCFErrorCode tryCreateComponent(const uuids::uuid& expectedComponentUUID,

@@ -1,0 +1,14 @@
+<xpcf-registry>
+    <module uuid="f2c2d134-e627-449e-893c-d11bbbf47c9e" name="xpcfHelloConfigurable" path="$HOME/.xpcf/modules/xpcfHelloConfigurable" description="xpcfHelloConfigurable module description">
+        <component uuid="c77f20a5-9e06-4c42-b64b-5cc838fd9447" name="ConfigurableComponent" description="ConfigurableComponent implements IMessage interface">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+            <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+            <interface uuid="9e04c615-8ee7-4c52-83a4-8104a209cafc" name="IMessage" description="IMessage interface description"/>
+        </component>
+    </module>
+    <configuration>
+        <component uuid="c77f20a5-9e06-4c42-b64b-5cc838fd9447">
+            <property name="message" access="rw" type="string" value="Hello people from ConfigurableComponent"/>
+        </component>
+    </configuration>
+</xpcf-registry>

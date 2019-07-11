@@ -42,6 +42,7 @@ namespace org { namespace bcom { namespace xpcf {
 * This class provides factory method definitions to handle component creation.
 * The ComponentFactory class is a friend class of IComponentIntrospect interface
  */
+
 class ComponentFactory {
 public:
     /**
@@ -52,7 +53,7 @@ public:
      * @throws
      * @return             FAILS when T doesn't fulfill req ?
      */
-    template <class C> static SRef<IComponentIntrospect> create();
+    template <typename C> static SRef<IComponentIntrospect> create();
 
     /**
      * Delegates a T component creation.
@@ -62,11 +63,11 @@ public:
      * deallocation will occur.
      * @return a pointer on the component created
      */
-    template <class T> static T* createInstance();
+    template <typename T> static T* createInstance();
 };
 
 //can throw std::bad_alloc
-template <class C>
+template <typename C>
 SRef<IComponentIntrospect> ComponentFactory::create()
 {
     static_assert(utils::is_base_of<IComponentIntrospect, C>::value,
@@ -74,6 +75,14 @@ SRef<IComponentIntrospect> ComponentFactory::create()
 
     C* component = ComponentFactory::createInstance<C>();
     return IComponentIntrospect::acquireComponentRef<C, IComponentIntrospect>(component);
+}
+
+
+template <typename T>
+T* ComponentFactory::createInstance()
+{
+     static_assert (utils::is_default_constructible<T>::value,"Type passed to createInstance is not default constructible" );
+     return new T();
 }
 
 #if _WIN32
@@ -85,15 +94,6 @@ SRef<IComponentIntrospect> ComponentFactory::create()
 #else
 #define XPCF_MODULEHOOKS_API
 #endif
-
-/**
- * Provides a helper to define the UUID symbol of a component.
- * This macro must be used inside the component body (i.e. the .cpp file), to insure the respect
- * of the ODR rule.
- *
- * @param  fullComponentType the full component type, for instance namespace::componentClass
- */
-#define XPCF_DEFINE_UUID_SYMBOL(fullComponentType) //constexpr const char * fullComponentType::UUID
 
 /**
  * Default definition for ComponentFactory::createInstance.
@@ -109,16 +109,11 @@ SRef<IComponentIntrospect> ComponentFactory::create()
  * @return the pointer on the new object created
  */
 #define XPCF_DEFINE_FACTORY_CREATE_INSTANCE(fullComponentType) \
-namespace org { namespace bcom { namespace xpcf { \
-template<> XPCF_MODULEHOOKS_API fullComponentType* ComponentFactory::createInstance() { \
-    return new fullComponentType(); \
-}\
-}}} \
+template<> fullComponentType* org::bcom::xpcf::ComponentFactory::createInstance<fullComponentType>(); \
 void fullComponentType::unloadComponent () \
 {\
     delete this; \
-}\
-XPCF_DEFINE_UUID_SYMBOL(fullComponentType)
+}
 
 }}} //namespace org::bcom::xpcf
 

@@ -27,6 +27,8 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/attributes.hpp>
 #include "Collection.h"
+#include "PropertyWrapper.h"
+#include "PropertyMap.h"
 #include <string>
 
 using namespace std;
@@ -34,6 +36,68 @@ using namespace std;
 namespace logging = boost::log;
 
 namespace org { namespace bcom { namespace xpcf {
+
+// Primary template
+template<typename T>
+struct deduce_to
+{
+};
+
+// Specialization for double: U -> double
+template<>
+struct deduce_to<double>
+{
+    typedef double InnerType;
+};
+
+template<>
+struct deduce_to<float>
+{
+    typedef float InnerType;
+};
+
+template<>
+struct deduce_to<int32_t>
+{
+    typedef int32_t InnerType;
+};
+
+template<>
+struct deduce_to<uint32_t>
+{
+    typedef uint32_t InnerType;
+};
+
+template<>
+struct deduce_to<int64_t>
+{
+    typedef int64_t InnerType;
+};
+
+template<>
+struct deduce_to<uint64_t>
+{
+    typedef uint64_t InnerType;
+};
+
+template<>
+struct deduce_to<SRef<IPropertyMap>>
+{
+    typedef SRef<IPropertyMap> InnerType;
+};
+
+template<>
+struct deduce_to<std::string >
+{
+    typedef const char * InnerType;
+};
+
+template<>
+struct deduce_to<std::wstring>
+{
+    typedef const wchar_t * InnerType;
+};
+
 
 template class IEnumerable<uuids::uuid>;
 
@@ -45,24 +109,18 @@ public:
 
     inline boost::log::sources::severity_logger< boost::log::trivial::severity_level > & getLogger() { return m_logger; }
     inline SRef<IPropertyMap> getPropertyRootNode() const { return m_parameters; }
-
-    // IEnumerable
-    /*   inline UniqueRef<IEnumerator<uuids::uuid>> getEnumerator() {
-        return unixpcf::make_unique<Enumerator<uuids::uuid, vector>>(m_interfacesUUID);
-    }
-
-    inline uint32_t size() { return m_interfacesUUID.size(); }*/
+    SRef<PropertyMap> m_parameters = utils::make_shared<PropertyMap>();
 
 private:
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
     InternalImpl(InternalImpl const &);
     InternalImpl & operator=(InternalImpl const &);
 
-    SRef<IPropertyMap> m_parameters = getPropertyMapInstance();
+
 };
 
 ConfigurableBase::ConfigurableBase(const uuids::uuid & uuid,
-                             const SRef<IPropertyMap> configuration)
+                                   const SRef<IPropertyMap> configuration)
     :ComponentBase(uuid), m_internalImpl(new InternalImpl())
 {
     m_internalImpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ConfigurableBase"));
@@ -71,7 +129,7 @@ ConfigurableBase::ConfigurableBase(const uuids::uuid & uuid,
 }
 
 ConfigurableBase::ConfigurableBase(std::map<std::string,std::string> componentTrait,
-                             const SRef<IPropertyMap> configuration)
+                                   const SRef<IPropertyMap> configuration)
     :ComponentBase(componentTrait) ,m_internalImpl(new InternalImpl())
 {
     m_internalImpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ConfigurableBase"));
@@ -134,5 +192,95 @@ IEnumerable<SRef<IProperty>> & ConfigurableBase::getProperties() const
 {
     return m_internalImpl->getPropertyRootNode()->getProperties();
 }
+
+XPCFErrorCode ConfigurableBase::addProperty(SRef<IProperty> property)
+{
+    return m_internalImpl->m_parameters->addProperty(property);
+}
+
+void ConfigurableBase::declarePropertyNode(const char * name, SRef<IPropertyMap> & wrappedValue, IProperty::AccessSpecifier iotype)
+{
+    wrappedValue =  xpcf::getPropertyMapInstance();
+    m_internalImpl->m_parameters->wrapStructure(name,wrappedValue,iotype);
+}
+
+template<typename T>
+XPCFErrorCode IConfigurable::declareProperty(const char * name, T & wrappedValue, IProperty::AccessSpecifier iotype)
+{
+    if (name == nullptr) {
+        return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
+    }
+
+    SRef<xpcf::IProperty> wrappedRef = utils::make_shared<xpcf::PropertyWrapper<typename deduce_to<T>::InnerType>>(name, wrappedValue, iotype);
+    return addProperty(wrappedRef);
+}
+
+template <template<typename, typename> class Sequence, typename T>
+XPCFErrorCode IConfigurable::declarePropertySequence(const char * name, Sequence<T, ::std::allocator<T>> & wrappedValue, IProperty::AccessSpecifier iotype)
+{
+    if (name == nullptr) {
+        return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
+    }
+
+    SRef<xpcf::IProperty> wrappedRef = utils::make_shared<xpcf::PropertySequenceWrapper<Sequence, typename deduce_to<T>::InnerType> >(name, wrappedValue, iotype);
+    return addProperty(wrappedRef);
+}
+
+template<typename T>
+XPCFErrorCode IConfigurable::declareProperty(SRef<IPropertyMap> node, const char * name, T & wrappedValue, IProperty::AccessSpecifier iotype)
+{
+    if (name == nullptr) {
+        return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
+    }
+
+    SRef<xpcf::IProperty> wrappedRef = utils::make_shared<xpcf::PropertyWrapper<typename deduce_to<T>::InnerType>>(name, wrappedValue, iotype);
+    return node->addProperty(wrappedRef);
+}
+
+template <template<typename, typename> class Sequence, typename T>
+XPCFErrorCode IConfigurable::declarePropertySequence(SRef<IPropertyMap> node, const char * name, Sequence<T, ::std::allocator<T>> & wrappedValue, IProperty::AccessSpecifier iotype)
+{
+    if (name == nullptr) {
+        return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
+    }
+
+    SRef<xpcf::IProperty> wrappedRef = utils::make_shared<xpcf::PropertySequenceWrapper<Sequence, typename deduce_to<T>::InnerType> >(name, wrappedValue, iotype);
+    return node->addProperty(wrappedRef);
+}
+
+template XPCFErrorCode IConfigurable::declareProperty<uint32_t>(const char * name, uint32_t & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<int32_t>(const char * name, int32_t & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<uint64_t>(const char * name, uint64_t & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<int64_t>(const char * name, int64_t & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<float>(const char * name, float & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<double>(const char * name, double & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<std::string>(const char * name, std::string & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<std::wstring>(const char * name, std::wstring & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector, uint32_t>(const char * name, std::vector<uint32_t> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,int32_t>(const char * name, std::vector<int32_t> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,uint64_t>(const char * name, std::vector<uint64_t> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,int64_t>(const char * name, std::vector<int64_t> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,float>(const char * name, std::vector<float> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,double>(const char * name, std::vector<double> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,std::string>(const char * name, std::vector<std::string> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,std::wstring>(const char * name, std::vector<std::wstring> & wrappedValue, IProperty::AccessSpecifier iotype);
+
+template XPCFErrorCode IConfigurable::declareProperty<uint32_t>(SRef<IPropertyMap> node, const char * name, uint32_t & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<int32_t>(SRef<IPropertyMap> node, const char * name, int32_t & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<uint64_t>(SRef<IPropertyMap> node, const char * name, uint64_t & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<int64_t>(SRef<IPropertyMap> node, const char * name, int64_t & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<float>(SRef<IPropertyMap> node, const char * name, float & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<double>(SRef<IPropertyMap> node, const char * name, double & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<std::string>(SRef<IPropertyMap> node, const char * name, std::string & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declareProperty<std::wstring>(SRef<IPropertyMap> node, const char * name, std::wstring & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector, uint32_t>(SRef<IPropertyMap> node, const char * name, std::vector<uint32_t> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,int32_t>(SRef<IPropertyMap> node, const char * name, std::vector<int32_t> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,uint64_t>(SRef<IPropertyMap> node, const char * name, std::vector<uint64_t> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,int64_t>(SRef<IPropertyMap> node, const char * name, std::vector<int64_t> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,float>(SRef<IPropertyMap> node, const char * name, std::vector<float> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,double>(SRef<IPropertyMap> node, const char * name, std::vector<double> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,std::string>(SRef<IPropertyMap> node, const char * name, std::vector<std::string> & wrappedValue, IProperty::AccessSpecifier iotype);
+template XPCFErrorCode IConfigurable::declarePropertySequence<std::vector,std::wstring>(SRef<IPropertyMap> node, const char * name, std::vector<std::wstring> & wrappedValue, IProperty::AccessSpecifier iotype);
+
 
 }}} //namespace org::bcom::xpcf

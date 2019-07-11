@@ -77,8 +77,6 @@ TestPropertyWrapper::TestPropertyWrapper() {
 
 }
 
-BOOST_AUTO_TEST_SUITE( test_properties )
-
 void displayParameter(SRef<xpcf::IProperty> p)
 {
     BOOST_TEST_MESSAGE("Property name ="<<p->getName());
@@ -125,6 +123,8 @@ void displayParameter(SRef<xpcf::IProperty> p)
         }
     }
 }
+
+BOOST_AUTO_TEST_SUITE( test_properties )
 
 BOOST_AUTO_TEST_CASE( test_propertyWrapper )
 {

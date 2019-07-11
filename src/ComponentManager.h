@@ -33,7 +33,9 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/attributes.hpp>*/
 #include <boost/filesystem.hpp>
-
+#include "Factory.h"
+#include "Registry.h"
+#include "AliasManager.h"
 
 #include <atomic>
 #include <mutex>
@@ -49,19 +51,26 @@ public:
     XPCFErrorCode load() override;
     XPCFErrorCode load(const char* libraryFilePath) override;
     XPCFErrorCode load(const char* folderPathStr, bool bRecurse) override;
+    XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) override;
+    XPCFErrorCode loadModuleMetadata(const char* moduleName,
+                                     const char* moduleFilePath) override;
     void clear() override;
-    SRef<IComponentIntrospect> createComponent(const uuids::uuid& componentUUID) final;
+    SRef<IComponentIntrospect> createComponent(const uuids::uuid & componentUUID) final;
     SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid& componentUUID) override;
+    SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID)  override;
+    SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const char * name) override;
+
+    void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+    void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+
     void unloadComponent () override final;
     void releaseComponent(uuids::uuid componentUUID);
 
-    XPCFErrorCode addModuleMetadata(SPtr<ModuleMetadata> metadata);
     const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const override;
     SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid &) const override;
-    uuids::uuid getModuleUUID(uuids::uuid componentUUID) const override;
+    uuids::uuid getModuleUUID(const uuids::uuid & componentUUID) const override;
     SPtr<ModuleMetadata> findModuleMetadata(const uuids::uuid &) const override;
 
-    XPCFErrorCode addInterfaceMetadata(SPtr<InterfaceMetadata> metadata);
     const IEnumerable<SPtr<InterfaceMetadata>> & getInterfacesMetadata() const override;
     SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid&) const override;
 
@@ -74,21 +83,18 @@ private:
     static std::mutex m_mutex;
 
     template <class T> XPCFErrorCode load(fs::path folderPath);
+    template <class T> XPCFErrorCode loadModules(fs::path folderPath);
     XPCFErrorCode loadLibrary(fs::path aPath);
     fs::path getConfigPath(uuids::uuid componentUUID) const;
-    XPCFErrorCode declareInterface(SRef<ComponentMetadata> componentInfo, tinyxml2::XMLElement *interfaceElt);
-    XPCFErrorCode declareComponent(SRef<ModuleMetadata> moduleInfo, tinyxml2::XMLElement *componentElt);
-    XPCFErrorCode declareModule(tinyxml2::XMLElement * xmlModuleElt, fs::path configurationFilePath);
     SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
+    void inject(SRef<IInjectable> component);
 
     //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
-
-    Collection<SPtr<ModuleMetadata>,std::vector> m_modulesVector;
-    Collection<SPtr<InterfaceMetadata>,std::vector> m_interfacesVector;
-    std::map<uuids::uuid, uuids::uuid> m_componentModuleUUIDMap;
-    std::map<uuids::uuid, SPtr<InterfaceMetadata>> m_interfacesMap;
-    std::map<uuids::uuid, SPtr<ModuleMetadata>> m_modulesMap;
     std::map<uuids::uuid, fs::path> m_moduleConfigMap;
+    std::map<uuids::uuid, fs::path> m_componentConfigMap;
+    SRef<IFactory> m_factory;
+    SRef<IRegistry> m_registry;
+    SRef<IAliasManager> m_aliasManager;
 
     bool m_libraryLoaded;
 };
@@ -96,6 +102,7 @@ private:
 template <> struct ComponentTraits<ComponentManager>
 {
     static constexpr const char * UUID = "F905BCCD-9658-4871-87B8-B328C27675E0";
+    static constexpr const char * NAME = "XPCF::ComponentManager";
     static constexpr const char * DESCRIPTION = "XPCF::ComponentManager";
 };
 

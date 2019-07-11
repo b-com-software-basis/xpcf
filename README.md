@@ -1,5 +1,8 @@
 XPCF Cross-Platform Component Framework
 =========================================
+[![GitHub version](https://badge.fury.io/gh/b-com-software-basis%2Fxpcf.svg)](https://badge.fury.io/gh/b-com-software-basis%2Fxpcf)
+[![LoC](https://tokei.rs/b1/github/b-com-software-basis/xpcf)](https://github.com/b-com-software-basis/xpcf)
+
 XPCF is a lightweight cross platform component framework (it is similar to the well known COM model).
 
 It is designed to provide dependency injection, with clarity, simplicity and light code base in mind.
@@ -11,6 +14,10 @@ It also provides a safe toolkit to avoid common c++ design issues such as :
 - ensure correct memory handling (avoid memory leaks)
 - provide parallel helpers such as tasks, fifo, circular buffers, delays..
 - a common configuration design : configuring a component doesn't require to write serialization code
+
+## Changelog
+
+[Learn about the latest improvements][changelog].
 
 ## Definitions
 
@@ -134,28 +141,33 @@ This framework provides the following concepts :
 
 - support for Domain Specific Language through the "IFeatures" interface (for instance, a component can declare "opencv" and "cuda" features as it is an opencv/cuda accelerated implementation of a keypointdetector)
 
-NOTE: Variant parameters for configuration are a set of parameters. Each parameter is a pair of type, value. Supported types include long, unsigned long, double, string or another subset of parameters. Each parameter has an access definition : in, out or inout.
+**Note**: Variant parameters for configuration are a set of parameters. Each parameter is a pair of type, value. Supported types include long, unsigned long, double, string or another subset of parameters. Each parameter has an access definition : in, out or inout.
 
-## Making a module
+## How to build XPCF
+In order to build XPCF:
 
-The shared library must export the API XPCF_getComponent.
+- Install conan from https://conan.io/
+- Install QT to get QT Creator from https://www.qt.io/
+- Clone xpcf repository
+- Open xpcf.pro file in QT Creator and configure the project with the compilation kit of your OS (gcc on Linux, clang on mac os X, msvc 2017 for windows)
+- Run qmake - this can take a while as it should compile boost from conan.
+- Add an install target for make in "compilation steps" from the "projects" tab in Qt Creator
 
-~~~
-long XPCF_getComponent(const boost::uuids::uuid &, SRef<IComponentIntrospect>&)
-~~~
+You can now build xpcf using Build inside Qt Creator.
 
-You must return an IComponentIntrospect when called.
+The compilation result will be located in $HOME/.remaken/packages/[platform-compiler-version]/xpcf/XPCF\_VERSION
+(%USERPROFILE%\\.remaken\packages\\[platform-compiler-version]\xpcf\XPCF\_VERSION on windows)
 
-## ContractID verses CID
 
-CID is a number identifying a specific implementation
+**Note**: To automatically include and link with xpcf headers and library, use the pkgconfig file bcom-xpcf.pc located at the root of the above folder.
 
-ContractID defines a set of functionalities which may contain one or more CIDs
+## Creating your first component
+Components are hosted in modules (i.e. shared libraries with special hook methods).
+Hence prior to the creation of components, start by creating a module.
 
-ContractID concept may be implemented through the IFeatures interface
+To create an XPCF module, interface or component it is recommended to use the QT
+Creator wizards located in wizards/qtcreator folder in xpcf repository.
 
-Purpose of Contract IDs
+To install the wizards, please refer to wizards/qtcreator/INSTALL.txt file.
 
-- implementation independence for clients
-
-- functional versioning
+[changelog]: https://github.com/b-com-software-basis/xpcf/blob/master/CHANGELOG.md

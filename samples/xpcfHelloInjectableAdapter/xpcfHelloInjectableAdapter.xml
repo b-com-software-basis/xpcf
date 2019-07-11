@@ -1,0 +1,33 @@
+<xpcf-registry>
+    <module uuid="e72d0789-2540-40f3-818c-57adb75f8a30" name="xpcfHelloInjectableAdapter" path="$HOME/.xpcf/modules/xpcfHelloInjectableAdapter" description="xpcfHelloInjectableAdapter module description">
+        <component uuid="490a887f-1b64-44a1-902e-0180d8c6facd" name="InjectableAdapterComponent" description="InjectableAdapterComponent implements IMessage interface">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+            <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+            <interface uuid="9e04c615-8ee7-4c52-83a4-8104a209cafc" name="IMessage" description="IMessage interface description"/>
+        </component>
+    </module>
+    <module uuid="bf75aab8-f52b-4634-95ea-de75c7a1d86a" name="xpcfHelloPeople" path="$HOME/.xpcf/modules/xpcfHelloPeople" description="xpcfHelloPeople module description">
+        <component uuid="8d664b2a-16d5-4d7c-8675-e85d244cd8ee" name="PeopleComponent" description="PeopleComponent implements IMessage interface">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+            <interface uuid="9e04c615-8ee7-4c52-83a4-8104a209cafc" name="IMessage" description="IMessage interface description"/>
+        </component>
+    </module>
+    <module uuid="d54e6ec8-57fd-46c7-9652-a66c4f34a5e3" name="xpcfHelloWorld" path="$HOME/.xpcf/modules/xpcfHelloWorld" description="xpcfHelloWorld module description">
+        <component uuid="c97ea5ef-93da-46ed-9a1c-af9ac8f5f5a9" name="WorldComponent" description="WorldComponent implements IMessage interface">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+            <interface uuid="9e04c615-8ee7-4c52-83a4-8104a209cafc" name="IMessage" description="IMessage interface description"/>
+        </component>
+    </module>
+    <aliases>
+            <alias name="WorldComponent" type="component" uuid="c97ea5ef-93da-46ed-9a1c-af9ac8f5f5a9"/>
+            <alias name="PeopleComponent" type="component" uuid="8d664b2a-16d5-4d7c-8675-e85d244cd8ee"/>
+            <alias name="IMessage" type="interface" uuid="9e04c615-8ee7-4c52-83a4-8104a209cafc"/>
+    </aliases>
+    <factory>
+        <bindings>
+            <bind interface="IMessage" to="PeopleComponent" />
+            <!-- comment the following line to use default binding -->
+            <bind name="adapterMessageHandler" interface="IMessage" to="WorldComponent" />
+        </bindings>
+    </factory>
+</xpcf-registry>

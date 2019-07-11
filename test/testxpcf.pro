@@ -61,11 +61,14 @@ win32 {
     INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
 }
 
-INCLUDEPATH += $${PWD}/../sample_component
+INCLUDEPATH += $${PWD}/../samples/sample_component
 
 DISTFILES += \
-    xpcf_registry_test.xml
+    xpcf_registry_test.xml \
+    xpcf_conf_test.xml
 
-xpcf_xml_files.path = $$(BCOMDEVROOT)/.xpcf/test
-xpcf_xml_files.files=$$files($${PWD}/xpcf_registry_test.xml)
+xpcf_xml_files.path = $$(HOME)/.xpcf
+xpcf_xml_files.files = $${PWD}/xpcf_registry_test.xml
+xpcf_xml_files.files += $${PWD}/xpcf_conf_test.xml
+
 INSTALLS += xpcf_xml_files

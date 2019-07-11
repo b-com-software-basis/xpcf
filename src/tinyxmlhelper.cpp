@@ -25,10 +25,10 @@
 
 std::string xmlGetTextSecure(tinyxml2::XMLElement * elt, const std::string & nodeName, bool optional, const std::string & defaultValue)
 {
-    if (elt->FirstChildElement(nodeName.c_str()) == NULL) {
+    if (elt->FirstChildElement(nodeName.c_str()) == nullptr) {
         throw std::runtime_error("Node '" + nodeName + "' doesn't exist in XML file");
     }
-    if (elt->FirstChildElement(nodeName.c_str())->GetText() == NULL) {
+    if (elt->FirstChildElement(nodeName.c_str())->GetText() == nullptr) {
         if (optional) {
             return defaultValue;
         }

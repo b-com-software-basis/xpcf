@@ -23,13 +23,16 @@
 #include <stdio.h>
 #include <boost/dll.hpp>
 #include <boost/dll/shared_library.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/function.hpp>
 #include <boost/system/system_error.hpp>
 #include <iostream>
 #include <xpcf/core/uuid.h>
-#include "xpcf/threading/FiberFifos.h"
-#include "xpcf/threading/SharedBuffer.h"
-#include "xpcf/threading/BaseTask.h"
+#include <xpcf/threading/FiberFifos.h>
+#include <xpcf/threading/SharedBuffer.h>
+#include <xpcf/threading/BaseTask.h>
+#include <xpcf/api/IModuleManager.h>
+#include <xpcf/api/IInjectable.h>
 
 #define BOOST_TEST_MODULE test dynamic xpcf
 #include <boost/test/unit_test.hpp>
@@ -42,7 +45,7 @@ xpcf::uuids::uuid iid_IComponentIntrospect= xpcf::toUUID<xpcf::IComponentIntrosp
 xpcf::uuids::uuid iid_IHuman= xpcf::toUUID<IHuman>();
 xpcf::uuids::uuid iid_IMusician= xpcf::toUUID<IMusician>();
 xpcf::uuids::uuid iid_IGuitarist= xpcf::toUUID<IGuitarist>();
-
+xpcf::uuids::uuid sampleComponentModuleUUID = gen("3b899ff0-e098-4218-bdaa-82abdec22960");
 using namespace std;
 
 //TODO : unittests, exception catching
@@ -54,7 +57,7 @@ void TCDLL()
         //shlib.load(boost::dll::program_location());
         fs::path p =  boost::dll::shared_library::decorate("/usr/lib/boost");
         BOOST_TEST_MESSAGE("Decorated path="<<p);
-       /* shlib.load("test");
+        /* shlib.load("test");
         if (shlib.has("my_test_func")) {
             boost::function<void(const char * )> testFunc = boost::dll::import<void(const char * )>(boost::dll::program_location(), "my_test_func");
 
@@ -70,8 +73,6 @@ void TCDLL()
     }
 }
 
-
-
 BOOST_AUTO_TEST_SUITE( test_library_component_metadata )
 
 BOOST_AUTO_TEST_CASE( test_dll )
@@ -86,9 +87,64 @@ BOOST_AUTO_TEST_CASE( test_fixture )
     BOOST_TEST(fixture.xpcfComponentManager );
 }
 
+BOOST_FIXTURE_TEST_CASE( test_load_module_metadata,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_fixture"))
+{
+    xpcfComponentManager->load();
+    SPtr<xpcf::ModuleMetadata> modMdata = xpcfComponentManager->findModuleMetadata(sampleComponentModuleUUID);
+    std::string moduleName = modMdata->name();
+    const char * path = modMdata->getPath();
+    xpcfComponentManager->clear();
+    SRef<xpcf::IModuleManager> xpcfModuleManager = xpcf::getModuleManagerInstance();
+    std::string xpcfVersion = xpcfModuleManager->getXpcfVersion(moduleName.c_str(),path);
+    BOOST_TEST_MESSAGE("Module "<<moduleName<<" was built with xpcf version "<<xpcfVersion);
+    BOOST_TEST_REQUIRE(xpcf::XPCFErrorCode::_SUCCESS == xpcfComponentManager->loadModuleMetadata(moduleName.c_str(),path)," failed to load module from moduleMetadata");
+    SPtr<xpcf::InterfaceMetadata> pI = xpcfComponentManager->findInterfaceMetadata(iid_IHuman);
+    BOOST_TEST_REQUIRE(pI,"ERROR Cannot find interface iid_IHuman !");
+    SPtr<xpcf::ComponentMetadata> cmpMetadata= xpcfComponentManager->findComponentMetadata(clsid_HumanMusician);
+    BOOST_TEST_REQUIRE(cmpMetadata,"ERROR Cannot get ComponentMetadata for component ID "<<clsid_HumanMusician<<" !");
+    BOOST_TEST_MESSAGE("Component Class clsid_HumanMusician found! Its Description is:"<<cmpMetadata->description());
+    fs::path confPath = "xpcf_conf_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+    try {
+        SRef<xpcf::IConfigurable> rIConfigurable;
+        BOOST_REQUIRE_NO_THROW( rIConfigurable = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<xpcf::IConfigurable>() );
+        BOOST_TEST_MESSAGE("Accessing instance values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
+        for (auto property : rIConfigurable->getProperties()) {
+            displayParameter(property);
+        }
+    }
+    catch (std::out_of_range & e) {
+        BOOST_TEST_MESSAGE("Catched : "<<e.what());
+    }
+    xpcfComponentManager->clear();
+}
+
+BOOST_FIXTURE_TEST_CASE( test_load_modules,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_fixture"))
+{
+    xpcfComponentManager->load();
+    SPtr<xpcf::ModuleMetadata> modMdata = xpcfComponentManager->findModuleMetadata(sampleComponentModuleUUID);
+    xpcfComponentManager->clear();
+    BOOST_TEST_REQUIRE(xpcf::XPCFErrorCode::_SUCCESS == xpcfComponentManager->loadModules(modMdata->getPath())," failed to load modules from moduleMetadata");
+    SPtr<xpcf::InterfaceMetadata> pI = xpcfComponentManager->findInterfaceMetadata(iid_IHuman);
+    BOOST_TEST_REQUIRE(pI,"ERROR Cannot find interface iid_IHuman !");
+    SPtr<xpcf::ComponentMetadata> cmpMetadata= xpcfComponentManager->findComponentMetadata(clsid_HumanMusician);
+    BOOST_TEST_REQUIRE(cmpMetadata,"ERROR Cannot get ComponentMetadata for component ID "<<clsid_HumanMusician<<" !");
+    BOOST_TEST_MESSAGE("Component Class clsid_HumanMusician found! Its Description is:"<<cmpMetadata->description());
+    try {
+        SRef<xpcf::IConfigurable> rIConfigurable;
+        BOOST_REQUIRE_NO_THROW( rIConfigurable = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<xpcf::IConfigurable>() );
+    }
+    catch (std::out_of_range & e) {
+        BOOST_TEST_MESSAGE("Catched : "<<e.what());
+    }
+    xpcfComponentManager->clear();
+}
+
+
 BOOST_FIXTURE_TEST_CASE( test_load_library,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_fixture"))
 {
-    BOOST_TEST(xpcfComponentManager->load("$BCOMDEVROOT/.xpcf/test/xpcf_registry_test.xml",false) == 0, " failed to load library from "<<getenv("BCOMDEVROOT")<<"/.xpcf/test/xpcf_registry_test.xml" );
+    BOOST_TEST(xpcfComponentManager->load("$HOME/.xpcf/xpcf_registry_test.xml",false) == 0, " failed to load library from "<<getenv("HOME")<<"/.xpcf/xpcf_registry_test.xml" );
 }
 
 
@@ -104,6 +160,7 @@ BOOST_FIXTURE_TEST_CASE( test_read_interface,XpcfFixture,* boost::unit_test::dep
 
     BOOST_TEST_REQUIRE(pI,"ERROR Cannot find interface iid_IHuman !");
     BOOST_TEST_MESSAGE("Interface iid_IHuman found! its Description is:"<<pI->description());
+    xpcfComponentManager->clear();
 }
 
 BOOST_FIXTURE_TEST_CASE( test_read_components,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
@@ -128,6 +185,7 @@ BOOST_FIXTURE_TEST_CASE( test_read_components,XpcfFixture,* boost::unit_test::de
     cmpMetadata= xpcfComponentManager->findComponentMetadata(clsid_HumanMusician);
     BOOST_TEST_REQUIRE(cmpMetadata,"ERROR Cannot get ComponentMetadata for component ID "<<clsid_HumanMusician<<" !");
     BOOST_TEST_MESSAGE("Component Class clsid_HumanMusician found! Its Description is:"<<cmpMetadata->description());
+    xpcfComponentManager->clear();
 }
 
 BOOST_FIXTURE_TEST_CASE( test_read_component,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
@@ -154,7 +212,7 @@ BOOST_FIXTURE_TEST_CASE( test_read_component,XpcfFixture,* boost::unit_test::dep
 
 
     /*BOOST_TEST_MESSAGE("Interface "<<cmpMetadata->GetInterface(nbI-1)<<"found in component Class" );*/
-
+    xpcfComponentManager->clear();
 }
 
 BOOST_FIXTURE_TEST_CASE( test_read_interfaces,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
@@ -166,7 +224,7 @@ BOOST_FIXTURE_TEST_CASE( test_read_interfaces,XpcfFixture,* boost::unit_test::de
     ** 2) Getting pointers (SPtr<XPCF_Interface>) on all implemented interfaces of any components declared in the XPCF registry file.
     **     Then with these pointers we  obtain the name (help string) of each interface.
     **/
-//xpcf::uuids::uuid * leakedUUID = new xpcf::uuids::uuid();
+    //xpcf::uuids::uuid * leakedUUID = new xpcf::uuids::uuid();
     SPtr<xpcf::InterfaceMetadata> interfaceMdata;
     uint32_t nbI = xpcfComponentManager->getInterfacesMetadata().size();
     BOOST_TEST_MESSAGE(nbI<<" interfaces found the registry s");
@@ -174,6 +232,7 @@ BOOST_FIXTURE_TEST_CASE( test_read_interfaces,XpcfFixture,* boost::unit_test::de
     {
         BOOST_TEST_MESSAGE(interfaceMdata->getUUID()<<" OK. Interface Description: "<<interfaceMdata->description());
     }
+    xpcfComponentManager->clear();
 
 }
 /*------------------------------*/
@@ -207,54 +266,6 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( test_library_component_creation )
 
-void displayParameter(SRef<xpcf::IProperty> p)
-{
-    BOOST_TEST_MESSAGE("Property name ="<<p->getName());
-    for (uint32_t i=0 ; i < p->size() ; i++ ) {
-        switch (p->getType()) {
-        case xpcf::IProperty::IProperty_NONE :
-            break;
-        case xpcf::IProperty::IProperty_INTEGER :
-            BOOST_TEST_MESSAGE("=> Int property = "<<p->getIntegerValue(i));
-            break;
-        case xpcf::IProperty::IProperty_UINTEGER :
-            BOOST_TEST_MESSAGE("=> Uint property = "<<p->getUnsignedIntegerValue(i));
-            break;
-        case xpcf::IProperty::IProperty_LONG :
-            BOOST_TEST_MESSAGE("=> Long property = "<<p->getLongValue(i));
-            break;
-        case xpcf::IProperty::IProperty_ULONG :
-            BOOST_TEST_MESSAGE("=> ULong property = "<<p->getUnsignedLongValue(i));
-            break;
-        case xpcf::IProperty::IProperty_CHARSTR :
-            BOOST_TEST_MESSAGE("=> String property = "<<p->getStringValue(i));
-            break;
-        case xpcf::IProperty::IProperty_UNICODESTR :
-            break;
-        case xpcf::IProperty::IProperty_FLOAT :
-            BOOST_TEST_MESSAGE("=> Float property = "<<p->getFloatingValue(i));
-            break;
-        case xpcf::IProperty::IProperty_DOUBLE :
-            BOOST_TEST_MESSAGE("=> Double property = "<<p->getDoubleValue(i));
-            break;
-        case xpcf::IProperty::IProperty_STRUCTURE :
-        {
-            SRef<xpcf::IPropertyMap> propertyMap = p->getStructureValue(i);
-            SRef<xpcf::IEnumerator<SRef<xpcf::IProperty>>> propertyEnum =
-                    propertyMap->getProperties().getEnumerator();
-            BOOST_TEST_MESSAGE("Accessing class values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
-            while (propertyEnum->moveNext()) {
-                displayParameter(propertyEnum->current());
-            }
-            break;
-        }
-        default:
-            break;
-        }
-    }
-}
-
-
 BOOST_FIXTURE_TEST_CASE( test_component_creation,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
     SRef<xpcf::IComponentIntrospect> rIComponentIntrospect;
@@ -265,37 +276,38 @@ BOOST_FIXTURE_TEST_CASE( test_component_creation,XpcfFixture,* boost::unit_test:
     xpcfComponentManager->load() ;
     // create a component
     //
-try {
-    BOOST_REQUIRE_NO_THROW( rIConfigurable = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<xpcf::IConfigurable>() );
-    BOOST_REQUIRE_NO_THROW( rITestInstance = xpcfComponentManager->create<component::VirtualGuitarist>("testInstance")->bindTo<xpcf::IConfigurable>() );
+    try {
+        BOOST_REQUIRE_NO_THROW( rIConfigurable = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<xpcf::IConfigurable>() );
+        BOOST_REQUIRE_NO_THROW( rITestInstance = xpcfComponentManager->create<component::VirtualGuitarist>("testInstance")->bindTo<xpcf::IConfigurable>() );
 
-    BOOST_CHECK_THROW( rIComponentIntrospect = xpcfComponentManager->create<fakeComponent>(),xpcf::ModuleNotFoundException);
-    BOOST_CHECK_THROW( rIConfigurable->bindTo<IHuman>(),xpcf::InterfaceNotImplementedException);
-    BOOST_REQUIRE_NO_THROW(rIComponentIntrospect = xpcfComponentManager->create<component::HumanMusician>() );
-    BOOST_TEST_REQUIRE(! rIComponentIntrospect->implements<xpcf::IConfigurable>(),"ERROR: HumanMusician implements IConfigurable");
-    SRef<IHuman> rIHuman = rIComponentIntrospect->queryInterface<IHuman>(iid_IHuman);
-    BOOST_TEST_REQUIRE(rIHuman, "ERROR:queryInterface(iid_IHuman,rIHuman)");
-    BOOST_TEST_MESSAGE("CreateInstance(clsid_HumanMusician, iid_IHuman ,rIHuman)");
-    //rIConfigurable = rIComponentIntrospect->queryInterface<xpcf::IConfigurable>();
-    //rIComponentIntrospect->queryInterface(xpcf::toUUID<xpcf::IConfigurable>(),rIConfigurable);
+        BOOST_CHECK_THROW( rIComponentIntrospect = xpcfComponentManager->create<fakeComponent>(),xpcf::ModuleNotFoundException);
+        BOOST_CHECK_THROW( rIConfigurable->bindTo<IHuman>(),xpcf::InterfaceNotImplementedException);
+        BOOST_REQUIRE_NO_THROW(rIComponentIntrospect = xpcfComponentManager->create<component::HumanMusician>() );
+        BOOST_TEST_REQUIRE(! rIComponentIntrospect->implements<xpcf::IConfigurable>(),"ERROR: HumanMusician implements IConfigurable");
+        SRef<IHuman> rIHuman = rIComponentIntrospect->queryInterface<IHuman>(iid_IHuman);
+        BOOST_TEST_REQUIRE(rIHuman, "ERROR:queryInterface(iid_IHuman,rIHuman)");
+        BOOST_TEST_MESSAGE("CreateInstance(clsid_HumanMusician, iid_IHuman ,rIHuman)");
+        //rIConfigurable = rIComponentIntrospect->queryInterface<xpcf::IConfigurable>();
+        //rIComponentIntrospect->queryInterface(xpcf::toUUID<xpcf::IConfigurable>(),rIConfigurable);
 
-    SRef<xpcf::IProperty> varSetted = rIConfigurable->getProperty("blurFactor");
-    varSetted->setFloatingValue(4.0);
+        SRef<xpcf::IProperty> varSetted = rIConfigurable->getProperty("blurFactor");
+        varSetted->setFloatingValue(4.0);
 
-    SRef<xpcf::IEnumerator<SRef<xpcf::IProperty>>> propertyEnum = rIConfigurable->getPropertiesEnumerator();
-    BOOST_TEST_MESSAGE("Accessing class values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
-    while (propertyEnum->moveNext()) {
-         displayParameter(propertyEnum->current());
-    }
+        SRef<xpcf::IEnumerator<SRef<xpcf::IProperty>>> propertyEnum = rIConfigurable->getPropertiesEnumerator();
+        BOOST_TEST_MESSAGE("Accessing class values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
+        while (propertyEnum->moveNext()) {
+            displayParameter(propertyEnum->current());
+        }
 
-    BOOST_TEST_MESSAGE("Accessing instance values for VirtualGuitarist testInstance from IProperty/IPropertyMap interfaces");
-    for (auto property : rITestInstance->getProperties()) {
-         displayParameter(property);
-    }
+        BOOST_TEST_MESSAGE("Accessing instance values for VirtualGuitarist testInstance from IProperty/IPropertyMap interfaces");
+        for (auto property : rITestInstance->getProperties()) {
+            displayParameter(property);
+        }
     }
     catch (std::out_of_range & e) {
         BOOST_TEST_MESSAGE("Catched : "<<e.what());
     }
+    xpcfComponentManager->clear();
 }
 
 BOOST_FIXTURE_TEST_CASE( test_component_introspection,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
@@ -324,6 +336,7 @@ BOOST_FIXTURE_TEST_CASE( test_component_introspection,XpcfFixture,* boost::unit_
         BOOST_TEST_MESSAGE("["<<index<<"] OK. Interface: "<<xpcf::uuids::to_string(interfaceUUID).c_str());
         index++;
     }
+    xpcfComponentManager->clear();
 }
 
 /*------------------------------*/
@@ -336,7 +349,6 @@ BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_tes
     rIComponentIntrospect=   xpcfComponentManager->createComponent(clsid_HumanMusician);
     SRef<IHuman> rIHuman = rIComponentIntrospect->queryInterface<IHuman>(iid_IHuman);
     BOOST_CHECK_THROW(SRef<IMusician> rIMusiciantest = rIComponentIntrospect->queryInterface<IMusician>(iid_IHuman),xpcf::utils::bad_any_cast);
-
     BOOST_TEST_MESSAGE("Calling methods of IHuman on component HumanMusician");
     rIHuman->play();
     rIHuman->eat();
@@ -355,6 +367,20 @@ BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_tes
     rIMusician->listen();
     rIMusician->practice();
 
+    BOOST_TEST_MESSAGE("Resolve IGuitarist default binding");
+    SRef<IGuitarist> rIGuitarist = xpcfComponentManager->resolve<IGuitarist>();
+    BOOST_TEST_MESSAGE("Calling methods of IGuitarist on resolved component through IGuitarist SRef");
+    rIGuitarist->playSolo();
+    rIGuitarist->playRhythm();
+
+    BOOST_TEST_MESSAGE("Resolve IMusician default binding");
+    rIMusician = xpcfComponentManager->resolve<IMusician>();
+    BOOST_TEST_MESSAGE("Calling methods of IMusician on resolved component through IMusician SRef");
+    rIMusician->learn();
+    rIMusician->playMusic();
+    rIMusician->listen();
+    rIMusician->practice();
+
     rIMusician = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<IMusician>();
     BOOST_TEST_MESSAGE("OK Calling methods of IMusician on component VirtualGuitarist");
     rIMusician->learn();
@@ -362,7 +388,7 @@ BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_tes
     rIMusician->listen();
     rIMusician->practice();
 
-    SRef<IGuitarist>  rIGuitarist = rIMusician->bindTo<IGuitarist>();
+    rIGuitarist = rIMusician->bindTo<IGuitarist>();
     BOOST_TEST_MESSAGE("Calling methods of IMusician on component VirtualGuitarist through IGuitarist SRef");
     rIGuitarist->learn();
     rIGuitarist->playMusic();
@@ -372,7 +398,84 @@ BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_tes
     BOOST_TEST_MESSAGE("OK Calling methods of IGuitarist on component VirtualGuitarist");
     rIGuitarist->playSolo();
     rIGuitarist->playRhythm();
+    BOOST_TEST_MESSAGE( "Guitarist injectables are: ");
+    for (auto injectable : rIGuitarist->bindTo<xpcf::IInjectable>()->getInjectables()) {
+        std::string message = "Injectable= " + xpcf::uuids::to_string(injectable->getUuid());
+        if (injectable->isNamed()) {
+            message += " | name= " + string(injectable->getName());
+        }
+        message += " | optional= " + to_string(injectable->optional());
+        BOOST_TEST_MESSAGE(message);
+    }
+    BOOST_TEST_REQUIRE(rIGuitarist->bindTo<xpcf::IInjectable>()->injectExists<xpcf::IComponentManager>() == false,"no IComponentManager injectable in VirtualGuitarist");
+    BOOST_TEST_REQUIRE(rIGuitarist->bindTo<xpcf::IInjectable>()->injectExists<IGuitar>("myGuitar") == false,"no IGuitar injectable named 'myGuitar' in VirtualGuitarist");
+    BOOST_TEST_REQUIRE(rIGuitarist->bindTo<xpcf::IInjectable>()->injectExists<IGuitar>() == true,"Found IGuitar injectable in VirtualGuitarist");
+    BOOST_TEST_REQUIRE(rIGuitarist->bindTo<xpcf::IInjectable>()->injectExists<IElectricGuitar>("electricGuitar") == true,"Found IGuitar injectable named 'electricGuitar' in VirtualGuitarist");
 
+    SRef<IGuitar> guitar = rIGuitarist->getGuitar();
+    SRef<IGuitar> folkGuitar = rIGuitarist->getGuitar(IGuitar::GuitarType::Folk);
+    if (!folkGuitar) {
+        BOOST_TEST_MESSAGE("OK : folkGuitar is not configured for VirtualGuitarist");
+        SRef<IGuitar> electricGuitar = rIGuitarist->getGuitar(IGuitar::GuitarType::Electric);
+        BOOST_TEST_REQUIRE(guitar,"found electricGuitar get guitar for component VirtualGuitarist instance testInstance : check the configuration file !");
+        BOOST_TEST_MESSAGE( "Guitar brand name: " << guitar->getGuitarBrand());
+        BOOST_TEST_MESSAGE( "Guitar strings number: " << guitar->getNbStrings());
+        if (electricGuitar->getGuitarType() == IGuitar::GuitarType::Electric) {
+            BOOST_TEST_MESSAGE("Guitar is an electric guitar");
+            SRef<IElectricGuitar> elecGuitar = electricGuitar->bindTo<IElectricGuitar>();
+            elecGuitar->setDistortionLevel(100);
+            BOOST_TEST_MESSAGE("Electric guitar distortion level is set to "<<elecGuitar->getDistortionLevel());
+        }
+        SRef<xpcf::IComponentIntrospect> rIntroOnElectricGuitar;
+        {
+            SRef<IGuitar> electricGuitar =  xpcfComponentManager->create<component::JacksonDinky6ElectricGuitar>()->bindTo<IGuitar>();
+            // WARNING : no component ref is added in the following line : rIntroOnElectricGuitar will not outlive electricGuitar !!!
+            // TODO : study solutions (specific SRef implementation ? external handling of interfaces - not inside the component ?...)
+            rIntroOnElectricGuitar = electricGuitar;
+        }
+        folkGuitar =  xpcfComponentManager->create<component::TakamineFolkGuitar>()->bindTo<IGuitar>();
+        {
+            BOOST_TEST_MESSAGE( "Entering scope : requesting  IComponentIntrospect on folkGuitar");
+            SRef<xpcf::IComponentIntrospect> rIntro = folkGuitar->bindTo<xpcf::IComponentIntrospect>();
+            BOOST_TEST_MESSAGE( "Ending scope : end of life of  IComponentIntrospect on folkGuitar");
+        }
+        {
+            BOOST_TEST_MESSAGE( "Entering scope : casting folkGuitar to IComponentIntrospect");
+            SRef<xpcf::IComponentIntrospect> rIntro = folkGuitar;
+            SRef<IGuitar> anotherFolkRef = rIntro->bindTo<IGuitar>();
+            BOOST_TEST_MESSAGE( "Ending scope : end of life of  IComponentIntrospect on folkGuitar");
+        }
+        BOOST_TEST_REQUIRE(folkGuitar,"Found folkGuitar for component VirtualGuitarist instance testInstance");
+        rIGuitarist->bindTo<xpcf::IInjectable>()->inject<IGuitar>(folkGuitar);
+        guitar = rIGuitarist->getGuitar();
+        BOOST_TEST_REQUIRE(guitar,"Found guitar for component VirtualGuitarist instance testInstance");
+        BOOST_TEST_MESSAGE( "Guitar brand name: " << guitar->getGuitarBrand());
+        BOOST_TEST_MESSAGE( "Guitar strings number: " << guitar->getNbStrings());
+        xpcf::inject<component::TakamineFolkGuitar, IGuitar>(rIGuitarist,"folkGuitar");
+        guitar = rIGuitarist->getGuitar(IGuitar::GuitarType::Folk);
+        BOOST_TEST_REQUIRE(guitar,"ERROR Cannot get guitar for component VirtualGuitarist instance testInstance : check the configuration file !");
+        BOOST_TEST_MESSAGE( "Guitar brand name: " << guitar->getGuitarBrand());
+        BOOST_TEST_MESSAGE( "Guitar strings number: " << guitar->getNbStrings());
+    }
+
+    BOOST_TEST_REQUIRE(guitar,"guitar component is ready");
+    BOOST_CHECK_THROW(rIGuitarist->bindTo<xpcf::IInjectable>()->inject<xpcf::IInjectable>(guitar),xpcf::InjectionException);
+
+    BOOST_TEST_MESSAGE( "Guitar brand name: " << guitar->getGuitarBrand());
+    BOOST_TEST_MESSAGE( "Guitar strings number: " << guitar->getNbStrings());
+    if (guitar->getGuitarType() == IGuitar::GuitarType::Electric) {
+        BOOST_TEST_MESSAGE("Guitar is an electric guitar");
+        SRef<IElectricGuitar> elecGuitar = guitar->bindTo<IElectricGuitar>();
+        elecGuitar->setDistortionLevel(100);
+        BOOST_TEST_MESSAGE("Electric guitar distortion level is set to "<<elecGuitar->getDistortionLevel());
+    }
+    BOOST_TEST_REQUIRE(folkGuitar,"Found folkguitar for component VirtualGuitarist instance testInstance : check the configuration file !");
+    BOOST_TEST_MESSAGE( "Guitar brand name: " << folkGuitar->getGuitarBrand());
+    BOOST_TEST_MESSAGE( "Guitar strings number: " << folkGuitar->getNbStrings());
+    if (folkGuitar->getGuitarType() == IGuitar::GuitarType::Folk) {
+        BOOST_TEST_MESSAGE("Guitar is a folf guitar");
+        BOOST_CHECK_THROW(folkGuitar->bindTo<IElectricGuitar>(),xpcf::InterfaceNotImplementedException);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

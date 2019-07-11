@@ -4,6 +4,7 @@
 #include "xpcf/core/uuid.h"
 #include "xpcf/xpcf_api_define.h"
 #include "xpcf/core/XPCFErrorCode.h"
+#include "xpcf/api/InjectableMetadata.h"
 
 #include <exception>
 #include <string>
@@ -106,6 +107,30 @@ public:
     ModuleNotFoundException(const char * what);
     ModuleNotFoundException(const std::string & what);
     virtual ~ModuleNotFoundException() = default;
+};
+
+class XPCF_EXPORT_API InjectionException : public UUIDNotFoundException {
+public:
+    InjectionException(const SRef<InjectableMetadata> injectableInfo, XPCFErrorCode errCode = XPCFErrorCode::_ERROR_INJECTION_FAILED, const char * what = "" );
+    InjectionException(const char * what, XPCFErrorCode errCode = XPCFErrorCode::_FAIL);
+    InjectionException(const std::string & what, XPCFErrorCode errCode = XPCFErrorCode::_FAIL);
+    virtual ~InjectionException() = default;
+};
+
+class XPCF_EXPORT_API InjectableNotFoundException : public InjectionException {
+public:
+    InjectableNotFoundException(const SRef<InjectableMetadata> injectableInfo);
+    InjectableNotFoundException(const char * what);
+    InjectableNotFoundException(const std::string & what);
+    virtual ~InjectableNotFoundException() = default;
+};
+
+class XPCF_EXPORT_API InjectableDeclarationException : public InjectionException {
+public:
+    InjectableDeclarationException(const SRef<InjectableMetadata> injectableInfo);
+    InjectableDeclarationException(const char * what);
+    InjectableDeclarationException(const std::string & what);
+    virtual ~InjectableDeclarationException() = default;
 };
 
 }}}

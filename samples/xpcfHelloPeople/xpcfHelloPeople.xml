@@ -1,0 +1,8 @@
+<xpcf-registry>
+    <module uuid="bf75aab8-f52b-4634-95ea-de75c7a1d86a" name="xpcfHelloPeople" path="$HOME/.xpcf/modules/xpcfHelloPeople" description="xpcfHelloPeople module description">
+        <component uuid="8d664b2a-16d5-4d7c-8675-e85d244cd8ee" name="PeopleComponent" description="PeopleComponent implements IMessage interface">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+            <interface uuid="9e04c615-8ee7-4c52-83a4-8104a209cafc" name="IMessage" description="IMessage interface description"/>
+        </component>
+    </module>
+</xpcf-registry>

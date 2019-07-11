@@ -52,6 +52,11 @@ public:
     SRef<IEnumerator<SRef<IProperty>>> getPropertiesEnumerator() const final;
     bool hasProperties() const final;
 
+protected:
+    XPCFErrorCode addProperty(SRef<IProperty> property) override final;
+    void declarePropertyNode(const char * name, SRef<IPropertyMap> & wrappedValue, IProperty::AccessSpecifier iotype = IProperty::AccessSpecifier::IProperty_INOUT) override final;
+
+
 private:
     class InternalImpl;
     UniqueRef<InternalImpl> m_internalImpl;

@@ -2,13 +2,16 @@ QT       -= core gui
 CONFIG -= app_bundle qt
 
 TARGET = xpcf
-INSTALLSUBDIR = bcomBuild
 FRAMEWORK = $${TARGET}
-VERSION=2.1.0
-DEFINES += MYVERSION=$${VERSION}
+VERSION=2.2.0
+DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
 CONFIG += shared
+macx {
+    #CONFIG += use_brew_llvm
+    # howto setup conan to use brew llvm ?
+}
 
 DEPENDENCIESCONFIG = sharedlib
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
@@ -22,6 +25,7 @@ staticlib {
 }
 
 CONFIG(debug,debug|release) {
+    DEFINES += "XPCFDEBUG"
     DEFINES += XPCFSUBDIRSEARCH=\\\"debug\\\"
 }
 
@@ -35,6 +39,10 @@ DEFINES += BOOST_ALL_DYN_LINK
 DEFINES += TIXML_USE_STL
 
 SOURCES += \
+    src/AliasManager.cpp \
+    src/Factory.cpp \
+    src/InjectableMetadata.cpp \
+    src/Registry.cpp \
     src/tinyxml2.cpp \
     src/tinyxmlhelper.cpp \
     src/ComponentMetadata.cpp \
@@ -54,6 +62,11 @@ SOURCES += \
     src/BaseTask.cpp
 
 HEADERS += \
+    interfaces/xpcf/api/InjectableMetadata.h \
+    interfaces/xpcf/core/helpers.h \
+    src/AliasManager.h \
+    src/Factory.h \
+    src/Registry.h \
     src/tinyxml2.h \
     src/tinyxmlhelper.h \
     src/ComponentManager.h \
@@ -81,6 +94,7 @@ HEADERS += \
     interfaces/xpcf/api/ComponentMetadata.h \
     interfaces/xpcf/api/ModuleMetadata.h \
     interfaces/xpcf/api/InterfaceMetadata.h \
+    interfaces/xpcf/api/IInjectable.h \
     interfaces/xpcf/component/ComponentBase.h \
     interfaces/xpcf/component/ComponentFactory.h \
     interfaces/xpcf/component/ComponentTraits.h \
@@ -145,4 +159,5 @@ h_xpcf_files.files += $${PWD}/interfaces/xpcf/xpcf_api_define.h
 
 INSTALLS += h_api_files h_collection_files h_component_files h_core_files h_module_files h_properties_files h_threading_files h_xpcf_files
 DISTFILES += \
-    Makefile
+    Makefile \
+    doc/xpcf-registry-sample.xml

@@ -1,0 +1,58 @@
+/**
+ * @copyright Copyright (c) 2017 B-com http://www.b-com.com/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @author Loïc Touraine
+ *
+ * @file
+ * @brief description of file
+ * @date 2018-06-25
+ */
+
+#ifndef TakamineFolkGuitar_H
+#define TakamineFolkGuitar_H 1
+
+#include "Guitar.h"
+#include "xpcfSampleComponent_traits.h"
+
+#include <string>
+/**
+ *  @ingroup components
+ */
+namespace component {
+
+/**
+   * @class TakamineFolkGuitar
+   * This component shows the implementation of a configurable component.
+   * It inherits the ConfigurableBase class, hence it provides IConfigurable capabilities.
+   * TakamineFolkGuitar implementation wraps some of its inner members' data as IProperties, giving a generic and public access to those members.
+   * TakamineFolkGuitar configuration is declared in the components' configuration file.
+   *
+   * @note When a TakamineFolkGuitar component is created through the XPCF ComponentManager it is also configured with the default values declared in the xpcf_registry_test.xml.
+   * @note The needed ComponentTraits<TakamineFolkGuitar> template struct defining the TakamineFolkGuitar UUID and description is located
+   * in the xpcfSampleComponent_traits.h header file.
+   * It allows TakamineFolkGuitar users to use directly a forward declared type
+   * to invoke TakamineFolkGuitar creation without depending on the concrete implementation.
+   */
+class TakamineFolkGuitar : public Guitar
+
+{
+public:
+    TakamineFolkGuitar();
+    ~TakamineFolkGuitar() override;
+};
+
+}
+
+#endif

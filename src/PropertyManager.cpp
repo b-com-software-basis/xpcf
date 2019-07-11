@@ -71,6 +71,7 @@ template<> PropertyManager* ComponentFactory::createInstance()
 PropertyManager::PropertyManager():ComponentBase(toUUID<PropertyManager>())
 {
     addInterface<IPropertyManager>(this);
+    declareInjectable<IAliasManager>(m_aliasManager);
     //  m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("PropertyManager"));
     //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor PropertyManager::PropertyManager () called!";
 }
@@ -207,7 +208,7 @@ XPCFErrorCode configureElement(tinyxml2::XMLElement *element, SRef<IPropertyMap>
     return XPCFErrorCode::_SUCCESS;
 }
 
-XPCFErrorCode configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredicate, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath)
+XPCFErrorCode PropertyManager::configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredicate, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath)
 {
     //#1 load conf file
     //#2 find first configuration child node
@@ -225,18 +226,40 @@ XPCFErrorCode configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredi
             // a check should be performed upon announced module uuid and inner module uuid
             tinyxml2::XMLElement * rootElt = doc.RootElement();
             tinyxml2::XMLElement * xmlConfigElt = rootElt->FirstChildElement("configuration");
-            if (xmlConfigElt == nullptr) {
+            tinyxml2::XMLElement * xmlPropsElt = rootElt->FirstChildElement("properties");
+            if ((xmlConfigElt == nullptr) && (xmlPropsElt == nullptr)) {
                 return XPCFErrorCode::_SUCCESS;
             }
-            tinyxml2::XMLElement * xmlComponentElt = xmlConfigElt->FirstChildElement("component");
-            while (xmlComponentElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
-                string uuid = xmlComponentElt->Attribute("uuid");
-                if (xmlNodePredicate(xmlComponentElt)) {
-                    if (toUUID(uuid) == componentUUID) {
-                        result = configureElement(xmlComponentElt, componentRef->getPropertyRootNode());
+            if (xmlConfigElt != nullptr) {
+                tinyxml2::XMLElement * xmlComponentElt = xmlConfigElt->FirstChildElement("component");
+                while (xmlComponentElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
+                    string uuid = xmlComponentElt->Attribute("uuid");
+                    if (xmlNodePredicate(xmlComponentElt)) {
+                        if (toUUID(uuid) == componentUUID) {
+                            result = configureElement(xmlComponentElt, componentRef->getPropertyRootNode());
+                        }
                     }
+                    xmlComponentElt = xmlComponentElt->NextSiblingElement("component");
                 }
-                xmlComponentElt = xmlComponentElt->NextSiblingElement("component");
+            }
+            if (xmlPropsElt != nullptr) {
+                tinyxml2::XMLElement * xmlConfigureElt = xmlPropsElt->FirstChildElement("configure");
+                while (xmlConfigureElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
+                    string componentAttrValue =  xmlConfigureElt->Attribute("component");
+                    uuids::uuid uuid;
+                    if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
+                        uuid = m_aliasManager->resolveComponentAlias(componentAttrValue);
+                    }
+                    else {
+                        uuid =  toUUID(componentAttrValue);
+                    }
+                    if (xmlNodePredicate(xmlConfigureElt)) {
+                        if (uuid == componentUUID) {
+                            result = configureElement(xmlConfigureElt, componentRef->getPropertyRootNode());
+                        }
+                    }
+                    xmlConfigureElt = xmlConfigureElt->NextSiblingElement("configure");
+                }
             }
         }
         catch (const std::runtime_error & e) {
@@ -257,7 +280,7 @@ XPCFErrorCode PropertyManager::configure(const uuids::uuid & componentUUID, SRef
         return false;
     };
 
-    return org::bcom::xpcf::configure(unnamedPredicate, componentUUID, componentRef, filepath);
+    return configure(unnamedPredicate, componentUUID, componentRef, filepath);
 }
 
 
@@ -283,7 +306,7 @@ XPCFErrorCode PropertyManager::configure(const char * instanceName, const uuids:
         return false;
     };
 
-    return org::bcom::xpcf::configure(namedPredicate, componentUUID, componentRef, filepath);
+    return configure(namedPredicate, componentUUID, componentRef, filepath);
 }
 
 void serializeParameter(tinyxml2::XMLDocument & xmlDoc, tinyxml2::XMLElement * nodeElement,SRef<xpcf::IProperty> p)
@@ -372,9 +395,9 @@ XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef
     }
     try {
         //TODO : check config node existenz and create it only if no node already exists
-        tinyxml2::XMLElement * xmlConfigurationElt = xmlDoc.NewElement("configuration");
-        tinyxml2::XMLElement * xmlComponentElt = xmlDoc.NewElement("component");
-        xmlComponentElt->SetAttribute("uuid", boost::uuids::to_string(componentUUID).c_str());
+        tinyxml2::XMLElement * xmlConfigurationElt = xmlDoc.NewElement("properties");
+        tinyxml2::XMLElement * xmlComponentElt = xmlDoc.NewElement("configure");
+        xmlComponentElt->SetAttribute("component", boost::uuids::to_string(componentUUID).c_str());
         for (auto property : componentRef->getProperties()) {
             serializeParameter(xmlDoc, xmlComponentElt, property);
         }

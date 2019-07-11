@@ -31,6 +31,7 @@
 #include <boost/dll/shared_library.hpp>
 #include <boost/function.hpp>
 #include "tinyxmlhelper.h"
+//#include <filesystem>
 
 using namespace std;
 
@@ -41,7 +42,7 @@ std::mutex ModuleManager::m_mutex;
 
 ModuleManager * ModuleManager::instance()
 {
-
+    //std::filesystem::path p("/usr/local/inlude");
     ModuleManager* moduleMgrInstance= m_instance.load(std::memory_order_acquire);
     if ( !moduleMgrInstance ){
         std::lock_guard<std::mutex> myLock(m_mutex);
@@ -74,30 +75,133 @@ void ModuleManager::unloadComponent ()
 {
 }
 
-SPtr<ModuleMetadata> ModuleManager::introspectModule(const char* moduleName, const char* moduleFilePath)
+void checkSymbol(const boost::dll::shared_library & shlib, const std::string symbol)
 {
+    if (!shlib.has(symbol)) {
+        throw ModuleException("Missing XPCF symbol " +  symbol );
+    }
+}
+
+boost::dll::shared_library validateModule(fs::path modulePath)// validation cache ?
+{
+    if ( ! fs::exists(PathBuilder::appendModuleDecorations(modulePath))) {
+        throw ModuleException("No module file found in " + modulePath.generic_string());
+    }
+    // module validation is made first by checking every needed entry points exists in the dll
+    // second with parsing the module index and trying to create each component without failure
+    boost::dll::shared_library shlib;
+    try {//trying to load library first to check if there is a version mismatch (for mac os x it is mandatory) to inform user with load failed
+        shlib.load(modulePath, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path);
+    }
+    catch (boost::system::system_error & e) {
+        throw ModuleException(e.what());
+    }
+ //   checkSymbol(shlib, XPCF_GETXPCFVERSION);
+    checkSymbol(shlib, XPCF_GETMODULEUUID);
+    checkSymbol(shlib, XPCF_GETMODULENAME);
+    checkSymbol(shlib, XPCF_GETMODULEDESCRIPTION);
+    checkSymbol(shlib, XPCF_GETCOMPONENT);
+    checkSymbol(shlib, XPCF_GETMODULEINDEX);
+    return shlib;
+}
+
+boost::dll::shared_library validateModule(SPtr<ModuleMetadata> moduleInfos)
+{
+    if ( ! fs::exists(PathBuilder::appendModuleDecorations(moduleInfos->getFullPath()))) {
+        throw ModuleException("No module file found for module UUID" + boost::uuids::to_string(moduleInfos->getUUID()) + " in " + moduleInfos->getFullPath().generic_string());
+    }
+    return validateModule(moduleInfos->getFullPath());
+}
+
+bool ModuleManager::isXpcfModule(fs::path modulePath)
+{
+    try {
+        validateModule(modulePath);
+        return true;
+    }
+    catch (ModuleException & e) {
+        return false;
+    }
+}
+
+bool ModuleManager::isXpcfModule(SPtr<ModuleMetadata> moduleInfos)
+{
+    try {
+        validateModule(moduleInfos);
+        return true;
+    }
+    catch (ModuleException & e) {
+        return false;
+    }
+}
+
+bool ModuleManager:: isXpcfModule(const char* modulePath)
+{
+    return isXpcfModule( PathBuilder::getUTF8PathObserver(modulePath));
+}
+
+bool ModuleManager::isXpcfModule(const char* moduleName, const char* moduleFolderPath)
+{
+    return isXpcfModule( PathBuilder::buildModuleFilePath(moduleName, moduleFolderPath));
+}
+
+const char * ModuleManager::getXpcfVersion(const char* moduleName, const char* moduleFolderPath)
+{
+    fs::path modulePath = PathBuilder::buildModuleFilePath(moduleName, moduleFolderPath);
+    boost::dll::shared_library shlib = validateModule(modulePath);
+
+    try {
+        boost::function<const char* (void)> getXpcfVersion = boost::dll::import<const char * (void)>(
+                    modulePath, XPCF_GETXPCFVERSION, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
+                    );
+        std::string xpcfVersion = getXpcfVersion();
+        return xpcfVersion.c_str();
+    }
+    catch (boost::system::system_error & e) {
+        throw ModuleException(e.what(),xpcf::XPCFErrorCode::_ERROR_MODULE_MISSINGXPCF_ENTRY);
+    }
+}
+
+SPtr<ModuleMetadata> ModuleManager::introspectModule(const char* moduleName, const char* moduleFolderPath)
+{
+    fs::path modulePath = PathBuilder::buildModuleFilePath(moduleName, moduleFolderPath);
+    return introspectModule(modulePath);
+}
+
+SPtr<ModuleMetadata> ModuleManager::introspectModule(const char* moduleFilePath)
+{
+    fs::path modulePath = PathBuilder::getUTF8PathObserver(moduleFilePath);
+    return introspectModule(modulePath);
+}
+
+SPtr<ModuleMetadata> ModuleManager::introspectModule(fs::path modulePath)
+{
+    if (modulePath.is_relative()) {
+        // when modulePath is relative, search modules in ~/.xpcf/modules/
+        modulePath = PathBuilder::getXPCFHomePath() / "modules" / modulePath;
+    }
+    boost::dll::shared_library shlib = validateModule(modulePath);
     SPtr<ModuleMetadata> moduleInfos;
-    fs::path filePath = PathBuilder::buildModuleFilePath(moduleName, moduleFilePath);
     try {
         boost::function<const char* (void)> getModuleUUID = boost::dll::import<const char * (void)>(
-                    filePath, XPCF_GETMODULEUUID, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
+                    modulePath, XPCF_GETMODULEUUID, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
                     );
         boost::function<const char* (void)> getModuleName = boost::dll::import<const char * (void)>(
-                    filePath, XPCF_GETMODULENAME, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
+                    modulePath, XPCF_GETMODULENAME, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
                     );
         boost::function<const char* (void)> getModuleDescription = boost::dll::import<const char * (void)>(
-                    filePath, XPCF_GETMODULEDESCRIPTION, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
+                    modulePath, XPCF_GETMODULEDESCRIPTION, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
                     );
         boost::function<void (SRef<IModuleIndex>)> getModuleIndex = boost::dll::import<void (SRef<IModuleIndex>)>(
-                    filePath, XPCF_GETMODULEINDEX, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
+                    modulePath, XPCF_GETMODULEINDEX, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
                     );
         if (getModuleUUID && getModuleName && getModuleIndex) {
             std::string moduleUUIDStr = getModuleUUID();
             std::string moduleName = getModuleName();
             std::string moduleDescription = getModuleDescription();
-            xpcf::uuids::uuid moduleUUID = toUUID(moduleUUIDStr.c_str());
+            xpcf::uuids::uuid moduleUUID = toUUID(moduleUUIDStr);
             if (m_moduleMap.find(moduleUUID) == m_moduleMap.end()) {
-                moduleInfos = utils::make_shared<ModuleMetadata>(moduleName.c_str(), moduleUUIDStr.c_str(), moduleDescription.c_str(), moduleFilePath);
+                moduleInfos = utils::make_shared<ModuleMetadata>(moduleName.c_str(), moduleUUID, moduleDescription.c_str(), modulePath.parent_path().generic_string().c_str());
                 getModuleIndex(moduleInfos);
                 m_moduleMap[moduleUUID] = moduleInfos;
             }
@@ -107,7 +211,7 @@ SPtr<ModuleMetadata> ModuleManager::introspectModule(const char* moduleName, con
         }
     }
     catch (boost::system::system_error & e) {
-        throw ModuleException(e.what());
+        throw ModuleException(e.what(),xpcf::XPCFErrorCode::_ERROR_MODULE_MISSINGXPCF_ENTRY);
     }
     return moduleInfos;
 }
@@ -125,30 +229,18 @@ void ModuleManager::releaseModuleRef(const uuids::uuid& moduleUUID)
 SRef<IComponentIntrospect> ModuleManager::createComponent(SPtr<ModuleMetadata> moduleInfos, const uuids::uuid& componentUUID)
 {
     SRef<IComponentIntrospect> componentRef;
-    boost::dll::shared_library shlib;
-    try {
-        shlib.load(moduleInfos->getFullPath(), boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path);
+    boost::dll::shared_library shlib = validateModule(moduleInfos);
+    if (m_funcMap.find(moduleInfos->getUUID()) == m_funcMap.end()) {
+        m_funcMap[moduleInfos->getUUID()]=boost::dll::import<XPCFErrorCode(const uuids::uuid &, SRef<IComponentIntrospect>&)>(
+                    moduleInfos->getFullPath(), XPCF_GETCOMPONENT, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
+                    );
     }
-    catch (boost::system::system_error & e) {
-        throw ModuleException(e.what());
-    }
-    if (shlib.has(XPCF_GETCOMPONENT)) {
-        if (m_funcMap.find(moduleInfos->getUUID()) == m_funcMap.end()) {
-            m_funcMap[moduleInfos->getUUID()]=boost::dll::import<XPCFErrorCode(const uuids::uuid &, SRef<IComponentIntrospect>&)>(
-                        moduleInfos->getFullPath(), XPCF_GETCOMPONENT, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
-                        );
-        }
 
-        if (m_funcMap.at(moduleInfos->getUUID())) {
-            XPCFErrorCode errCode = m_funcMap.at(moduleInfos->getUUID())(componentUUID, componentRef);
-            if (componentRef) {
-                addModuleRef(moduleInfos->getUUID());
-            }
+    if (m_funcMap.at(moduleInfos->getUUID())) {
+        XPCFErrorCode errCode = m_funcMap.at(moduleInfos->getUUID())(componentUUID, componentRef);
+        if (componentRef) {
+            addModuleRef(moduleInfos->getUUID());
         }
-
-    }
-    else {
-        throw ModuleException("No XPCF_getComponent entry point declared for module " + moduleInfos->getFullPath().string() , XPCFErrorCode::_ERROR_MODULE_NOGETCOMPONENT);
     }
     return componentRef;
 }

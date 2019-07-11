@@ -33,12 +33,34 @@ class PathBuilder
 public:
     PathBuilder();
     fs::path findRegistries();
-    static fs::path getUTF8PathObserver(std::string sourcePath);
+    static fs::path getUTF8PathObserver(const std::string & sourcePath);
     static fs::path getUTF8PathObserver(const char * sourcePath);
-    static fs::path replaceRootEnvVars(std::string sourcePath);
-    static fs::path buildModuleFilePath(std::string moduleName, std::string filePath);
+    static fs::path replaceRootEnvVars(const std::string & sourcePath);
+    static fs::path buildModuleFilePath(const std::string & moduleName,const std::string & filePath);
+    static fs::path buildModuleFolderPath(const std::string & filePath);
     static fs::path getHomePath();
     static fs::path getXPCFHomePath();
+    static fs::path appendModuleDecorations(const fs::path & sl);
+    static inline bool is_shared_library(const std::string& s) {
+        return (s.find(".dll") != std::string::npos || s.find(".so") != std::string::npos || s.find(".dylib") != std::string::npos);
+        // side effects on path typically toto.app/contents/...
+              /*  && s.find(".lib") == std::string::npos
+                && s.find(".exp") == std::string::npos
+                && s.find(".pdb") == std::string::npos
+                && s.find(".manifest") == std::string::npos
+                && s.find(".rsp") == std::string::npos
+                && s.find(".obj") == std::string::npos
+                && s.find(".a") == std::string::npos;*/
+    }
+
+    static inline bool is_shared_library(const char* p) {
+        return is_shared_library(std::string(p));
+    }
+
+    static inline bool is_shared_library(const boost::filesystem::path& p) {
+        return is_shared_library(p.string());
+    }
+
 };
 
 }}}

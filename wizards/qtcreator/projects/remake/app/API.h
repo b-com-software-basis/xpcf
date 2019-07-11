@@ -1,0 +1,14 @@
+#ifndef XPCFSAMPLECOMPONENTAPI_H
+#define XPCFSAMPLECOMPONENTAPI_H
+
+#if _WIN32
+#ifdef xpcfSampleComponent_API_DLLEXPORT
+#define XPCFSAMPLECOMPONENT_EXPORT_API __declspec(dllexport)
+#else
+#define XPCFSAMPLECOMPONENT_EXPORT_API __declspec(dllimport)
+#endif
+#else //!_WIN32
+#define XPCFSAMPLECOMPONENT_EXPORT_API
+#endif //!_WIN32
+
+#endif // XPCFSAMPLECOMPONENTAPI_H

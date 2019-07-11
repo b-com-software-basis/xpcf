@@ -1,37 +1,41 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<xpcf-registry>
-    <module uuid="ff7780d6-744d-4561-821d-714aad763afd" name="xpcfSampleComponent" description="Sample component module" path="$BCOMDEVROOT/bcomBuild/xpcfSampleComponent/1.0.0/lib/x86_64/shared">
-        <component uuid="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" name="C0 component" description="C0 component">
-            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
-            <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" name="I0" description="I0 openCV scale interface"/>
-            <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" name="I1" description="I1 openCV rotate interface"/>
-        </component>
-        <component uuid="63FF193D-93E6-4EDE-9947-22F864AC843F" name="C1" description="C1 component">
-            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
-            <interface uuid="41348765-1017-47a7-ab9F-6b59d39e4b95" name="I2" description="I2 interface"/>
-            <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" name="I1" description="I1 openCV rotate interface"/>
-        </component>
+<xpcf-registry autoAlias="true">
+    <module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.2.0/lib/x86_64/shared">
+    <component uuid="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" name="HumanMusician component - not configurable" description="HumanMusician is not Configurable, it implements I0 and I1 interfaces">
+        <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+        <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" name="IHuman" description="provides human related methods"/>
+        <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" name="IMusician" description="provides musician related methods"/>
+    </component>
+    <component uuid="63ff193d-93e6-4ede-9947-22f864ac843f" name="VirtualGuitarist component" description="VirtualGuitarist implements IConfigurable, I2 and I1 interfaces">
+        <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+        <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+        <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" name="IMusician" description="provides musician related methods"/>
+        <interface uuid="41348765-1017-47a7-ab9f-6b59d39e4b95" name="IGuitarist" description="provides guitar player specific methods"/>
+    </component>
+    <component uuid="{7cc64f89-9a81-4fc8-9695-fde123fae225}" name="JacksonDinky6ElectricGuitar component - with specific configuration" description="JacksonDinky6ElectricGuitar is not Configurable, it implements IGuitar interface">
+        <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+        <interface uuid="6279bb1d-69b5-42bd-9da1-743c8922bcb9" name="IGuitar" description="provides instrument specific methods"/>
+        <interface uuid="93E50702-41BA-4497-9BBE-C918C1A87814" name="IElectricGuitar" description="provides electric guitar specific methods"/>
+    </component>
+    <component uuid="04E2254F-3349-4DC1-8EED-86835315FB6B" name="TakamineFolkGuitar component - with specific configuration" description="TakamineFolkGuitar is not Configurable, it implements IGuitar interface">
+        <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+        <interface uuid="6279bb1d-69b5-42bd-9da1-743c8922bcb9" name="IGuitar" description="provides instrument specific methods"/>
+    </component>
     </module>
+    <aliases>
+            <alias name="JacksonDinky6ElectricGuitar" type="component" uuid="7cc64f89-9a81-4fc8-9695-fde123fae225"/>
+            <alias name="TakamineFolkGuitar" type="component" uuid="04E2254F-3349-4DC1-8EED-86835315FB6B"/>
+    </aliases>
+    <factory>
+        <!-- default bindings -->
+        <bindings>
+            <!--bind interface="41348765-1017-47a7-ab9f-6b59d39e4b95" to="63ff193d-93e6-4ede-9947-22f864ac843f" /-->
+            <bind interface="IGuitar" to="TakamineFolkGuitar" />
+            <bind interface="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" to="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" />
+            <bind name="electricGuitar" interface="IElectricGuitar" to="JacksonDinky6ElectricGuitar"/>
+        </bindings>
+    </factory>
     <configuration>
-        <component uuid="63FF193D-93E6-4EDE-9947-22F864AC843F">
-                <property name="blurFactor" type="double" value="2.0"/>
-                <property name="blurScale" type="double" access="ro">
-                    <value>0.2</value>
-                    <value>0.5</value>
-                    <value>0.8</value>
-                    <value>1.1</value>
-                </property>
-                <property name="blurMatrixRepartition"  type = "structure">
-                    <property name="cols" type="long" value="2"/>
-                    <property name="rows" type="long" value="2"/><!-- rowmajormode only-->
-                    <property name="values" type="double">
-                        <value>1.1</value>
-                        <value>0.7</value>
-                        <value>0.3</value>
-                        <value>2.7</value>
-                    </property>
-                </property>
-        </component>
         <component uuid="63FF193D-93E6-4EDE-9947-22F864AC843F" name="testInstance">
                 <property name="blurFactor" type="double" value="1.0"/>
                 <property name="blurScale" type="double" access="ro">
@@ -52,6 +56,27 @@
                 </property>
         </component>
     </configuration>
+    <properties>
+        <configure component="VirtualGuitarist component">
+                <property name="blurFactor" type="double" value="2.0"/>
+                <property name="blurScale" type="double" access="ro">
+                    <value>0.2</value>
+                    <value>0.5</value>
+                    <value>0.8</value>
+                    <value>1.1</value>
+                </property>
+                <property name="blurMatrixRepartition"  type = "structure">
+                    <property name="cols" type="long" value="2"/>
+                    <property name="rows" type="long" value="2"/><!-- rowmajormode only-->
+                    <property name="values" type="double">
+                        <value>1.1</value>
+                        <value>0.7</value>
+                        <value>0.3</value>
+                        <value>2.7</value>
+                    </property>
+                </property>
+        </configure>
+    </properties>
     <!--<metadatas>
     <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect">
     <slots>

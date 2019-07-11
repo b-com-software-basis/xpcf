@@ -22,6 +22,7 @@
 
 #include "PathBuilder.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+#include <boost/predef/os.h>
 
 #ifdef WIN32
 #include <stdlib.h>
@@ -40,7 +41,7 @@ PathBuilder::PathBuilder()
 
 fs::path PathBuilder::findRegistries()
 {
-return "";
+    return "";
 }
 
 fs::path PathBuilder::getUTF8PathObserver(const char * sourcePath)
@@ -50,12 +51,12 @@ fs::path PathBuilder::getUTF8PathObserver(const char * sourcePath)
     return utf8ObservedPath;
 }
 
-fs::path PathBuilder::getUTF8PathObserver(std::string sourcePath)
+fs::path PathBuilder::getUTF8PathObserver(const std::string & sourcePath)
 {
     return getUTF8PathObserver(sourcePath.c_str());
 }
 
-fs::path PathBuilder::replaceRootEnvVars(std::string sourcePath)
+fs::path PathBuilder::replaceRootEnvVars(const std::string & sourcePath)
 {
     // find any $ENVVAR and substitut
     fs::path completePath = getUTF8PathObserver(sourcePath);
@@ -76,7 +77,8 @@ fs::path PathBuilder::replaceRootEnvVars(std::string sourcePath)
     return completePath;
 }
 
-fs::path PathBuilder::buildModuleFilePath(std::string moduleName, std::string filePathStr)
+
+fs::path PathBuilder::buildModuleFolderPath(const std::string & filePathStr)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path filePath(replaceRootEnvVars(filePathStr));
@@ -88,7 +90,14 @@ fs::path PathBuilder::buildModuleFilePath(std::string moduleName, std::string fi
         filePath /= modeSubDir;
     }
 #endif
+    return filePath;
+}
 
+fs::path PathBuilder::buildModuleFilePath(const std::string & moduleName, const std::string & filePathStr)
+{
+    fs::path filePath = buildModuleFolderPath(filePathStr);
+
+    fs::detail::utf8_codecvt_facet utf8;
     fs::path moduleFileName(moduleName, utf8);
     filePath /= moduleFileName;
     return filePath;
@@ -129,6 +138,36 @@ fs::path PathBuilder::getXPCFHomePath()
     fs::path xpcfHomePath = getHomePath();
     xpcfHomePath /= ".xpcf";
     return xpcfHomePath;
+}
+
+static boost::filesystem::path suffix() {
+    // https://sourceforge.net/p/predef/wiki/OperatingSystems/
+#if BOOST_OS_MACOS || BOOST_OS_IOS
+    return ".dylib";
+#elif BOOST_OS_WINDOWS
+    return L".dll";
+#else
+    return ".so";
+#endif
+}
+
+fs::path PathBuilder::appendModuleDecorations(const fs::path & sl)
+{
+    boost::filesystem::path actual_path = sl;
+    if ( actual_path.stem() == actual_path.filename() ) { // there is no suffix
+        actual_path += suffix().native();
+    }
+#if BOOST_OS_WINDOWS
+    if (!boost::filesystem::exists(actual_path)) {
+        // MinGW loves 'lib' prefix and puts it even on Windows platform
+        actual_path = (actual_path.has_parent_path() ? actual_path.parent_path() / L"lib" : L"lib").native() + actual_path.filename().native();
+    }
+#else //posix
+    actual_path = (std::strncmp(actual_path.filename().string().c_str(), "lib", 3)
+                ? (actual_path.has_parent_path() ? actual_path.parent_path() / L"lib" : L"lib").native() + actual_path.filename().native()
+                : actual_path);
+#endif
+    return actual_path;
 }
 
 }}}

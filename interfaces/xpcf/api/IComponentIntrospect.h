@@ -81,7 +81,7 @@ public:
      * @throws  InterfaceNotImplementedException when there is no interface metadata for @em interfaceUUID
      * @return  the interface metadata
      */
-    virtual InterfaceMetadata getMetadata(const uuids::uuid& interfaceUUID) const = 0;
+    virtual const InterfaceMetadata & getMetadata(const uuids::uuid& interfaceUUID) const = 0;
 
     /**
      * Queries the interface referenced with @em interfaceUUID and returns a reference to the interface I.
@@ -164,6 +164,7 @@ template <> struct InterfaceTraits<IComponentIntrospect>
     static constexpr const char * NAME = "XPCF::IComponentIntrospect";
     static constexpr const char * DESCRIPTION = "Component introspection interface.\nProvides:\n- browsing of component interfaces'\n- component binding to its implemented interfaces";
 };
+
 
 template <class T, class B> void IComponentIntrospect::acquireComponentRef(T* component,
                                                                            SRef<B>& componentRef)
