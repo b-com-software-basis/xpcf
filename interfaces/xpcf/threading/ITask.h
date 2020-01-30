@@ -24,6 +24,8 @@
 
 #include "xpcf/xpcf_api_define.h"
 #include <xpcf/core/refs.h>
+#include <xpcf/threading/SharedFifo.h>
+
 #include <functional>
 
 namespace org { namespace bcom { namespace xpcf {
@@ -36,8 +38,11 @@ public:
     virtual void start() = 0;
     virtual void stop() = 0;
     virtual void process() = 0;
-    virtual void awaitStart() = 0;
+    virtual void awaitRunning() = 0;
+    virtual bool started() const = 0;
     virtual bool stopped() const = 0;
+    virtual void cleanup() = 0;
+    virtual void declareFinalizer(const SRef<IFinalize> & fifo) = 0;
 };
 
 class XPCF_EXPORT_API ITaskFactory

@@ -40,7 +40,7 @@ public:
 
     ~SharedCircularBuffer() = default;
 
-    virtual inline void push(const T & value) override
+    virtual void push(const T & value) override
     {
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
         m_data[m_pushCursor] = value;
@@ -74,7 +74,7 @@ protected:
         }
     }
 
-    virtual inline void doPop( T& value )
+    virtual void doPop( T& value )
     {
         value = m_data[m_popCursor];
         increaseCursor(m_popCursor);

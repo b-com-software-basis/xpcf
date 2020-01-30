@@ -42,6 +42,17 @@ inline void processXmlNode(tinyxml2::XMLElement * xmlElt, const char * nodeName,
         element = element->NextSiblingElement(nodeName);
     }
 }
+
+
+template <typename ... Args>
+inline void processXmlNode(tinyxml2::XMLElement * xmlElt, const char * nodeName, std::function<void(tinyxml2::XMLElement*, Args&&...)>  func, Args&&...args)
+{
+    tinyxml2::XMLElement *element = xmlElt->FirstChildElement(nodeName);
+    while (element != nullptr) {
+        func(element, std::forward< Args >(args)...);
+        element = element->NextSiblingElement(nodeName);
+    }
+}
 /*
 template <typename T>
 void processXmlNode(SRef<T> element, tinyxml2::XMLElement * xmlParentElt, const char * nodeName, std::function<XPCFErrorCode(SRef<T>, tinyxml2::XMLElement*)>  func)

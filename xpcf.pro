@@ -3,7 +3,7 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcf
 FRAMEWORK = $${TARGET}
-VERSION=2.2.0
+VERSION=2.3.0
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
@@ -64,6 +64,7 @@ SOURCES += \
 HEADERS += \
     interfaces/xpcf/api/InjectableMetadata.h \
     interfaces/xpcf/core/helpers.h \
+    interfaces/xpcf/threading/MultiConsumer.h \
     src/AliasManager.h \
     src/Factory.h \
     src/Registry.h \

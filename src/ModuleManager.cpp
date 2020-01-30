@@ -68,7 +68,7 @@ template<> ModuleManager* ComponentFactory::createInstance()
 
 ModuleManager::ModuleManager():ComponentBase(toUUID<ModuleManager>())
 {
-    addInterface<IModuleManager>(this);
+    declareInterface<IModuleManager>(this);
 }
 
 void ModuleManager::unloadComponent ()

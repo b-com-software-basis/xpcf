@@ -3,7 +3,7 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcfSampleComponent
 FRAMEWORK = $${TARGET}
-VERSION=2.2.0
+VERSION=2.3.0
 DEFINES += MYVERSION=$${VERSION}
 
 CONFIG += c++17
@@ -18,6 +18,7 @@ DEFINES += BOOST_ALL_DYN_LINK
 
 SOURCES += \
     TakamineFolkGuitar.cpp \
+    Tuner.cpp \
     xpcfSampleComponent_main.cpp \
     HumanMusician.cpp \
     VirtualGuitarist.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
 
 HEADERS += \
     TakamineFolkGuitar.h \
+    Tuner.h \
     xpcfSampleComponentAPI.h \
     xpcfSampleComponent_traits.h \
     IHuman.h \

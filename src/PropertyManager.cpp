@@ -22,6 +22,7 @@
 
 #include "xpcf/api/IConfigurable.h"
 #include "xpcf/api/IModuleManager.h"
+#include "xpcf/core/Exception.h"
 #include "xpcf/module/ModuleFactory.h"
 #include "PropertyManager.h"
 #include "PathBuilder.h"
@@ -31,7 +32,8 @@
 #include <fstream>
 
 using namespace std;
-
+using placeholders::_1;
+using placeholders::_2;
 //namespace logging = boost::log;
 
 namespace fs = boost::filesystem;
@@ -68,10 +70,14 @@ template<> PropertyManager* ComponentFactory::createInstance()
     return PropertyManager::instance();
 }
 
+constexpr const char * XMLCOMPONENTNODE = "component";
+constexpr const char * XMLCONFIGURENODE = "configure";
+
 PropertyManager::PropertyManager():ComponentBase(toUUID<PropertyManager>())
 {
-    addInterface<IPropertyManager>(this);
+    declareInterface<IPropertyManager>(this);
     declareInjectable<IAliasManager>(m_aliasManager);
+    declareInjectable<IRegistry>(m_registry);
     //  m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("PropertyManager"));
     //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor PropertyManager::PropertyManager () called!";
 }
@@ -101,7 +107,75 @@ map<IProperty::AccessSpecifier, std::string> propertyAccessToStrMap = {
     {IProperty::IProperty_INOUT,"rw"}
 };
 
+void PropertyManager::clear()
+{
+    m_moduleConfigMap.clear();
+    m_componentConfigMap.clear();
+}
 
+void PropertyManager::declareComponent(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
+{
+    string componentUuidStr = xmlElt->Attribute("uuid");
+    uuids::uuid componentUuid = toUUID(componentUuidStr);
+    uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
+    if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
+        m_moduleConfigMap[moduleUuid] = configFilePath;
+    }
+    else {
+        fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
+        if (moduleConfigurationPath != configFilePath) {
+            m_componentConfigMap[componentUuid] = configFilePath;
+        }
+    }
+}
+
+void PropertyManager::declareConfigure(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
+{
+    string componentAttrValue = xmlElt->Attribute("component");
+    uuids::uuid componentUuid;
+    if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
+        componentUuid = m_aliasManager->resolveComponentAlias(componentAttrValue);
+    }
+    else {
+        componentUuid =  toUUID(componentAttrValue);
+    }
+    uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
+    if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
+        m_moduleConfigMap[moduleUuid] = configFilePath;
+    }
+    else {
+        fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
+        if (moduleConfigurationPath != configFilePath) {
+            m_componentConfigMap[componentUuid] = configFilePath;
+        }
+    }
+}
+
+void PropertyManager::declareConfiguration(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
+{
+    std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareComponentFunc = std::bind(&PropertyManager::declareComponent, this, _1,_2);
+    processXmlNode<const fs::path &>(xmlElt, XMLCOMPONENTNODE, declareComponentFunc, configFilePath);
+}
+
+void PropertyManager::declareProperties(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
+{
+    std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareConfigureFunc = std::bind(&PropertyManager::declareConfigure, this, _1,_2);
+    processXmlNode<const fs::path &>(xmlElt, XMLCONFIGURENODE, declareConfigureFunc, configFilePath);
+}
+
+fs::path PropertyManager::getConfigPath(uuids::uuid componentUUID) const
+{
+    if (m_componentConfigMap.find(componentUUID) != m_componentConfigMap.end()) {
+         return m_componentConfigMap.at(componentUUID);
+    }
+    uuids::uuid moduleUUID = m_registry->getModuleUUID(componentUUID);
+    if (m_moduleConfigMap.find(moduleUUID) == m_moduleConfigMap.end()) {
+        //log("No configuration path found for module "+uuids::to_string(moduleUUID));
+        // return empty path
+        return fs::path();
+    }
+   return m_moduleConfigMap.at(moduleUUID);
+}
 
 XPCFErrorCode configureValue(string valueStr, SRef<IProperty> property,uint32_t valueIndex)
 {
@@ -262,6 +336,9 @@ XPCFErrorCode PropertyManager::configure(std::function<bool(tinyxml2::XMLElement
                 }
             }
         }
+        catch (const xpcf::Exception & e) {
+            return e.getErrorCode();
+        }
         catch (const std::runtime_error & e) {
             //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<modulePath<<" failed with error : "<<e.what();
             return XPCFErrorCode::_FAIL;
@@ -407,6 +484,9 @@ XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef
         if (eResult != 0) {
             result = XPCFErrorCode::_FAIL;
         }
+    }
+    catch (const xpcf::Exception & e) {
+        return e.getErrorCode();
     }
     catch (const std::runtime_error & e) {
         //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<modulePath<<" failed with error : "<<e.what();

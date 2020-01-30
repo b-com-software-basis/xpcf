@@ -28,6 +28,7 @@
 #include "xpcf/core/XPCFErrorCode.h"
 #include "xpcf/api/IConfigurable.h"
 #include "AliasManager.h"
+#include "Registry.h"
 
 #include <atomic>
 #include <mutex>
@@ -38,9 +39,13 @@ namespace org { namespace bcom { namespace xpcf {
 class IPropertyManager : public virtual IComponentIntrospect {
   public:
     virtual ~IPropertyManager() = default;
+    virtual void clear() = 0;
     virtual XPCFErrorCode configure(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) = 0;
     virtual XPCFErrorCode configure(const char * instanceName, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) = 0;
     virtual XPCFErrorCode serialize(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath, uint32_t mode) = 0;
+    virtual void declareConfiguration(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) = 0;
+    virtual void declareProperties(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) = 0;
+    virtual fs::path getConfigPath(uuids::uuid componentUUID) const = 0;
 };
 
 
@@ -55,10 +60,14 @@ class XPCF_EXPORT_API PropertyManager : public ComponentBase,
         public virtual IPropertyManager {
 public:
     static PropertyManager* instance();
-    void unloadComponent () override final;
+    void unloadComponent () final;
+    void clear() final;
     XPCFErrorCode configure(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) final;
     XPCFErrorCode configure(const char * instanceName, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) final;
     XPCFErrorCode serialize(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath, uint32_t mode) final;
+    void declareConfiguration(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) override;
+    void declareProperties(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) override;
+    fs::path getConfigPath(uuids::uuid componentUUID) const final;
 
 private:
     PropertyManager();
@@ -66,8 +75,13 @@ private:
     PropertyManager(const PropertyManager&)= delete;
     PropertyManager& operator=(const PropertyManager&)= delete;
     XPCFErrorCode configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredicate, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath);
-
+    void declareComponent(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath);
+    void declareConfigure(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath);
+    //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
     SRef<IAliasManager> m_aliasManager;
+    SRef<IRegistry> m_registry;
+    std::map<uuids::uuid, fs::path> m_moduleConfigMap;
+    std::map<uuids::uuid, fs::path> m_componentConfigMap;
     static std::atomic<PropertyManager*> m_instance;
     static std::mutex m_mutex;
 

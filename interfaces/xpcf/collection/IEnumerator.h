@@ -55,16 +55,17 @@ public:
     using pointer = T*;
     using reference = T&;
 
-       difference_type operator- (Iterator const &rhs) const
-       {
-         return 0;//sm_it - rhs.m_it;
-       }
+    difference_type operator- (Iterator const &rhs) const
+    {
+        return 0;//sm_it - rhs.m_it;
+    }
+
     inline bool operator !=(const Iterator<T> & it) {
-      return !m_enumerator->endReached();
+        return !m_enumerator->endReached();
     }
 
     inline bool operator ==(const Iterator<T> & it) {
-      return m_enumerator == it.m_enumerator;
+        return m_enumerator == it.m_enumerator;
     }
 
     inline T operator*() {

@@ -109,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE( test_load_module_metadata,XpcfFixture,* boost::unit_tes
     try {
         SRef<xpcf::IConfigurable> rIConfigurable;
         BOOST_REQUIRE_NO_THROW( rIConfigurable = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<xpcf::IConfigurable>() );
-        BOOST_TEST_MESSAGE("Accessing instance values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
+        BOOST_TEST_MESSAGE("Accessing class values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
         for (auto property : rIConfigurable->getProperties()) {
             displayParameter(property);
         }

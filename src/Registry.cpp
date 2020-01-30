@@ -232,7 +232,10 @@ void Registry::declareModule(tinyxml2::XMLElement * xmlModuleElt)
 {
     SPtr<ModuleMetadata> moduleInfo;
     std::string moduleName = xmlModuleElt->Attribute("name");
-    std::string moduleDescription = xmlModuleElt->Attribute("description");
+    std::string moduleDescription = "";
+    if (xmlModuleElt->Attribute("description") != nullptr) {
+        moduleDescription = xmlModuleElt->Attribute("description");
+    }
     uuids::uuid moduleUuid = toUUID( xmlModuleElt->Attribute("uuid"));
     moduleInfo = utils::make_shared<ModuleMetadata>(moduleName.c_str(), moduleUuid, moduleDescription.c_str(), xmlModuleElt->Attribute("path"));
     fs::path filePath = moduleInfo->getFullPath();

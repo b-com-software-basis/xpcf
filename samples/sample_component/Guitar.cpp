@@ -32,6 +32,7 @@ namespace component {
 Guitar::Guitar (std::map<std::string,std::string> componentInfosMap):ComponentBase(componentInfosMap)
 {
    declareInterface<IGuitar>(this);
+   declareInjectable<ITuner>(m_tuner);
    std::cout<<"Constructor Guitar::Guitar () called!"<<std::endl;
 }
 

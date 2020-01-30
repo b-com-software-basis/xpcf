@@ -60,6 +60,7 @@ public:
 
 protected:
     // Component properties defined as members' data
+    SRef<ITuner> m_tuner;
     std::string m_brandName;
     uint32_t m_nbStrings;
     uint32_t m_type;

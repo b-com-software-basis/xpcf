@@ -9,23 +9,14 @@ DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 CONFIG += c++1z
 CONFIG += shared
 
-unix {
-        USERHOMEFOLDER = $$(HOME)
-}
-
-win32 {
-    USERHOMEFOLDER = $$clean_path($$(USERPROFILE))
-    isEmpty(REMAKENDEPSROOTFOLDER) {
-        USERHOMEFOLDER = $$clean_path($$(HOMEDRIVE)$$(HOMEPATH))
-    }
-}
+include(findremakenrules.pri)
 
 DEPENDENCIESCONFIG = sharedlib recurse
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 @if '%{remakenLocalRules}' === 'true'
 include (builddefs/qmake/templatelibconfig.pri)
 @else
-include ($${USERHOMEFOLDER}/.remaken/rules/qmake/templatelibconfig.pri)
+include ($${REMAKEN_RULES_ROOT}/templatelibconfig.pri)
 @endif
 
 DEFINES += BOOST_ALL_NO_LIB

@@ -35,62 +35,81 @@ namespace org { namespace bcom { namespace xpcf {
 class XPCF_EXPORT_API AbstractTask : public virtual ITask
 {
 public:
-    AbstractTask() = default;
+    AbstractTask(bool joinable = true): m_joinable(joinable) {}
     virtual ~AbstractTask() override = default;
-    inline bool stopped() const override final { return m_stop; }
-    virtual void signalStarted() = 0;
+    virtual bool started() const override { return !m_stop; }
+    virtual bool stopped() const override { return m_stop; }
+    virtual void cleanup() override;
+    virtual void declareFinalizer(const SRef<IFinalize> & fifo)  override;
+    virtual void signalRunning() = 0;
 
 protected:
-    bool m_stop = false;
-    bool m_started = false;
+    std::atomic<bool> m_stop = false;
+    std::atomic<bool> m_joinable = true;
+    std::vector<SRef<IFinalize>> m_finalizers;
 };
 
 class XPCF_EXPORT_API BaseTask : public virtual AbstractTask
 {
 public:
-    BaseTask() = default;
-    virtual ~BaseTask() override = default;
+    BaseTask(bool joinable = true): AbstractTask(joinable) {}
+    virtual ~BaseTask() override;
     void start() override;
     void stop() override;
-    void awaitStart() override;
-    void signalStarted() override;
+    void awaitRunning() override;
+    void signalRunning() override;
     static void yield();
 
-protected:
+private:
     std::promise<void> m_startedPromise;
     std::thread m_thread;
 
 };
 
-class XPCF_EXPORT_API AbstractDelegateTask : public virtual AbstractTask
+class XPCF_EXPORT_API AbstractDelegateTask : public AbstractTask
 {
 public:
-    AbstractDelegateTask(std::function<void(void)> processingFunction) :m_processFunc(processingFunction) {}
+    AbstractDelegateTask(std::function<void(void)> processingFunction, bool joinable): AbstractTask (joinable),
+        m_processFunc(processingFunction), m_stopPredicate( [&]() -> auto { return AbstractTask::stopped(); }) {}
+    AbstractDelegateTask(std::function<void(void)> processingFunction, std::function<bool(void)> stopPredicate, bool joinable): AbstractTask (joinable),
+        m_processFunc(processingFunction), m_stopPredicate( [&]() -> auto { return stopPredicate() | AbstractTask::stopped(); }) {}
     virtual ~AbstractDelegateTask() override = default;
     void process() override;
+    bool stopped() const override { return m_stopPredicate(); }
 
 protected:
     std::function<void(void)> m_processFunc;
+    std::function<bool(void)> m_stopPredicate;
 };
 
-class XPCF_EXPORT_API DelegateTask : public BaseTask, public AbstractDelegateTask
+class XPCF_EXPORT_API DelegateTask : public AbstractDelegateTask
 {
 public:
-    DelegateTask(std::function<void(void)> processingFunction) :AbstractDelegateTask(processingFunction) {}
+    DelegateTask(std::function<void(void)> processingFunction, bool joinable = true): AbstractDelegateTask(processingFunction, joinable) {}
+    DelegateTask(std::function<void(void)> processingFunction,std::function<bool(void)> stopPredicate, bool joinable):
+        AbstractDelegateTask(processingFunction, stopPredicate, joinable) {}
     virtual ~DelegateTask() override = default;
+    void start() override;
+    void stop() override;
+    void awaitRunning() override;
+    void signalRunning() override;
     static void yield();
 
+private:
+    std::promise<void> m_startedPromise;
+    std::future<void> m_startedFuture;
+    std::thread m_thread;
 };
 
 class XPCF_EXPORT_API FiberTask : public AbstractDelegateTask
 {
 public:
-    FiberTask(std::function<void(void)> processingFunction);
+    FiberTask(std::function<void(void)> processingFunction, bool joinable = true);
     virtual ~FiberTask() override;
     void start() override;
     void stop() override;
-    void awaitStart() override;
-    void signalStarted() override;
+    void awaitRunning() override;
+    void signalRunning() override;
     static void yield();
 
 private:
@@ -101,12 +120,21 @@ private:
 // TBB task ??
 
 template <typename T>
-SRef<ITask> createDelegateTask(std::function<void(void)> callable) {
+SRef<ITask> createDelegateTask(std::function<void(void)> callable, bool joinable = true) {
     //TODO : every task based on delegate callable must have an abstract base class with a common constructor semantic
     static_assert(utils::is_base_of<AbstractDelegateTask, T>::value,
                   "Class type passed to createTask is not a derived class of AbstractDelegateTask !!");
-    return utils::make_shared<T>(callable);
+    return utils::make_shared<T>(callable, joinable);
 }
+
+template <typename T>
+SRef<ITask> createDelegateTask(std::function<void(void)> callable, std::function<bool(void)> stopPredicate, bool joinable) {
+    //TODO : every task based on delegate callable must have an abstract base class with a common constructor semantic
+    static_assert(utils::is_base_of<AbstractDelegateTask, T>::value,
+                  "Class type passed to createTask is not a derived class of AbstractDelegateTask !!");
+    return utils::make_shared<T>(callable,stopPredicate,joinable);
+}
+
 
 // Sample use:
 // #define TASKMODEL DelegateTask or FiberTask

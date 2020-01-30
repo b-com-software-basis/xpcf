@@ -24,6 +24,7 @@
 #include "VirtualGuitarist.h"
 #include "JacksonDinky6ElectricGuitar.h"
 #include "TakamineFolkGuitar.h"
+#include "Tuner.h"
 
 #include "xpcf/module/ModuleFactory.h"
 #include <iostream>
@@ -57,6 +58,9 @@ extern "C" XPCF_MODULEHOOKS_API xpcf::XPCFErrorCode XPCF_getComponent(const xpcf
     if (errCode != xpcf::XPCFErrorCode::_SUCCESS) {
         errCode = xpcf::tryCreateComponent<component::TakamineFolkGuitar>(componentUUID,interfaceRef);
     }
+    if (errCode != xpcf::XPCFErrorCode::_SUCCESS) {
+        errCode = xpcf::tryCreateComponent<component::Tuner>(componentUUID,interfaceRef);
+    }
     return errCode;
 }
 
@@ -69,4 +73,5 @@ XPCF_ADD_COMPONENT(component::HumanMusician)
 XPCF_ADD_COMPONENT(component::VirtualGuitarist)
 XPCF_ADD_COMPONENT(component::JacksonDinky6ElectricGuitar)
 XPCF_ADD_COMPONENT(component::TakamineFolkGuitar)
+XPCF_ADD_COMPONENT(component::Tuner)
 XPCF_END_COMPONENTS_DECLARATION

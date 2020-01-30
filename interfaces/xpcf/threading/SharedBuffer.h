@@ -26,25 +26,38 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-template <class T, class NS = StdThreadedNamespace>
+template <typename T, typename NS = StdThreadedNamespace>
 class SharedBuffer : public SharedFifo<T,NS>
 {
 public:
     SharedBuffer(std::size_t max, std::size_t startAt = 0) :
         m_maxSize(max),
         m_bufferedStartOffset( max < startAt ? max : startAt),
-        m_started(startAt == 0 ? true : false) {
-        m_data.resize(m_maxSize);
+        m_started(startAt == 0 ? true : false) {}
+
+    SharedBuffer(const SharedBuffer & other) {
+        // Call to base class copy constructor is not done to ensure atomicity while copy constructor is called
+        std::unique_lock<typename NS::MutexType> lock(const_cast<SharedBuffer&>(other).m_mutex);
+        m_nbNotified = other.m_nbNotified;
+        m_data.assign(other.m_data.begin(),other.m_data.end());
+        m_bReleased = other.m_bReleased;
+        m_maxSize = other.m_maxSize;
+        m_bufferedStartOffset = other.m_bufferedStartOffset;
+        m_started = other.m_started;
     }
     
     ~SharedBuffer() = default;
     
-    virtual inline void push(const T & value) override {
+    virtual void push(const T & value) override {
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
 
-        while(m_nbNotified >= m_maxSize) {
+        while(!m_bReleased && (m_nbNotified >= m_maxSize)) {
             m_condQueueNotFull.wait(lock);
         }
+        if (m_bReleased && m_nbNotified >= m_maxSize) {
+            throw Exception("IFifo::push aborted");
+        }
+
         m_data.push_front(value);
         m_nbNotified++;
         
@@ -58,6 +71,11 @@ public:
         }
     }
 
+    bool isFull() {
+        std::unique_lock<typename NS::MutexType> lock(m_mutex);
+        return m_nbNotified >= m_maxSize;
+    }
+
 private:
     std::size_t m_maxSize;
     std::size_t m_bufferedStartOffset;
@@ -67,8 +85,9 @@ private:
     using SharedFifo<T,NS>::m_nbNotified;
     using SharedFifo<T,NS>::m_data;
     using SharedFifo<T,NS>::m_mutex;
+    using SharedFifo<T,NS>::m_bReleased;
 
-    virtual inline void doPop( T& value ) override
+    virtual void doPop( T& value ) override
     {
         SharedFifo<T,NS>::doPop(value);
         m_condQueueNotFull.notify_one();

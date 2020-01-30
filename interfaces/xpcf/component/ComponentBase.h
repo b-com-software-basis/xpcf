@@ -28,7 +28,7 @@
 #include "xpcf/xpcf_api_define.h"
 #include <functional>
 #include <map>
-using std::placeholders::_1;
+
 namespace org { namespace bcom { namespace xpcf {
 
 class XPCF_EXPORT_API ComponentBase : public virtual IInjectable
@@ -58,7 +58,11 @@ public:
 
 
 protected:
-    template <class T> [[deprecated]] void addInterface(T* componentThis);
+    template <class T>
+#ifndef SWIG
+    [[deprecated]]
+#endif
+    void addInterface(T* componentThis);
 
     /**
      *

@@ -52,6 +52,22 @@ public:
     virtual GuitarType getGuitarType () = 0;
 };
 
+class ITuner :  public virtual org::bcom::xpcf::IComponentIntrospect
+{
+public:
+    enum TuneType {
+        Standard = 0,
+        Nashville = 1,
+        HalfTuneLower = 2,
+        OneTuneLower = 3,
+        TuneD = 4
+    };
+
+    virtual ~ITuner() = default;
+    virtual TuneType getTuneType () = 0;
+    virtual void setTuneType(const TuneType & tuneType) = 0;
+};
+
 class IElectricGuitar : public virtual org::bcom::xpcf::IComponentIntrospect
 {
 public:
@@ -72,6 +88,13 @@ template <> struct org::bcom::xpcf::InterfaceTraits<IElectricGuitar>
     static constexpr const char * UUID = "93E50702-41BA-4497-9BBE-C918C1A87814";
     static constexpr const char * NAME = "IElectricGuitar";
     static constexpr const char * DESCRIPTION = "provides electric guitar specific methods";
+};
+
+template <> struct org::bcom::xpcf::InterfaceTraits<ITuner>
+{
+    static constexpr const char * UUID = "1FC313B3-FAE3-4BCA-B4BE-222EFD24E607";
+    static constexpr const char * NAME = "ITuner";
+    static constexpr const char * DESCRIPTION = "defines guitar tune modes";
 };
 
 #endif // IGUITAR_H

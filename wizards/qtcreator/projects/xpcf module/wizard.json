@@ -2,10 +2,10 @@
     "version": 1,
     "supportedProjectTypes": [ "CMakeProjectManager.CMakeProject", "Qbs.QbsProject", "Qt4ProjectManager.Qt4Project" ],
     "id": "R.XPCFModuleLibrary",
-    "category": "I.Projects",
+    "category": "I.XPCFProjects",
     "trDescription": "Creates a simple XPCF C++ template module.",
     "trDisplayName": "XPCF Module template",
-    "trDisplayCategory": "Non-Qt Project",
+    "trDisplayCategory": "XPCF Projects",
     "icon": "module_thin.png",
     "enabled": "%{JS: [ %{Plugins} ].indexOf('CppEditor') >= 0 && ([ %{Plugins} ].indexOf('QmakeProjectManager') >= 0 || [ %{Plugins} ].indexOf('CMakeProjectManager') >= 0)}",
 

@@ -77,14 +77,21 @@ class SharedFifo : public IFifo<T>
 public:
     SharedFifo() = default;
     ~SharedFifo() = default;
-    virtual inline void push(const T & value) override {
+    SharedFifo(const SharedFifo & other) {
+        std::unique_lock<typename NS::MutexType> lock(const_cast<SharedFifo&>(other).m_mutex);
+        m_nbNotified = other.m_nbNotified;
+        m_data.assign(other.m_data.begin(),other.m_data.end());
+        m_bReleased = other.m_bReleased;
+    }
+
+    virtual void push(const T & value) override {
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
         m_data.push_front(value);
         m_nbNotified++;
         m_condQueueNotEmpty.notify_one();
     }
 
-    inline bool back(T & value) override {
+    bool back(T & value) override {
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
         while (!m_bReleased && (m_nbNotified == 0)) {  // loop to avoid spurious wakeups
             m_condQueueNotEmpty.wait(lock);
@@ -95,7 +102,7 @@ public:
         return m_bReleased;
     }
 
-    inline const T back() override {
+    const T back() override {
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
         while (!m_bReleased && (m_nbNotified == 0)) {  // loop to avoid spurious wakeups
             m_condQueueNotEmpty.wait(lock);
@@ -106,7 +113,7 @@ public:
         return m_data.back();
     }
 
-    inline const T pop() override {
+    const T pop() override {
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
         while (!m_bReleased && (m_nbNotified == 0)) {  // loop to avoid spurious wakeups
             m_condQueueNotEmpty.wait(lock);
@@ -119,7 +126,7 @@ public:
         return value;
     }
 
-    inline bool pop(T & value) override {
+    bool pop(T & value) override {
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
         while (!m_bReleased && (m_nbNotified == 0)) {  // loop to avoid spurious wakeups
             m_condQueueNotEmpty.wait(lock);
@@ -131,7 +138,7 @@ public:
         return true;
     }
 
-    inline bool tryPop( T & value ) override
+    bool tryPop( T & value ) override
     {
         std::unique_lock<typename NS::MutexType> tryLock(m_mutex, std::defer_lock);
         bool popSuccessful = false;
@@ -147,30 +154,47 @@ public:
         return popSuccessful;
     }
 
-    inline bool pop( T & value , std::chrono::milliseconds duration) override
+    bool pop( T & value , std::chrono::milliseconds duration) override
     {
         typename NS::CVStatusType status = NS::CVStatusType::no_timeout;
         std::unique_lock<typename NS::MutexType> lock(m_mutex);
         while (!m_bReleased && m_nbNotified == 0 && status != NS::CVStatusType::timeout) {  // loop to avoid spurious wakeups
             status = m_condQueueNotEmpty.wait_for(lock,duration);
         }
-        if (status == NS::CVStatusType::no_timeout ) {
-            doPop(value);
+        if ((status != NS::CVStatusType::no_timeout || m_bReleased) && (m_nbNotified == 0) ) {
+            return false;
         }
-        return (status == NS::CVStatusType::no_timeout) && !m_bReleased;
+        doPop(value);
+        return true;
     }
 
-    inline std::size_t size() const {
+    std::size_t size() const {
         return m_data.size();
     }
 
-    inline bool empty() const override {
+    bool empty() const override {
         return m_data.empty();
     }
 
-    inline void release() override {
+    void release() override {
         m_bReleased = true;
         m_condQueueNotEmpty.notify_all();
+    }
+
+    inline void clear() {
+        if (std::is_pointer_v<T>) {
+            for (auto element: m_data) {
+                delete element;
+            }
+        }
+        m_data.clear();
+    }
+
+    inline void for_each(const std::function<void(T)> & f) {
+        // CAUTION : no synchro for now : to study
+        for (auto element: m_data) {
+            f(element);
+        }
     }
 
 protected:
@@ -192,9 +216,11 @@ template <class T> SRef<IFifo<T>> createFifo() {
     return utils::make_shared<SharedFifo<T>>();
 }
 
-template <template<typename, typename> class FIFO, class T, class NS = StdThreadedNamespace> SRef<IFifo<T>> createFifo() {
-    return utils::make_shared<FIFO<T,NS>>();
+#ifndef SWIG
+template <template<typename, typename> class FIFO, class T, class NS = StdThreadedNamespace, typename ... Args2> SRef<IFifo<T>> createFifo(Args2&&... args) {
+    return utils::make_shared<FIFO<T,NS>>(std::forward< Args2 >(args)...);
 }
+#endif
 
 }}}
 

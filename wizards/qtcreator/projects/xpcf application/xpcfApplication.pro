@@ -8,10 +8,15 @@ DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
 CONFIG += shared
+include(findremakenrules.pri)
 
 DEPENDENCIESCONFIG = sharedlib recurse
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
-include (builddefs/qmake/templateappconfig.pri)
+@if '%{remakenLocalRules}' === 'true'
+include (builddefs/qmake/templatelibconfig.pri)
+@else
+include ($${REMAKEN_RULES_ROOT}/templatelibconfig.pri)
+@endif
 
 DEFINES += BOOST_ALL_NO_LIB
 DEFINES += BOOST_ALL_DYN_LINK

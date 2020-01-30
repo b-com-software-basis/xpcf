@@ -65,10 +65,6 @@ private:
     static std::mutex m_mutex;
     //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 
-    std::vector<SPtr<ComponentMetadata>> m_componentsVector;
-    std::vector<SPtr<InterfaceMetadata>> m_interfacesVector;
-    std::map<uuids::uuid, SPtr<ComponentMetadata>> m_componentsMap;
-    std::map<uuids::uuid, SPtr<InterfaceMetadata>> m_interfacesMap;
     std::map<uuids::uuid, SPtr<ModuleMetadata>> m_moduleMap;
     std::map<uuids::uuid, boost::function<XPCFErrorCode(const uuids::uuid &, SRef<IComponentIntrospect>&)>> m_funcMap;
 };

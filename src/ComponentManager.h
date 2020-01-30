@@ -62,6 +62,12 @@ public:
 
     void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
     void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+    void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+                   const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                   IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+    void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+                   const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                   IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
 
     void unloadComponent () override final;
     void releaseComponent(uuids::uuid componentUUID);
@@ -85,16 +91,14 @@ private:
     template <class T> XPCFErrorCode load(fs::path folderPath);
     template <class T> XPCFErrorCode loadModules(fs::path folderPath);
     XPCFErrorCode loadLibrary(fs::path aPath);
-    fs::path getConfigPath(uuids::uuid componentUUID) const;
     SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
     void inject(SRef<IInjectable> component);
 
     //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
-    std::map<uuids::uuid, fs::path> m_moduleConfigMap;
-    std::map<uuids::uuid, fs::path> m_componentConfigMap;
     SRef<IFactory> m_factory;
     SRef<IRegistry> m_registry;
     SRef<IAliasManager> m_aliasManager;
+    SRef<IPropertyManager> m_propertyManager;
 
     bool m_libraryLoaded;
 };

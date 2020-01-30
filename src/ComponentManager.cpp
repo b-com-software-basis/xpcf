@@ -35,6 +35,7 @@
 #include <functional>
 using namespace std;
 using std::placeholders::_1;
+using std::placeholders::_2;
 //namespace logging = boost::log;
 
 namespace fs = boost::filesystem;
@@ -87,17 +88,10 @@ template<> ComponentManager* ComponentFactory::createInstance()
 ComponentManager::ComponentManager():ComponentBase(toUUID<ComponentManager>()),m_libraryLoaded(false)
 {
     declareInterface<IComponentManager>(this);
-    m_aliasManager = ComponentFactory::create<AliasManager>()->bindTo<IAliasManager>();
-    std::function<void(const uuids::uuid &, const uuids::uuid &)> bindFunc = [&] (const uuids::uuid & interfaceUUID, const uuids::uuid & componentUUID) -> void {
-        m_factory->autobind(interfaceUUID,componentUUID);
-    };
-    m_registry = ComponentFactory::create<Registry>()->bindTo<IRegistry>();
-    m_registry->setBinder(bindFunc);
-    m_registry->bindTo<IInjectable>()->inject<IAliasManager>(m_aliasManager);
     m_factory =  ComponentFactory::create<Factory>()->bindTo<IFactory>();
-    m_factory->bindTo<IInjectable>()->inject<IRegistry>(m_registry);
-    m_factory->bindTo<IInjectable>()->inject<IAliasManager>(m_aliasManager);
-    getPropertyManagerInstance()->bindTo<IInjectable>()->inject<IAliasManager>(m_aliasManager);
+    m_registry = m_factory->resolve<IRegistry>();
+    m_aliasManager = m_factory->resolve<IAliasManager>();
+    m_propertyManager =  m_factory->resolve<IPropertyManager>();
     //  m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentManager"));
     //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor ComponentManager::ComponentManager () called!";
 }
@@ -105,20 +99,6 @@ ComponentManager::ComponentManager():ComponentBase(toUUID<ComponentManager>()),m
 uuids::uuid ComponentManager::getModuleUUID(const uuids::uuid & componentUUID) const
 {
     return m_registry->getModuleUUID(componentUUID);
-}
-
-fs::path ComponentManager::getConfigPath(uuids::uuid componentUUID) const
-{
-    if (m_componentConfigMap.find(componentUUID) != m_componentConfigMap.end()) {
-         return m_componentConfigMap.at(componentUUID);
-    }
-    uuids::uuid moduleUUID = getModuleUUID(componentUUID);
-    if (m_moduleConfigMap.find(moduleUUID) == m_moduleConfigMap.end()) {
-        //log("No configuration path found for module "+uuids::to_string(moduleUUID));
-        // return empty path
-        return fs::path();
-    }
-   return m_moduleConfigMap.at(moduleUUID);
 }
 
 void ComponentManager::releaseComponent(uuids::uuid componentUUID)
@@ -134,7 +114,7 @@ void ComponentManager::unloadComponent ()
 
 void ComponentManager::clear()
 {
-    m_moduleConfigMap.clear();
+    m_propertyManager->clear();
     m_registry->clear();
     m_factory->clear();
     m_aliasManager->clear();
@@ -279,18 +259,7 @@ void ComponentManager::inject(SRef<IInjectable> component)
         }
         if (m_factory->bindExists(injectable)) {
             SRef<IComponentIntrospect> injectableRef = m_factory->resolve(injectable);
-            injectable->inject(injectableRef);
-            fs::path configFilePath;
-            if (!injectable->isNamed()) {
-                configFilePath = getConfigPath(m_factory->getComponentUUID(injectable->getUuid()));
-            }
-            else {
-                configFilePath = getConfigPath(m_factory->getComponentUUID(injectable->getUuid(), injectable->getName()));
-            }
-            if (injectableRef->implements<IConfigurable>() && ! configFilePath.empty()) {
-                SRef<IConfigurable> iconf = injectableRef->bindTo<IConfigurable>();
-                iconf->configure(configFilePath.string().c_str());
-            }
+            injectable->inject(injectableRef);         
         }
     }
     component->onInjected();
@@ -301,7 +270,7 @@ SRef<IComponentIntrospect> ComponentManager::createComponent(const uuids::uuid &
     SRef<IComponentIntrospect> componentRef = create(componentUUID);
     inject(componentRef->bindTo<IInjectable>());
 
-    fs::path configFilePath = getConfigPath(componentUUID);
+    fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
     if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
         SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
         iconf->configure(configFilePath.string().c_str());
@@ -315,7 +284,7 @@ SRef<IComponentIntrospect> ComponentManager::createComponent(const char * instan
     SRef<IComponentIntrospect> componentRef = create(componentUUID);
     inject(componentRef->bindTo<IInjectable>());
 
-    fs::path configFilePath = getConfigPath(componentUUID);
+    fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
     if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
         SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
         iconf->configure(configFilePath.string().c_str(), instanceName);
@@ -329,12 +298,6 @@ SRef<IComponentIntrospect> ComponentManager::resolve(const uuids::uuid & interfa
         throw InjectableNotFoundException("Unable to resolve component from interface UUID = " + uuids::to_string(interfaceUUID));
     }
     SRef<IComponentIntrospect> componentRef = m_factory->resolve(interfaceUUID);
-    inject(componentRef->bindTo<IInjectable>());
-    fs::path configFilePath = getConfigPath(m_factory->getComponentUUID(interfaceUUID));
-    if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
-        SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
-        iconf->configure(configFilePath.string().c_str());
-    }
     return componentRef;
 }
 
@@ -345,12 +308,6 @@ SRef<IComponentIntrospect> ComponentManager::resolve(const uuids::uuid & interfa
         throw InjectableNotFoundException("Unable to resolve component from interface UUID = " + uuids::to_string(interfaceUUID));
     }
     SRef<IComponentIntrospect> componentRef = m_factory->resolve(interfaceUUID, name);
-    inject(componentRef->bindTo<IInjectable>());
-    fs::path configFilePath = getConfigPath(m_factory->getComponentUUID(interfaceUUID, name));
-    if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
-        SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
-        iconf->configure(configFilePath.string().c_str());
-    }
     return componentRef;
 }
 
@@ -362,6 +319,20 @@ void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid
 void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
 {
     m_factory->bind(name, interfaceUUID, instanceUUID, scope);
+}
+
+void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+                    const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                    IComponentManager::Scope scope)
+{
+    m_factory->bind(interfaceUUID, instanceUUID, factoryFunc, scope);
+}
+
+void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+                    const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                    IComponentManager::Scope scope)
+{
+    m_factory->bind(name, interfaceUUID, instanceUUID, factoryFunc, scope);
 }
 
 template <class T>
@@ -465,52 +436,13 @@ XPCFErrorCode ComponentManager::loadLibrary(fs::path configurationFilePath)
             processXmlNode(rootElt, "module", std::bind(&IRegistry::declareModule, m_registry.get(), _1));
             processXmlNode(rootElt, "aliases", std::bind(&IAliasManager::declareAliases, m_aliasManager.get(), _1));
             processXmlNode(rootElt, "factory", std::bind(&IFactory::declareFactory, m_factory.get(), _1));
-            tinyxml2::XMLElement * xmlConfigElt = rootElt->FirstChildElement("configuration");
-            while (xmlConfigElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
-                tinyxml2::XMLElement *componentElt = xmlConfigElt->FirstChildElement("component");
-                while (componentElt != nullptr) {
-                    string componentUuidStr = componentElt->Attribute("uuid");
-                    uuids::uuid componentUuid = toUUID(componentUuidStr);
-                    uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
-                    if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
-                        m_moduleConfigMap[moduleUuid] = configurationFilePath;
-                    }
-                    else {
-                        fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
-                        if (moduleConfigurationPath != configurationFilePath) {
-                            m_componentConfigMap[componentUuid] = configurationFilePath;
-                        }
-                    }
-                    componentElt = componentElt->NextSiblingElement("component");
-                }
-                xmlConfigElt = xmlConfigElt->NextSiblingElement("configuration");
-            }
-            tinyxml2::XMLElement * xmlPropsElt = rootElt->FirstChildElement("properties");
-            while (xmlPropsElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
-                tinyxml2::XMLElement *configureElt = xmlPropsElt->FirstChildElement("configure");
-                while (configureElt != nullptr) {
-                    string componentAttrValue = configureElt->Attribute("component");
-                    uuids::uuid componentUuid;
-                    if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
-                        componentUuid = m_aliasManager->resolveComponentAlias(componentAttrValue);
-                    }
-                    else {
-                        componentUuid =  toUUID(componentAttrValue);
-                    }
-                    uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
-                    if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
-                        m_moduleConfigMap[moduleUuid] = configurationFilePath;
-                    }
-                    else {
-                        fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
-                        if (moduleConfigurationPath != configurationFilePath) {
-                            m_componentConfigMap[componentUuid] = configurationFilePath;
-                        }
-                    }
-                    configureElt = configureElt->NextSiblingElement("configure");
-                }
-                xmlPropsElt = xmlPropsElt->NextSiblingElement("properties");
-            }
+            std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareConfigureFunc = std::bind(&IPropertyManager::declareConfiguration,  m_propertyManager.get(), _1,_2);
+            processXmlNode<const fs::path &>(rootElt, "configuration", declareConfigureFunc, configurationFilePath);
+            std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declarePropertiesFunc = std::bind(&IPropertyManager::declareProperties,  m_propertyManager.get(), _1,_2);
+            processXmlNode<const fs::path &>(rootElt, "properties", declarePropertiesFunc, configurationFilePath);
+        }
+        catch (const xpcf::Exception & e) {
+            return e.getErrorCode();
         }
         catch (const std::runtime_error & e) {
             //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<modulePath<<" failed with error : "<<e.what();

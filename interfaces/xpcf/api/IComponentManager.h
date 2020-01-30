@@ -23,11 +23,12 @@
 #ifndef ORG_BCOM_XPCF_ICOMPONENTMANAGER_H
 #define ORG_BCOM_XPCF_ICOMPONENTMANAGER_H
 
-#include "xpcf/api/IInjectable.h"
-#include "xpcf/api/InterfaceMetadata.h"
-#include "xpcf/api/ComponentMetadata.h"
-#include "xpcf/api/ModuleMetadata.h"
-#include "xpcf/core/XPCFErrorCode.h"
+#include <xpcf/api/IInjectable.h>
+#include <xpcf/api/InterfaceMetadata.h>
+#include <xpcf/api/ComponentMetadata.h>
+#include <xpcf/api/ModuleMetadata.h>
+#include <xpcf/core/XPCFErrorCode.h>
+#include <xpcf/component/ComponentFactory.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -55,8 +56,17 @@ public:
      * @param [in] scope : the creation scope used to determine the lifetime of the object retrieved with resolve
      * @note bindings can come from in-code calls to bind, from autobinds or bindings declared in an xml configuration file or from autobinds while introspecting a module
      */
-    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
-    virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+                      IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+    virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+                      IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+
+    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+                           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                           IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+    virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+                           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                           IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
 
     template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const uuids::uuid& componentUUID);
 
@@ -65,6 +75,11 @@ public:
     template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name, const uuids::uuid& componentUUID);
 
     template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name);
+
+    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal();
+
+    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal(const char * name);
+
 
     /**
      * Virtual destructor of IComponentManager
@@ -79,6 +94,9 @@ public:
 
     /**
      * Search the registry file and load it with all the components
+     * The method tries to read the "XPCF_REGISTRY_PATH" environment variable
+     * It loads the file provided in the variable when it exists.
+     * Otherwise, the method loads all xpcf compatible xml files recursively found in xpcf home path (%USERPROFILE%/.xpcf on windows, $HOME/.xpcf on other platforms).
      * @return
      */
     virtual XPCFErrorCode load() = 0;
@@ -249,7 +267,9 @@ public:
      * @param [in]
      * @return
      */
+#ifndef SWIG
     [[deprecated]]
+#endif
     virtual SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid & interfaceUUID) const = 0;
 
 };
@@ -317,10 +337,18 @@ template < typename I, IComponentManager::Scope scope> void  IComponentManager::
 
 template < typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name)
 {
-
     bind<I,scope>(name, toUUID<C>());
 }
 
+template < typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal()
+{
+    bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope);
+}
+
+template < typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal(const char * name)
+{
+    bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope);
+}
 
 /**
  * Retrieve the component manager instance.
