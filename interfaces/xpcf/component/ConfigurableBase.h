@@ -29,7 +29,7 @@
 namespace org { namespace bcom { namespace xpcf {
 
 class XPCF_EXPORT_API ConfigurableBase : public ComponentBase,
-        public virtual IConfigurable
+        virtual public IConfigurable
 {
 public:
     ConfigurableBase() = delete;

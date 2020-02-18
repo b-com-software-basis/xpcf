@@ -28,7 +28,7 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-class IConfigurable : public virtual IComponentIntrospect {
+class IConfigurable : virtual public IComponentIntrospect {
 public:
     virtual ~IConfigurable() = default;
 

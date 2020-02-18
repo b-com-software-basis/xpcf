@@ -33,21 +33,21 @@
 #include <xpcf/threading/BaseTask.h>
 #include <xpcf/api/IModuleManager.h>
 #include <xpcf/api/IInjectable.h>
+#include <boost/filesystem.hpp>
 
 #define BOOST_TEST_MODULE test dynamic xpcf
 #include <boost/test/unit_test.hpp>
 
 #include "TestDefines.h"
 
-xpcf::uuids::string_generator gen;
-xpcf::uuids::uuid clsid_HumanMusician = gen("ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" );
+xpcf::uuids::uuid clsid_HumanMusician = xpcf::toUUID("ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" );
 xpcf::uuids::uuid iid_IComponentIntrospect= xpcf::toUUID<xpcf::IComponentIntrospect>();
 xpcf::uuids::uuid iid_IHuman= xpcf::toUUID<IHuman>();
 xpcf::uuids::uuid iid_IMusician= xpcf::toUUID<IMusician>();
 xpcf::uuids::uuid iid_IGuitarist= xpcf::toUUID<IGuitarist>();
-xpcf::uuids::uuid sampleComponentModuleUUID = gen("3b899ff0-e098-4218-bdaa-82abdec22960");
+xpcf::uuids::uuid sampleComponentModuleUUID = xpcf::toUUID("3b899ff0-e098-4218-bdaa-82abdec22960");
 using namespace std;
-
+namespace fs = boost::filesystem;
 //TODO : unittests, exception catching
 /*------------------------------*/
 void TCDLL()

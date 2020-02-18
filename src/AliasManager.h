@@ -36,7 +36,7 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-class IAliasManager : public virtual IComponentIntrospect {
+class IAliasManager : virtual public IComponentIntrospect {
 public:
     typedef enum {
         Interface,
@@ -63,7 +63,7 @@ template <> struct InterfaceTraits<IAliasManager>
 
 
 class AliasManager : public ComponentBase,
-        public virtual IAliasManager {
+        virtual public IAliasManager {
 public:
     AliasManager();
     ~AliasManager() override = default;

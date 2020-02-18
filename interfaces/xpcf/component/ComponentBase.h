@@ -31,7 +31,7 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-class XPCF_EXPORT_API ComponentBase : public virtual IInjectable
+class XPCF_EXPORT_API ComponentBase : virtual public IInjectable
 {
     // friend class ComponentFactory;
 public:

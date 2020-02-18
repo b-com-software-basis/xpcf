@@ -33,9 +33,13 @@
 #include <xpcf/api/IComponentIntrospect.h>
 #include <xpcf/component/ComponentBase.h>
 #include "AliasManager.h"
-/*#include <boost/log/core.hpp>
+
+#ifdef XPCF_WITH_LOGS
+#include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/log/attributes.hpp>*/
+#include <boost/log/attributes.hpp>
+#endif
+
 #include <boost/filesystem.hpp>
 
 #include <atomic>
@@ -45,7 +49,7 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-class IRegistry  : public virtual IComponentIntrospect {
+class IRegistry  : virtual public IComponentIntrospect {
 public:
     ~IRegistry() override  = default;
     virtual void clear() = 0;
@@ -74,7 +78,7 @@ template <> struct InterfaceTraits<IRegistry>
 };
 
 class Registry : public ComponentBase,
-        public virtual IRegistry {
+        virtual public IRegistry {
 public:
     Registry();
     //Registry(const std::function<void(const uuids::uuid &, const uuids::uuid &)> & bindFunc):m_autobind(bindFunc) {}
@@ -99,7 +103,10 @@ private:
     void declareInterfaceNode(SRef<ComponentMetadata> componentInfo, tinyxml2::XMLElement *interfaceElt);
     void declareComponent(SRef<ModuleMetadata> moduleInfo, tinyxml2::XMLElement *componentElt);
     void autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & componentUUID) { m_autobind(interfaceUUID,componentUUID); }
-    //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+
+#ifdef XPCF_WITH_LOGS
+    boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#endif
 
     Collection<SPtr<ModuleMetadata>,std::vector> m_modulesVector;
     Collection<SPtr<InterfaceMetadata>,std::vector> m_interfacesVector;

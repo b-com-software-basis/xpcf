@@ -32,6 +32,10 @@
 #endif
 
 #include <regex>
+
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+namespace fs = boost::filesystem;
+
 namespace org { namespace bcom { namespace xpcf {
 
 PathBuilder::PathBuilder()
@@ -80,13 +84,12 @@ fs::path PathBuilder::replaceRootEnvVars(const std::string & sourcePath)
 
 fs::path PathBuilder::buildModuleFolderPath(const std::string & filePathStr)
 {
-    fs::detail::utf8_codecvt_facet utf8;
     fs::path filePath(replaceRootEnvVars(filePathStr));
 
 #ifdef XPCFSUBDIRSEARCH
     fs::path modeSubDir = XPCFSUBDIRSEARCH;
 
-    if ( boost::filesystem::exists( filePath / modeSubDir ) ) {
+    if ( fs::exists( filePath / modeSubDir ) ) {
         filePath /= modeSubDir;
     }
 #endif
@@ -97,8 +100,7 @@ fs::path PathBuilder::buildModuleFilePath(const std::string & moduleName, const 
 {
     fs::path filePath = buildModuleFolderPath(filePathStr);
 
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path moduleFileName(moduleName, utf8);
+    fs::path moduleFileName = getUTF8PathObserver(moduleName.c_str());
     filePath /= moduleFileName;
     return filePath;
 }
@@ -140,7 +142,7 @@ fs::path PathBuilder::getXPCFHomePath()
     return xpcfHomePath;
 }
 
-static boost::filesystem::path suffix() {
+static fs::path suffix() {
     // https://sourceforge.net/p/predef/wiki/OperatingSystems/
 #if BOOST_OS_MACOS || BOOST_OS_IOS
     return ".dylib";
@@ -153,12 +155,12 @@ static boost::filesystem::path suffix() {
 
 fs::path PathBuilder::appendModuleDecorations(const fs::path & sl)
 {
-    boost::filesystem::path actual_path = sl;
+    fs::path actual_path = sl;
     if ( actual_path.stem() == actual_path.filename() ) { // there is no suffix
         actual_path += suffix().native();
     }
 #if BOOST_OS_WINDOWS
-    if (!boost::filesystem::exists(actual_path)) {
+    if (!fs::exists(actual_path)) {
         // MinGW loves 'lib' prefix and puts it even on Windows platform
         actual_path = (actual_path.has_parent_path() ? actual_path.parent_path() / L"lib" : L"lib").native() + actual_path.filename().native();
     }
@@ -168,6 +170,12 @@ fs::path PathBuilder::appendModuleDecorations(const fs::path & sl)
                 : actual_path);
 #endif
     return actual_path;
+}
+
+fs::path PathBuilder::appendModuleDecorations(const char * sl)
+{
+    fs::path currentPath = getUTF8PathObserver(sl);
+    return appendModuleDecorations(currentPath);
 }
 
 }}}

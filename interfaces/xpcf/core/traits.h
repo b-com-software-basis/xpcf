@@ -8,7 +8,9 @@
 
 namespace org {namespace bcom { namespace xpcf {
 
+#ifdef XPCF_USE_BOOST
 namespace uuids = boost::uuids;
+#endif
 
 template < typename T >
 inline uuids::uuid toUUID()

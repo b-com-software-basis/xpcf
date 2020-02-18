@@ -4,7 +4,7 @@
 #include "IMessage.h"
 #include <string>
 
-class ConfigurableComponent : public org::bcom::xpcf::ConfigurableBase, public virtual IMessage
+class ConfigurableComponent : public org::bcom::xpcf::ConfigurableBase, virtual public IMessage
 {
 public:
     ConfigurableComponent();

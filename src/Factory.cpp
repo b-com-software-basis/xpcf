@@ -29,7 +29,6 @@
 using namespace std;
 using placeholders::_1;
 using placeholders::_2;
-namespace fs = boost::filesystem;
 
 XPCF_DEFINE_FACTORY_CREATE_INSTANCE(org::bcom::xpcf::Factory);
 

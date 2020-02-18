@@ -35,7 +35,7 @@
    * @note The InterfaceTraits<IMusician> template struct defines the IMusician UUID and description.
    * It allows IMusician users to use directly the I0 type instead of its UUID to bind the component to this interface.
    */
-class IMusician : public virtual org::bcom::xpcf::IComponentIntrospect
+class IMusician : virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~IMusician() = default;

@@ -45,7 +45,7 @@ namespace component {
    * It allows JacksonDinky6ElectricGuitar users to use directly a forward declared type
    * to invoke JacksonDinky6ElectricGuitar creation without depending on the concrete implementation.
    */
-class JacksonDinky6ElectricGuitar : public Guitar,  public virtual IElectricGuitar
+class JacksonDinky6ElectricGuitar : public Guitar,  virtual public IElectricGuitar
 
 {
 public:

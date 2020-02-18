@@ -14,7 +14,7 @@
 %{JS: Cpp.openNamespaces('%{Class}')}
 
 @if '%{Base}' && '%{Base}' !== 'None'
-class %{CN} : public org::bcom::xpcf::%{BaseComponentClass}, public virtual %{Base}
+class %{CN} : public org::bcom::xpcf::%{BaseComponentClass}, virtual public %{Base}
 @else
 class %{CN}: public org::bcom::xpcf::%{BaseComponentClass}
 @endif

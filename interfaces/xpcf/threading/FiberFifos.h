@@ -32,8 +32,11 @@ namespace org { namespace bcom { namespace xpcf {
 //template <template<typename, typename, typename> class FIFO, class T> SRef<IFifo<T>> createFiberFifo() {
 //    return utils::make_shared<FIFO<T,utils::fibers::mutex,utils::fibers::condition_variable>>();
 //}
+#ifdef XPCF_USE_BOOST
 using FiberThreadedNamespace = TemplatedThreadedNamespace<utils::fibers::mutex, utils::fibers::condition_variable, utils::fibers::cv_status>;
-
+#else
+using FiberThreadedNamespace = TemplatedThreadedNamespace<std::mutex, std::condition_variable, std::cv_status>;
+#endif
 template <template<typename, typename> class FIFO, class T> SRef<IFifo<T>> createFiberFifo() {
     return utils::make_shared<FIFO<T,FiberThreadedNamespace>>();
 }

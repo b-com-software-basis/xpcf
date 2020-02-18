@@ -32,7 +32,7 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-class XPCF_EXPORT_API AbstractTask : public virtual ITask
+class XPCF_EXPORT_API AbstractTask : virtual public ITask
 {
 public:
     AbstractTask(bool joinable = true): m_joinable(joinable) {}
@@ -49,7 +49,7 @@ protected:
     std::vector<SRef<IFinalize>> m_finalizers;
 };
 
-class XPCF_EXPORT_API BaseTask : public virtual AbstractTask
+class XPCF_EXPORT_API BaseTask : virtual public AbstractTask
 {
 public:
     BaseTask(bool joinable = true): AbstractTask(joinable) {}

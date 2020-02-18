@@ -4,7 +4,7 @@
 #include "IMessage.h"
 
 
-class PeopleComponent : public org::bcom::xpcf::ComponentBase, public virtual IMessage
+class PeopleComponent : public org::bcom::xpcf::ComponentBase, virtual public IMessage
 {
 public:
     PeopleComponent();

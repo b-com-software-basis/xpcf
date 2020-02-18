@@ -1,1 +1,2 @@
-xpcf|2.3.1|xpcf|artifactory|http://repository.b-com.com/amc-generic
+xpcf|2.3.2|xpcf%USE_XPCF_BOOST|github|https://github.com/
+xpcf-std|2.3.2|xpcf-std%USE_XPCF_STD|github|https://github.com/

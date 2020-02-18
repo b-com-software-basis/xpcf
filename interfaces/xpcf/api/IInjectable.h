@@ -31,7 +31,7 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-class IInjectable : public virtual IComponentIntrospect {
+class IInjectable : virtual public IComponentIntrospect {
 public:
     virtual ~IInjectable() = default;
 

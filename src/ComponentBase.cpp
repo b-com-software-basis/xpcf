@@ -85,8 +85,10 @@ private:
 ComponentBase::ComponentBase(const uuids::uuid & uuid)
     :m_UUID(uuid), m_pimpl(new InternalImpl(uuid)), m_usageRefCount(0)
 {
+#ifdef XPCF_WITH_LOGS
     m_pimpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentBase"));
     BOOST_LOG_SEV(m_pimpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::ComponentBase construction";
+#endif
     declareInterface<IComponentIntrospect>(this);
     declareInterface<IInjectable>(this);
 }
@@ -99,22 +101,30 @@ ComponentBase::ComponentBase(std::map<std::string,std::string> componentTrait)
 
 ComponentBase::~ComponentBase()
 {
+#ifdef XPCF_WITH_LOGS
     BOOST_LOG_SEV(m_pimpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::~ComponentBase destruction";
+#endif
 }
 
 void ComponentBase::addComponentRef()
 {
     // NOTE : add/releaseComponentRef not synchronized !
     m_usageRefCount++;
+#ifdef XPCF_WITH_LOGS
     BOOST_LOG_SEV(m_pimpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::addComponentRef refcount="<<m_usageRefCount;
+#endif
 }
 
 void ComponentBase::releaseComponentRef()
 {
     m_usageRefCount--;
+#ifdef XPCF_WITH_LOGS
     BOOST_LOG_SEV(m_pimpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::releaseComponentRef refcount="<<m_usageRefCount;
+#endif
     if (m_usageRefCount == 0) {
+#ifdef XPCF_WITH_LOGS
         BOOST_LOG_SEV(m_pimpl->getLogger(), logging::trivial::info)<<uuids::to_string(m_UUID)<<" ComponentBase::releaseComponentRef calling unloadComponent";
+#endif
         this->unloadComponent();
     }
 }

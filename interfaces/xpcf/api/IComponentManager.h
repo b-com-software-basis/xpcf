@@ -41,7 +41,7 @@ namespace org { namespace bcom { namespace xpcf {
  * The ComponentManaager is a singleton service.
  * Its instance can be retrieved with the dedicated getComponentManagerInstance() function.
  */
-class IComponentManager : public virtual IComponentIntrospect {
+class IComponentManager : virtual public IComponentIntrospect {
 public:
 
     typedef enum {

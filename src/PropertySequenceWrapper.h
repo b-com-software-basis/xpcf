@@ -25,6 +25,7 @@
 
 
 #include "xpcf/properties/IProperty.h"
+#include "PropertyWrapper.h"
 #include <deque>
 #include <vector>
 
@@ -42,7 +43,7 @@ public:
                   std::is_same<Sequence<ExternType, ::std::allocator<HoldingType>>, std::deque<ExternType, ::std::allocator<HoldingType>>>::value,
                   "Sequence type not allowed for PropertySequenceWrapper");
     PropertySequenceWrapper(const char* name, Sequence<HoldingType, ::std::allocator<HoldingType>> & paramWrapped, IProperty::AccessSpecifier iotype = IProperty::AccessSpecifier::IProperty_INOUT); // single value wrapper
-    ~PropertySequenceWrapper ();
+    ~PropertySequenceWrapper () override;
 
     const char* getName () const override;
 

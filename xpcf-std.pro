@@ -1,33 +1,28 @@
 QT       -= core gui
 CONFIG -= app_bundle qt
 
-TARGET = xpcf
+TARGET = xpcf-std
 FRAMEWORK = $${TARGET}
 VERSION=2.3.2
-
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
 CONFIG += shared
-CONFIG -= staticlib
+
 macx {
     #CONFIG += use_brew_llvm
     # howto setup conan to use brew llvm ?
 }
 
-DEFINES += XPCF_USE_BOOST
-staticlib {
-    DEFINES += XPCF_STATIC
-    DEPENDENCIESCONFIG = staticlib
-} else {
-    DEFINES += XPCF_SHARED
-    DEFINES += BOOST_ALL_DYN_LINK
-    DEPENDENCIESCONFIG = sharedlib
-}
-
+DEPENDENCIESCONFIG = staticlib
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (builddefs/qmake/templatelibconfig.pri)
 
+staticlib {
+    DEFINES += XPCF_STATIC
+} else {
+    DEFINES += XPCF_SHARED
+}
 
 CONFIG(debug,debug|release) {
 #    DEFINES += XPCF_WITH_LOGS
@@ -40,7 +35,6 @@ CONFIG(release,debug|release) {
 }
 
 DEFINES += BOOST_ALL_NO_LIB
-
 
 DEFINES += TIXML_USE_STL
 
@@ -149,9 +143,10 @@ linux {
 macx {
     DEFINES += _MACOS_TARGET_
     QMAKE_MAC_SDK= macosx
-    QMAKE_CFLAGS += -mmacosx-version-min=10.7 #-x objective-c++
-    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7  -std=c++17 -fPIC#-x objective-c++
-    QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+    QMAKE_CFLAGS += -mmacosx-version-min=10.14 #-x objective-c++
+    QMAKE_CXXFLAGS += -mmacosx-version-min=10.14  -std=c++17 -fPIC#-x objective-c++
+    QMAKE_LFLAGS += -mmacosx-version-min=10.14 -v -lstdc++
     LIBS += -lstdc++ -lc -lpthread
 }
 
@@ -160,7 +155,7 @@ win32 {
     DEFINES += MBCS _MBCS
  }
 
-INCLUDEPATH += $${PWD} $${PWD}/interfaces
+INCLUDEPATH += $${PWD} $${PWD}/interfaces $${PWD}/libs/stduuid/include
 include(builddefs/qmake/bcom_code_scanner.prf)
 
 h_api_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/api
@@ -180,11 +175,23 @@ h_threading_files.files = $$files($${PWD}/interfaces/xpcf/threading/*)
 h_xpcf_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf
 h_xpcf_files.files = $${PWD}/interfaces/xpcf/xpcf.h
 h_xpcf_files.files += $${PWD}/interfaces/xpcf/xpcf_api_define.h
-qt_wizards.files = $$files($${PWD}/wizards/*,recursive=true)
-qt_wizards.path = $${PROJECTDEPLOYDIR}/wizards
 
-INSTALLS += h_api_files h_collection_files h_component_files h_core_files h_module_files h_properties_files h_threading_files h_xpcf_files  qt_wizards
 
+
+INSTALLS += h_api_files h_collection_files h_component_files h_core_files h_module_files h_properties_files h_threading_files h_xpcf_files
+!contains(DEFINES, "XPCF_USE_BOOST") {
+    h_uuid_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/core/stduuid
+    h_uuid_files.files = $$files($${PWD}/libs/stduuid/include/*)
+    INSTALLS += h_uuid_files
+}
+
+contains(DEFINES, "WITHREMOTING") {
+    h_remoting_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/remoting
+    h_remoting_files.files = $$files($${PWD}/interfaces/xpcf/remoting/*)
+    INSTALLS += h_remoting_files
+}
+
+message("LFLAGS="$${QMAKE_LFLAGS})
 DISTFILES += \
     Makefile \
     doc/xpcf-registry-sample.xml

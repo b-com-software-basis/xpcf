@@ -28,8 +28,6 @@
 #include "PathBuilder.h"
 #include "PropertyManager.h"
 
-#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <functional>
@@ -38,7 +36,10 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 //namespace logging = boost::log;
 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 namespace fs = boost::filesystem;
+namespace logging = boost::log;
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -92,8 +93,10 @@ ComponentManager::ComponentManager():ComponentBase(toUUID<ComponentManager>()),m
     m_registry = m_factory->resolve<IRegistry>();
     m_aliasManager = m_factory->resolve<IAliasManager>();
     m_propertyManager =  m_factory->resolve<IPropertyManager>();
-    //  m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentManager"));
-    //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor ComponentManager::ComponentManager () called!";
+#ifdef XPCF_WITH_LOGS
+    m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentManager"));
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor ComponentManager::ComponentManager () called!";
+#endif
 }
 
 uuids::uuid ComponentManager::getModuleUUID(const uuids::uuid & componentUUID) const
@@ -109,7 +112,9 @@ void ComponentManager::releaseComponent(uuids::uuid componentUUID)
 
 void ComponentManager::unloadComponent ()
 {
-    //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::unload () called!";
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::unload () called!";
+#endif
 }
 
 void ComponentManager::clear()
@@ -414,8 +419,10 @@ XPCFErrorCode ComponentManager::loadLibrary(fs::path configurationFilePath)
     enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
     if (loadOkay == 0) {
         try {
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<modulePath<<" config file";
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
+#ifdef XPCF_WITH_LOGS
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<configurationFilePath<<" config file";
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
+#endif
             //TODO : check each element exists before using it !
             // a check should be performed upon announced module uuid and inner module uuid
             // check xml node is xpcf-registry first !
@@ -445,7 +452,9 @@ XPCFErrorCode ComponentManager::loadLibrary(fs::path configurationFilePath)
             return e.getErrorCode();
         }
         catch (const std::runtime_error & e) {
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<modulePath<<" failed with error : "<<e.what();
+#ifdef XPCF_WITH_LOGS
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<configurationFilePath<<" failed with error : "<<e.what();
+#endif
             return XPCFErrorCode::_FAIL;
         }
     }

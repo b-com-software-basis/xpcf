@@ -27,7 +27,7 @@
 #include "xpcf/xpcf_api_define.h"
 
 #include <deque>
-#include <string.h>
+#include <string>
 
 namespace org { namespace bcom { namespace xpcf {
 // idea : it is possible to create a matrix structure param with uint cols uint rows Type vector ?

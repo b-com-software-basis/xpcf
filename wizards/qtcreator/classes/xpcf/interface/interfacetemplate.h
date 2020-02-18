@@ -12,9 +12,9 @@
 %{JS: Cpp.openNamespaces('%{Class}')}
 
 @if '%{Base}' && '%{Base}' !== 'None'
-class %{CN} : public virtual %{Base}
+class %{CN} : virtual public %{Base}
 @else
-class %{CN}: public virtual org::bcom::xpcf::IComponentIntrospect
+class %{CN}: virtual public org::bcom::xpcf::IComponentIntrospect
 @endif
 {
 public:
