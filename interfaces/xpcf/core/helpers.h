@@ -3,7 +3,9 @@
 
 #include <map>
 
+#ifndef SWIG
 namespace org { namespace bcom { namespace xpcf {
+
 template < typename Key, typename T> bool mapContains(const std::map<Key,T> & mapContainer, Key k)
 {
     if (mapContainer.find(k) != mapContainer.end()) {
@@ -24,5 +26,6 @@ private:
 };
 
 }}}
+#endif // SWIG
 
 #endif // HELPERS_H

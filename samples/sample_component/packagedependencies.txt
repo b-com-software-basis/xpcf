@@ -1,1 +1,1 @@
-xpcf|2.3.0|xpcf|artifactory|http://repository.b-com.com/amc-generic
+xpcf|2.3.1|xpcf|artifactory|http://repository.b-com.com/amc-generic

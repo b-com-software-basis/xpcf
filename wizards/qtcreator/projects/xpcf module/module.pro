@@ -7,13 +7,30 @@ VERSION=1.0.0
 DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
-CONFIG += shared
 
 include(findremakenrules.pri)
 
-DEPENDENCIESCONFIG = sharedlib recurse
+CONFIG += shared
+
+@if '%{dependenciesBuildMode}' === 'shared'
+DEPENDENCIESCONFIG = sharedlib
+@else
+DEPENDENCIESCONFIG = staticlib
+@endif
+@if '%{recurseDependencies}' === 'recurse' && '%{dependenciesInstallMode}' !== 'install_recurse'
+DEPENDENCIESCONFIG += recurse
+@endif
+@if '%{dependenciesInstallMode}' !== 'noinstall'
+DEPENDENCIESCONFIG += %{dependenciesInstallMode}
+@endif
+
+## Configuration for Visual Studio to install binaries and dependencies. Work also for QT Creator by replacing QMAKE_INSTALL
+@if '%{withQTVS}' && '%{withQTVS}' === 'QTVS'
+PROJECTCONFIG = QTVS
+@endif
+
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
-@if '%{remakenLocalRules}' === 'true'
+@if '%{remakenRules}' === 'local'
 include (builddefs/qmake/templatelibconfig.pri)
 @else
 include ($${REMAKEN_RULES_ROOT}/templatelibconfig.pri)
@@ -52,3 +69,15 @@ header_files.files = $$files($${PWD}/I*.h)
 INSTALLS += header_files
 DISTFILES += \
     Makefile
+
+OTHER_FILES += \
+    packagedependencies.txt
+
+@if '%{withQTVS}' && '%{withQTVS}' === 'QTVS'
+#NOTE : Must be placed at the end of the .pro
+    @if '%{remakenRules}' === 'local'
+include (builddefs/qmake/remaken_install_target.pri)
+    @else
+include ($${REMAKEN_RULES_ROOT}/remaken_install_target.pri)
+    @endif
+@endif

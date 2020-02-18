@@ -1,1 +1,1 @@
-boost#stable|1.70.0|boost|conan|https://api.bintray.com/conan/conan-community/conan
+boost#stable|1.70.0|boost|conan|conan-center

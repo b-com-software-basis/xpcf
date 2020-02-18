@@ -391,7 +391,6 @@ SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, s
     uuids::uuid componentUUID = bindInfos.first;
 
     contextLevels.push_front(FactoryContext(ContextType::Component,uuids::to_string(componentUUID)));
-    ScopeExit scope([&]() {contextLevels.pop_front();});
     if (bindInfos.second == IComponentManager::Scope::Singleton) {
         if (! mapContains(m_singletonInstances,componentUUID)) {
             SRef<IComponentIntrospect> componentRef = resolveComponent(componentUUID, contextLevels);
@@ -408,7 +407,6 @@ SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, c
     uuids::uuid componentUUID = bindInfos.first;
 
     contextLevels.push_front(FactoryContext(ContextType::Component,uuids::to_string(componentUUID)));
-    ScopeExit scope([&]() {contextLevels.pop_front();});
     if (bindInfos.second == IComponentManager::Scope::Singleton) {
         pair<uuids::uuid,string> key = make_pair(componentUUID, name);
         if (! mapContains(m_namedSingletonInstances,key)) {

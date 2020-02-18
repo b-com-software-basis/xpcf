@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "supportedProjectTypes": [ "CMakeProjectManager.CMakeProject", "Qbs.QbsProject", "Qt4ProjectManager.Qt4Project" ],
+    "supportedProjectTypes": [ "Qt4ProjectManager.Qt4Project" ],
     "id": "R.XPCFApplication",
     "category": "I.XPCFProjects",
     "trDescription": "Creates a simple XPCF C++ application using component and module.",
@@ -11,13 +11,16 @@
 
     "options":
     [
-        { "key": "ProjectFile", "value": "%{JS: '%{BuildSystem}' === 'qmake' ? '%{ProFile}' : ('%{BuildSystem}' === 'cmake' ? '%{CMakeFile}' : '%{QbsFile}')}" },
+        { "key": "ProjectFile", "value": "%{ProFile}" },
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
-        { "key": "CMakeFile", "value": "%{ProjectDirectory}/CMakeLists.txt" },
         { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
         { "key": "ApplicationName", "value": "%{ProjectName}"},
         { "key": "XPCFVersion", "value": "%{JS: Util.fileName(Util.baseName('%{XPCFVersionPath}') , Util.completeSuffix('%{XPCFVersionPath}'))}"},
-        { "key": "ModuleUUID","value": "%{moduleUUIDEdit}" }
+        { "key": "remakenRules","value": "%{remakenWizardRules}" },
+        { "key": "withQTVS","value": "%{UseQTVS}" },
+        { "key": "dependenciesBuildMode","value": "%{DepsBuildMode}" },
+        { "key": "recurseDependencies","value": "%{RecursiveDeps}" },
+        { "key": "dependenciesInstallMode","value": "%{InstallMode}" }
     ],
 
     "pages":
@@ -28,15 +31,28 @@
             "typeId": "Project"
         },
         {
-            "trDisplayName": "Define Build System",
-            "trShortTitle": "Build System",
+            "trDisplayName": "Define Project Details",
+            "trShortTitle": "Details",
             "typeId": "Fields",
-            "enabled": "%{JS: ! %{IsSubproject}}",
             "data":
             [
                 {
-                    "name": "BuildSystem",
-                    "trDisplayName": "Build system:",
+                    "name": "ProjectPageDescription",
+                    "type": "Label",
+                    "span": true,
+                    "data":
+                    {
+                        "trText": "Specify basic information about the build options to use for the XPCF application.",
+                        "wordWrap": true
+                    }
+                },
+                {
+                    "name": "Sp10",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "DepsBuildMode",
+                    "trDisplayName": "Dependencies type:",
                     "type": "ComboBox",
                     "data":
                     {
@@ -44,16 +60,71 @@
                         "items":
                         [
                             {
-                                "trKey": "qmake",
-                                "value": "qmake",
-                                "condition": "%{JS: [ %{Plugins} ].indexOf('QmakeProjectManager') >= 0}"
+                                "trKey": "Shared Library",
+                                "value": "shared"
                             },
                             {
-                                "trKey": "CMake",
-                                "value": "cmake",
-                                "condition": "%{JS: [ %{Plugins} ].indexOf('CMakeProjectManager') >= 0}"
+                                "trKey": "Statically Linked Library",
+                                "value": "static"
                             }
                         ]
+                    }
+                },
+                {
+                    "name": "Sp0",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "InstallMode",
+                    "trDisplayName": "Dependencies installation mode:",
+                    "type": "ComboBox",
+                    "data":
+                    {
+                        "index": 0,
+                        "items":
+                        [
+                            {
+                                "trKey": "don't install dependencies",
+                                "value": "noinstall"
+                            },
+                            {
+                                "trKey": "install first level dependencies",
+                                "value": "install"
+                            },
+                            {
+                                "trKey": "install recursively all dependencies",
+                                "value": "install_recurse"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Sp1",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "RecursiveDeps",
+                    "trDisplayName": "Recursively find dependencies",
+                    "type": "CheckBox",
+                    "data":
+                    {
+                        "checkedValue": "recurse",
+                        "uncheckedValue": "norecurse",
+                        "checked": "%{JS: value('InstallMode') === 'install_recurse' ? 'true' : 'false'}"                        
+                    }
+                },
+                {
+                    "name": "Sp2",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "UseQTVS",
+                    "trDisplayName": "Use QTVS",
+                    "type": "CheckBox",
+                    "data":
+                    {
+                        "checkedValue": "QTVS",
+                        "uncheckedValue": "noQTVS"
                     }
                 }
             ]
@@ -79,7 +150,69 @@
                 }
             ]
         },
-
+        {
+            "trDisplayName": "Remaken rules",
+            "trShortTitle": "Remaken rules",
+            "typeId": "Fields",
+            "data":
+            [
+                {
+                    "name": "remakenWizardRules",
+                    "trDisplayName": "Remaken rules folder choice:",
+                    "type": "ComboBox",
+                    "data":
+                    {
+                        "items": [  { "trKey": "Use rules from '.remaken/rules/qmake' configuration folder in user's $(HOME) / %USERPROFILE% folder", "value": 0 },
+                            { "trKey": "Use rules from local 'builddefs/qmake' project sub-folder", "value": 1 } ]
+                    }
+                },
+                {
+                    "name": "remakenWizardRulesNoteLabel",
+                    "type": "Label",
+                    "span": true,
+                    "visible": true,
+                    "data":
+                    {
+                        "wordWrap": true,
+                        "trText": "IMPORTANT NOTE:\nSelected folder must exists before the module can be built:"
+                    }
+                },
+                {
+                    "name": "remakenWizardDefaultRulesLabel",
+                    "type": "Label",
+                    "span": true,
+                    "visible": "%{JS: '%{remakenWizardRules}' === '0'}",
+                    "data":
+                    {
+                        "wordWrap": true,
+                        "trText": "=> '.remaken/rules/qmake'  folder should be created when installing remaken application."
+                    }
+                },
+                {
+                    "name": "remakenWizardRulesLabel",
+                    "type": "Label",
+                    "span": true,
+                    "visible":  "%{JS: '%{remakenWizardRules}' === '1'}",
+                    "data":
+                    {
+                        "wordWrap": true,
+                        "trText": "=> 'builddefs/qmake' local project folder can be created with:"
+                    }
+                }
+                ,
+                {
+                    "name": "remakenWizardRulesGitLabel",
+                    "type": "Label",
+                    "span": true,
+                    "visible":  "%{JS: '%{remakenWizardRules}' === '1'}",
+                    "data":
+                    {
+                        "wordWrap": true,
+                        "trText": "'git submodule add https://github.com/b-com-software-basis/builddefs-qmake.git builddefs/qmake' within the project root folder."
+                    }
+                }
+            ]
+        },
         {
             "trDisplayName": "Kit Selection",
             "trShortTitle": "Kits",
@@ -106,9 +239,10 @@
                     "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
                 },
                 {
-                    "source": "CMakeLists.txt",
-                    "openAsProject": true,
-                    "condition": "%{JS: '%{BuildSystem}' === 'cmake'}"
+                    "source": "findremakenrules.pri",
+                    "target": "findremakenrules.pri",
+                    "openAsProject": false,
+                    "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
                 },
                 {
                     "source": "main.cpp",

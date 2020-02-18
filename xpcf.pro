@@ -3,7 +3,7 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcf
 FRAMEWORK = $${TARGET}
-VERSION=2.3.0
+VERSION=2.3.1
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
@@ -156,9 +156,11 @@ h_threading_files.files = $$files($${PWD}/interfaces/xpcf/threading/*)
 h_xpcf_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf
 h_xpcf_files.files = $${PWD}/interfaces/xpcf/xpcf.h
 h_xpcf_files.files += $${PWD}/interfaces/xpcf/xpcf_api_define.h
+qt_wizards.files = $$files($${PWD}/wizards/*,recursive=true)
+qt_wizards.path = $${PROJECTDEPLOYDIR}/wizards
 
 
-INSTALLS += h_api_files h_collection_files h_component_files h_core_files h_module_files h_properties_files h_threading_files h_xpcf_files
+INSTALLS += h_api_files h_collection_files h_component_files h_core_files h_module_files h_properties_files h_threading_files h_xpcf_files qt_wizards
 DISTFILES += \
     Makefile \
     doc/xpcf-registry-sample.xml

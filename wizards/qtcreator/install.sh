@@ -19,13 +19,18 @@ if [ ! -d "$HOME/.remaken/rules/" ]; then
     echo "Creating default remaken rules folder: $HOME/.remaken/rules/"
     mkdir -p $HOME/.remaken/rules
 fi
+
 if [ ! -d "$HOME/.remaken/rules/qmake" ]; then
-    echo "Creating default remaken qmake rules folder: $HOME/.remaken/rules/qmake"
     if ! [ -x "$(which git)" ]; then
-	echo "Copying default rules from ../../builddefs/qmake to $HOME/.remaken/rules/qmake"
-	cp -r ../../builddefs/qmake  $HOME/.remaken/rules/
+        echo "WARNING : git not available and default remaken qmake rules folder doesn't exist in $HOME/.remaken/rules/qmake"
+        echo "==> Check your remaken installation"
+        echo "==> NOTE: XPCF module wizard will not find default remaken qmake rules, you may should to either:"
+        echo "    - install git and relaunch this script"
+        echo "    - use local qmake rules inside your project folder"
+        echo "    - reinstall remaken before using the wizard"
+        # replace with apt-get/brew ??
     else
-	echo "Cloning default rules from github https://github.com/b-com-software-basis/builddefs-qmake to  $HOME/.remaken/rules/qmake"
-	git clone https://github.com/b-com-software-basis/builddefs-qmake $HOME/.remaken/rules/qmake
+        echo "Cloning default rules from github https://github.com/b-com-software-basis/builddefs-qmake to  $HOME/.remaken/rules/qmake"
+        git clone https://github.com/b-com-software-basis/builddefs-qmake $HOME/.remaken/rules/qmake
     fi
 fi
