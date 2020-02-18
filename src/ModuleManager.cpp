@@ -34,7 +34,9 @@
 //#include <filesystem>
 
 using namespace std;
+#ifdef XPCF_WITH_LOGS
 namespace logging = boost::log;
+#endif
 
 namespace org { namespace bcom { namespace xpcf {
 

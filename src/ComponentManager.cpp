@@ -39,7 +39,9 @@ using std::placeholders::_2;
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 namespace fs = boost::filesystem;
+#ifdef XPCF_WITH_LOGS
 namespace logging = boost::log;
+#endif
 
 namespace org { namespace bcom { namespace xpcf {
 

@@ -37,7 +37,9 @@ using placeholders::_2;
 //namespace logging = boost::log;
 
 namespace fs = boost::filesystem;
+#ifdef XPCF_WITH_LOGS
 namespace logging = boost::log;
+#endif
 
 namespace org { namespace bcom { namespace xpcf {
 
