@@ -3,7 +3,7 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcf
 FRAMEWORK = $${TARGET}
-VERSION=2.3.2
+VERSION=2.4.0
 
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
@@ -15,6 +15,7 @@ macx {
     # howto setup conan to use brew llvm ?
 }
 
+DEFINES += WITHREMOTING
 DEFINES += XPCF_USE_BOOST
 staticlib {
     DEFINES += XPCF_STATIC
@@ -184,6 +185,11 @@ qt_wizards.files = $$files($${PWD}/wizards/*,recursive=true)
 qt_wizards.path = $${PROJECTDEPLOYDIR}/wizards
 
 INSTALLS += h_api_files h_collection_files h_component_files h_core_files h_module_files h_properties_files h_threading_files h_xpcf_files  qt_wizards
+contains(DEFINES, "WITHREMOTING") {
+    h_remoting_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/remoting
+    h_remoting_files.files = $$files($${PWD}/interfaces/xpcf/remoting/*)
+    INSTALLS += h_remoting_files
+}
 
 DISTFILES += \
     Makefile \

@@ -10,5 +10,5 @@ Version: @VERSION@
 Requires:
 Libs: -L${libdir} -l${libname}
 Libs.private: ${libdir}/${pfx}${libname}.${lext}
-Cflags: -I${includedir} -DXPCF_USE_BOOST -DXPCFVERSION=\"@VERSION@\"
+Cflags: -I${includedir} -DXPCF_USE_BOOST -DWITH_REMOTING -DXPCFVERSION=\"@VERSION@\"
 
