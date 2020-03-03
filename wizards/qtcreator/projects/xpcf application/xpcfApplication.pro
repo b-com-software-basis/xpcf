@@ -30,11 +30,7 @@ PROJECTCONFIG = QTVS
 @endif
 
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
-@if '%{remakenRules}' === 'local'
-include (builddefs/qmake/templateappconfig.pri)
-@else
-include ($${REMAKEN_RULES_ROOT}/templateappconfig.pri)
-@endif
+include ($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)
 
 #DEFINES += BOOST_ALL_NO_LIB
 DEFINES += BOOST_ALL_DYN_LINK

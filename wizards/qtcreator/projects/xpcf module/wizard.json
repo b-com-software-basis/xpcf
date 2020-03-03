@@ -17,7 +17,6 @@
         { "key": "ModuleName", "value": "%{ProjectName}"},
         { "key": "XPCFVersion", "value": "%{JS: Util.fileName(Util.baseName('%{XPCFVersionPath}') , Util.completeSuffix('%{XPCFVersionPath}'))}"},
         { "key": "ModuleNamespace","value": "%{ModuleNamespaceName}" },
-        { "key": "remakenRules","value": "%{remakenWizardRules}" },
         { "key": "withQTVS","value": "%{UseQTVS}" },
         { "key": "dependenciesBuildMode","value": "%{DepsBuildMode}" },
         { "key": "recurseDependencies","value": "%{RecursiveDeps}" },
@@ -192,72 +191,6 @@
                 }
             ]
         },
-        {
-            "trDisplayName": "Remaken rules",
-            "trShortTitle": "Remaken rules",
-            "typeId": "Fields",
-            "enabled": "%{JS: ! %{IsSubproject}}",
-            "data":
-            [
-
-                {
-                    "name": "remakenWizardRules",
-                    "trDisplayName": "Remaken rules folder choice:",
-                    "type": "ComboBox",
-                    "data":
-                    {
-                        "items": [  { "trKey": "Use rules from '.remaken/rules/qmake' configuration folder in user's $(HOME) / %USERPROFILE% folder", "value": "installed" },
-                            { "trKey": "Use rules from local 'builddefs/qmake' project sub-folder", "value": "local" } ]
-                    }
-                },
-                {
-                    "name": "remakenWizardRulesNoteLabel",
-                    "type": "Label",
-                    "span": true,
-                    "visible": true,
-                    "data":
-                    {
-                        "wordWrap": true,
-                        "trText": "IMPORTANT NOTE:\nSelected folder must exists before the module can be built:"
-                    }
-                },
-                {
-                    "name": "remakenWizardDefaultRulesLabel",
-                    "type": "Label",
-                    "span": true,
-                    "visible": "%{JS: '%{remakenWizardRules}' === '0'}",
-                    "data":
-                    {
-                        "wordWrap": true,
-                        "trText": "=> '.remaken/rules/qmake'  folder should be created when installing remaken application."
-                    }
-                },
-                {
-                    "name": "remakenWizardRulesLabel",
-                    "type": "Label",
-                    "span": true,
-                    "visible":  "%{JS: '%{remakenWizardRules}' === '1'}",
-                    "data":
-                    {
-                        "wordWrap": true,
-                        "trText": "=> 'builddefs/qmake' local project folder can be created with:"
-                    }
-                }
-                ,
-                {
-                    "name": "remakenWizardRulesGitLabel",
-                    "type": "Label",
-                    "span": true,
-                    "visible":  "%{JS: '%{remakenWizardRules}' === '1'}",
-                    "data":
-                    {
-                        "wordWrap": true,
-                        "trText": "'git submodule add https://github.com/b-com-software-basis/builddefs-qmake.git builddefs/qmake' within the project root folder."
-                    }
-                }
-            ]
-        },
-
         {
             "trDisplayName": "Kit Selection",
             "trShortTitle": "Kits",
