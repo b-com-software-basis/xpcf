@@ -26,14 +26,9 @@
 #include "xpcf/module/IModuleIndex.h"
 #include "xpcf/api/InterfaceMetadata.h"
 
-#include <boost/filesystem.hpp>
-
 #include <string>
 #include <vector>
 #include <map>
-
-
-namespace fs = boost::filesystem;
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -48,7 +43,7 @@ public:
     void addComponent(SPtr<ComponentMetadata> componentInfo);
     void removeComponent(const uuids::uuid & componentUUID);
     const char * getPath() const;
-    const fs::path & getFullPath() const;
+    const char * getFullPath() const;
 
     const IEnumerable<uuids::uuid> & getComponents() const override;
     const IEnumerable<SPtr<ComponentMetadata>> & getComponentsMetadata() const override;

@@ -37,6 +37,9 @@ using placeholders::_2;
 //namespace logging = boost::log;
 
 namespace fs = boost::filesystem;
+#ifdef XPCF_WITH_LOGS
+namespace logging = boost::log;
+#endif
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -78,13 +81,17 @@ PropertyManager::PropertyManager():ComponentBase(toUUID<PropertyManager>())
     declareInterface<IPropertyManager>(this);
     declareInjectable<IAliasManager>(m_aliasManager);
     declareInjectable<IRegistry>(m_registry);
-    //  m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("PropertyManager"));
-    //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor PropertyManager::PropertyManager () called!";
+#ifdef XPCF_WITH_LOGS
+    m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("PropertyManager"));
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor PropertyManager::PropertyManager () called!";
+#endif
 }
 
 void PropertyManager::unloadComponent ()
 {
-    //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"PropertyManager::unload () called!";
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"PropertyManager::unload () called!";
+#endif
 }
 
 
@@ -168,13 +175,20 @@ fs::path PropertyManager::getConfigPath(uuids::uuid componentUUID) const
     if (m_componentConfigMap.find(componentUUID) != m_componentConfigMap.end()) {
          return m_componentConfigMap.at(componentUUID);
     }
-    uuids::uuid moduleUUID = m_registry->getModuleUUID(componentUUID);
-    if (m_moduleConfigMap.find(moduleUUID) == m_moduleConfigMap.end()) {
-        //log("No configuration path found for module "+uuids::to_string(moduleUUID));
+    try {
+        uuids::uuid moduleUUID = m_registry->getModuleUUID(componentUUID);
+        if (m_moduleConfigMap.find(moduleUUID) == m_moduleConfigMap.end()) {
+            //log("No configuration path found for module "+uuids::to_string(moduleUUID));
+            // return empty path
+            return fs::path();
+        }
+        return m_moduleConfigMap.at(moduleUUID);
+    }
+    catch (...) { // no module associated with componentUUID : componentUUID can be declared from bindLocal
+        //log("No module neither configuration path found for component "+uuids::to_string(componentUUID));
         // return empty path
         return fs::path();
     }
-   return m_moduleConfigMap.at(moduleUUID);
 }
 
 XPCFErrorCode configureValue(string valueStr, SRef<IProperty> property,uint32_t valueIndex)
@@ -294,8 +308,10 @@ XPCFErrorCode PropertyManager::configure(std::function<bool(tinyxml2::XMLElement
     enum tinyxml2::XMLError loadOkay = doc.LoadFile(filepath);
     if (loadOkay == 0) {
         try {
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<modulePath<<" config file";
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
+#ifdef XPCF_WITH_LOGS
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<filepath<<" config file";
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
+#endif
             //TODO : check each element exists before using it !
             // a check should be performed upon announced module uuid and inner module uuid
             tinyxml2::XMLElement * rootElt = doc.RootElement();
@@ -340,7 +356,9 @@ XPCFErrorCode PropertyManager::configure(std::function<bool(tinyxml2::XMLElement
             return e.getErrorCode();
         }
         catch (const std::runtime_error & e) {
-            //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<modulePath<<" failed with error : "<<e.what();
+#ifdef XPCF_WITH_LOGS
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<filepath<<" failed with error : "<<e.what();
+#endif
             return XPCFErrorCode::_FAIL;
         }
     }
@@ -474,7 +492,7 @@ XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef
         //TODO : check config node existenz and create it only if no node already exists
         tinyxml2::XMLElement * xmlConfigurationElt = xmlDoc.NewElement("properties");
         tinyxml2::XMLElement * xmlComponentElt = xmlDoc.NewElement("configure");
-        xmlComponentElt->SetAttribute("component", boost::uuids::to_string(componentUUID).c_str());
+        xmlComponentElt->SetAttribute("component", uuids::to_string(componentUUID).c_str());
         for (auto property : componentRef->getProperties()) {
             serializeParameter(xmlDoc, xmlComponentElt, property);
         }
@@ -489,7 +507,9 @@ XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef
         return e.getErrorCode();
     }
     catch (const std::runtime_error & e) {
-        //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<modulePath<<" failed with error : "<<e.what();
+#ifdef XPCF_WITH_LOGS
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<filepath<<" failed with error : "<<e.what();
+#endif
         return XPCFErrorCode::_FAIL;
     }
     return result;

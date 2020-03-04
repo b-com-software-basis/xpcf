@@ -68,7 +68,7 @@ void ModuleMetadata::setPath(const char* modulePath)
         m_pimpl->m_modulePath = modulePath;
     }
     m_pimpl->m_moduleFullPath = PathBuilder::buildModuleFilePath(name(), m_pimpl->m_modulePath);
-    if ( !boost::filesystem::exists( m_pimpl->m_moduleFullPath ) )
+    if ( !fs::exists( m_pimpl->m_moduleFullPath ) )
     {
         //std::cout<<"Error : Module not found at : "<<m_moduleFullPath.c_str()<<std::endl;
     }
@@ -97,9 +97,9 @@ const char * ModuleMetadata::getPath() const
     return m_pimpl->m_modulePath.c_str();
 }
 
-const fs::path & ModuleMetadata::getFullPath() const
+const char * ModuleMetadata::getFullPath() const
 {
-    return m_pimpl->m_moduleFullPath;
+    return m_pimpl->m_moduleFullPath.generic_string().c_str();
 }
 
 

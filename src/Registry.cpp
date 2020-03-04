@@ -28,7 +28,7 @@
 #include "xpcf/core/helpers.h"
 #include "PathBuilder.h"
 
-#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+
 
 #include <iostream>
 #include <fstream>
@@ -38,7 +38,11 @@ using std::placeholders::_1;
 
 //namespace logging = boost::log;
 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 namespace fs = boost::filesystem;
+
+
 XPCF_DEFINE_FACTORY_CREATE_INSTANCE(org::bcom::xpcf::Registry);
 
 namespace org { namespace bcom { namespace xpcf {

@@ -115,8 +115,7 @@ InterfaceMetadata::InterfaceMetadataImpl::InterfaceMetadataImpl(const char * nam
 void InterfaceMetadata::InterfaceMetadataImpl::setUUID(const char *elementUUID)
 {
     if (elementUUID != nullptr) {
-        string_generator gen;
-        m_uuid = gen(elementUUID);
+        m_uuid = xpcf::toUUID(elementUUID);
     }
 }
 

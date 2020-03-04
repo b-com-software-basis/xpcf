@@ -1,5 +1,5 @@
 TARGET = testxpcf
-VERSION = 2.3.1
+VERSION = 2.3.2
 
 CONFIG += c++1z
 CONFIG += console
@@ -14,6 +14,11 @@ CONFIG(debug,debug|release) {
 
 CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
+}
+
+#DEFINES += TEST_XPCF_STD
+!contains(DEFINES,TEST_XPCF_STD) {
+   DEFINES += TEST_XPCF_BOOST
 }
 
 DEFINES += BOOST_ALL_NO_LIB
@@ -47,6 +52,9 @@ linux {
 }
 
 macx {
+    contains(DEFINES,TEST_XPCF_STD) {
+        QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.14
+    }
     QMAKE_MAC_SDK= macosx
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17
 }

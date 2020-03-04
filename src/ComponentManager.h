@@ -29,9 +29,13 @@
 #include "xpcf/component/ComponentBase.h"
 #include "Collection.h"
 #include "tinyxmlhelper.h"
-/*#include <boost/log/core.hpp>
+
+#ifdef XPCF_WITH_LOGS
+#include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/log/attributes.hpp>*/
+#include <boost/log/attributes.hpp>
+#endif
+
 #include <boost/filesystem.hpp>
 #include "Factory.h"
 #include "Registry.h"
@@ -45,7 +49,7 @@
 namespace org { namespace bcom { namespace xpcf {
 
 class XPCF_EXPORT_API ComponentManager : public ComponentBase,
-        public virtual IComponentManager {
+        virtual public IComponentManager {
 public:
     static ComponentManager* instance();
     XPCFErrorCode load() override;
@@ -93,8 +97,9 @@ private:
     XPCFErrorCode loadLibrary(fs::path aPath);
     SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
     void inject(SRef<IInjectable> component);
-
-    //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#ifdef XPCF_WITH_LOGS
+    boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#endif
     SRef<IFactory> m_factory;
     SRef<IRegistry> m_registry;
     SRef<IAliasManager> m_aliasManager;

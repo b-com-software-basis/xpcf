@@ -6,7 +6,7 @@
 #include <string>
 
 
-class InjectableAdapterComponent : public org::bcom::xpcf::ComponentBase, public virtual IMessage
+class InjectableAdapterComponent : public org::bcom::xpcf::ComponentBase, virtual public IMessage
 {
 public:
     InjectableAdapterComponent();

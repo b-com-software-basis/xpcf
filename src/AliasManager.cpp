@@ -28,7 +28,6 @@
 
 using namespace std;
 using std::placeholders::_1;
-namespace fs = boost::filesystem;
 
 XPCF_DEFINE_FACTORY_CREATE_INSTANCE(org::bcom::xpcf::AliasManager);
 

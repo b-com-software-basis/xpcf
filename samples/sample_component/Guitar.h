@@ -47,7 +47,7 @@ namespace component {
    * to invoke Guitar creation without depending on the concrete implementation.
    */
 class Guitar : public org::bcom::xpcf::ComponentBase,
-        public virtual IGuitar
+        virtual public IGuitar
 
 {
 public:

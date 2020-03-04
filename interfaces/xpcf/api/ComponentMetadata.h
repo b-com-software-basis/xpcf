@@ -30,11 +30,8 @@
 #include "xpcf/api/InterfaceMetadata.h"
 #include "xpcf/collection/IEnumerable.h"
 
-#include <boost/filesystem.hpp>
-
 #include <string>
 #include <vector>
-namespace fs = boost::filesystem;
 
 namespace org { namespace bcom { namespace xpcf {
 

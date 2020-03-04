@@ -25,6 +25,7 @@
 
 #include "xpcf/collection/IEnumerator.h"
 #include "xpcf/core/refs.h"
+#include "xpcf/core/uuid.h"
 #include <vector>
 #include <deque>
 

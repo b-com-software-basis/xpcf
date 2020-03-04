@@ -31,6 +31,12 @@
 #include <xpcf/component/ComponentBase.h>
 #include "tinyxmlhelper.h"
 
+#ifdef XPCF_WITH_LOGS
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/attributes.hpp>
+#endif
+
 #include <thread>
 #include <vector>
 #include <map>
@@ -43,7 +49,7 @@ enum class ContextType {
 
 using FactoryContext = std::pair<ContextType, std::string>;
 
-class IFactory : public virtual IComponentIntrospect {
+class IFactory : virtual public IComponentIntrospect {
 public:
     virtual ~IFactory() override = default;
     virtual void clear() = 0;
@@ -116,7 +122,7 @@ template <> struct InterfaceTraits<IFactory>
 };
 
 class Factory : public ComponentBase,
-        public virtual IFactory {
+        virtual public IFactory {
 public:
     Factory();
     ~Factory() override = default;
@@ -168,8 +174,10 @@ private:
     }
     std::pair<uuids::uuid, IComponentManager::Scope> resolveBind(const uuids::uuid & interfaceUUID, std::deque<FactoryContext> contextLevels);
     std::pair<uuids::uuid, IComponentManager::Scope> resolveBind(const uuids::uuid & interfaceUUID, const std::string & name, std::deque<FactoryContext> contextLevels );
+#ifdef XPCF_WITH_LOGS
+    boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#endif
 
-    //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
     // interface Uuid resolves to [ component Uuid , scope ]
     std::map<uuids::uuid, std::pair<uuids::uuid, IComponentManager::Scope>> m_autoBindings;
     std::map<uuids::uuid, std::pair<uuids::uuid, IComponentManager::Scope>> m_defaultBindings;

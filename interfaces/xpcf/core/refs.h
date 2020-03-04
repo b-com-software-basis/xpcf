@@ -2,7 +2,7 @@
 #define REFS_H
 
 #ifndef ORG_BCOM_XPCF_XPCF_MANAGED_CPP_ENABLED
-#ifndef ORG_BCOM_XPCF_XPCF_STD_SHAREDPTR
+#ifdef XPCF_USE_BOOST
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>

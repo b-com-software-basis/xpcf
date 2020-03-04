@@ -34,6 +34,9 @@
 //#include <filesystem>
 
 using namespace std;
+#ifdef XPCF_WITH_LOGS
+namespace logging = boost::log;
+#endif
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -108,9 +111,9 @@ boost::dll::shared_library validateModule(fs::path modulePath)// validation cach
 boost::dll::shared_library validateModule(SPtr<ModuleMetadata> moduleInfos)
 {
     if ( ! fs::exists(PathBuilder::appendModuleDecorations(moduleInfos->getFullPath()))) {
-        throw ModuleException("No module file found for module UUID" + boost::uuids::to_string(moduleInfos->getUUID()) + " in " + moduleInfos->getFullPath().generic_string());
+        throw ModuleException("No module file found for module UUID" + uuids::to_string(moduleInfos->getUUID()) + " in " + moduleInfos->getFullPath());
     }
-    return validateModule(moduleInfos->getFullPath());
+    return validateModule(PathBuilder::getUTF8PathObserver(moduleInfos->getFullPath()));
 }
 
 bool ModuleManager::isXpcfModule(fs::path modulePath)
@@ -275,13 +278,15 @@ XPCFErrorCode ModuleManager::saveModuleInformations(const char * xmlFilePath, co
         xmlDoc.InsertFirstChild(xmlRoot);
     }
     try {
-        //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<modulePath<<" config file";
-        //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
+#ifdef XPCF_WITH_LOGS
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<xmlFilePath<<" config file";
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
+#endif
         //TODO : check each element exists before using it !
         // TODO : before adding a module, we MUST check if a module node with the same UUID exists !!
         std::cout<<"ModuleManager::saveModuleInformations ===> creating module XmlNode"<<std::endl;
         tinyxml2::XMLElement * xmlModuleElt = xmlDoc.NewElement("module");
-        xmlModuleElt->SetAttribute("uuid", boost::uuids::to_string(moduleInfos->getUUID()).c_str());
+        xmlModuleElt->SetAttribute("uuid", uuids::to_string(moduleInfos->getUUID()).c_str());
         xmlModuleElt->SetAttribute("name", moduleInfos->name());
         xmlModuleElt->SetAttribute("path", moduleInfos->getPath());
         xmlModuleElt->SetAttribute("description", moduleInfos->description());
@@ -289,7 +294,7 @@ XPCFErrorCode ModuleManager::saveModuleInformations(const char * xmlFilePath, co
             std::cout<<"ModuleManager::saveModuleInformations ===> retrieving component #"<<componentInfo->getUUID()<<std::endl;
             std::cout<<"ModuleManager::saveModuleInformations ===> creating component XmlNode"<<std::endl;
             tinyxml2::XMLElement * xmlComponentElt = xmlDoc.NewElement("component");
-            xmlComponentElt->SetAttribute("uuid", boost::uuids::to_string(componentInfo->getUUID()).c_str());
+            xmlComponentElt->SetAttribute("uuid", uuids::to_string(componentInfo->getUUID()).c_str());
             xmlComponentElt->SetAttribute("name", componentInfo->name());
             xmlComponentElt->SetAttribute("description", componentInfo->description());
             xmlModuleElt->InsertEndChild(xmlComponentElt);
@@ -297,7 +302,7 @@ XPCFErrorCode ModuleManager::saveModuleInformations(const char * xmlFilePath, co
             for (SRef<InterfaceMetadata> interface : interfaceList) {
                 std::cout<<"ModuleManager::saveModuleInformations ===> creating interface XmlNode"<<std::endl;
                 tinyxml2::XMLElement * xmlInterfaceElt = xmlDoc.NewElement("interface");
-                xmlInterfaceElt->SetAttribute("uuid", boost::uuids::to_string(interface->getUUID()).c_str());
+                xmlInterfaceElt->SetAttribute("uuid", uuids::to_string(interface->getUUID()).c_str());
                 xmlInterfaceElt->SetAttribute("name", interface->name());
                 xmlInterfaceElt->SetAttribute("description", interface->description());
                 xmlComponentElt->InsertEndChild(xmlInterfaceElt);
@@ -307,7 +312,9 @@ XPCFErrorCode ModuleManager::saveModuleInformations(const char * xmlFilePath, co
         tinyxml2::XMLError eResult = xmlDoc.SaveFile(xmlFilePath);
     }
     catch (const std::runtime_error & e) {
-        //BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<modulePath<<" failed with error : "<<e.what();
+#ifdef XPCF_WITH_LOGS
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<xmlFilePath<<" failed with error : "<<e.what();
+#endif
         return XPCFErrorCode::_FAIL;
     }
     return result;

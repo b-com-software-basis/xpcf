@@ -30,13 +30,22 @@
 #include "AliasManager.h"
 #include "Registry.h"
 
+#ifdef XPCF_WITH_LOGS
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/attributes.hpp>
+#endif
+
 #include <atomic>
 #include <mutex>
 #include <thread>
 
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+
 namespace org { namespace bcom { namespace xpcf {
 
-class IPropertyManager : public virtual IComponentIntrospect {
+class IPropertyManager : virtual public IComponentIntrospect {
   public:
     virtual ~IPropertyManager() = default;
     virtual void clear() = 0;
@@ -57,7 +66,7 @@ template <> struct InterfaceTraits<IPropertyManager>
 };
 
 class XPCF_EXPORT_API PropertyManager : public ComponentBase,
-        public virtual IPropertyManager {
+        virtual public IPropertyManager {
 public:
     static PropertyManager* instance();
     void unloadComponent () final;
@@ -77,7 +86,9 @@ private:
     XPCFErrorCode configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredicate, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath);
     void declareComponent(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath);
     void declareConfigure(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath);
-    //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#ifdef XPCF_WITH_LOGS
+    boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#endif
     SRef<IAliasManager> m_aliasManager;
     SRef<IRegistry> m_registry;
     std::map<uuids::uuid, fs::path> m_moduleConfigMap;

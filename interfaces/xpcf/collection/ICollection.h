@@ -29,7 +29,7 @@
 namespace org { namespace bcom { namespace xpcf {
 
 template <typename T>
-class ICollection : public virtual IEnumerable<T> {
+class ICollection : virtual public IEnumerable<T> {
 public:
     virtual ~ICollection() = default;
     virtual void add(T value) = 0;

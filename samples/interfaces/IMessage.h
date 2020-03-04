@@ -6,7 +6,7 @@
 
 
 
-class IMessage: public virtual org::bcom::xpcf::IComponentIntrospect
+class IMessage: virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~IMessage() override = default;

@@ -35,7 +35,7 @@
    * @note The InterfaceTraits<IHuman> template struct defines the IHuman UUID and description.
    * It allows IHuman users to use directly the IHuman type instead of its UUID to bind the component to this interface.
    */
-class IHuman : public virtual org::bcom::xpcf::IComponentIntrospect
+class IHuman : virtual public org::bcom::xpcf::IComponentIntrospect
 {
 
 public:

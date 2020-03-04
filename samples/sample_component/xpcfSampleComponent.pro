@@ -3,13 +3,18 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcfSampleComponent
 FRAMEWORK = $${TARGET}
-VERSION=2.3.1
+VERSION=2.3.2
 DEFINES += MYVERSION=$${VERSION}
 
 CONFIG += c++17
 CONFIG += shared
+#DEFINES += USE_XPCF_STD
 
-DEPENDENCIESCONFIG = sharedlib recurse
+DEPENDENCIESCONFIG = sharedlib
+!contains(DEFINES,USE_XPCF_STD) {
+   DEFINES += USE_XPCF_BOOST
+   DEPENDENCIESCONFIG += recurse
+}
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (../../builddefs/qmake/templatelibconfig.pri)
 
@@ -43,6 +48,9 @@ unix {
 }
 
 macx {
+    contains(DEFINES,USE_XPCF_STD) {
+        QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.14
+    }
     DEFINES += _MACOS_TARGET_
     QMAKE_MAC_SDK= macosx
     QMAKE_CFLAGS += -mmacosx-version-min=10.7 #-x objective-c++

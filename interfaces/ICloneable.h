@@ -26,7 +26,7 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-class ICloneable : public virtual IComponentIntrospect {
+class ICloneable : virtual public IComponentIntrospect {
 public:
   virtual ~ICloneable() = default;
   //deep clone

@@ -38,7 +38,7 @@
 /**
  *  @ingroup interfaces
  */
-class IGuitar : public virtual org::bcom::xpcf::IComponentIntrospect
+class IGuitar : virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     enum GuitarType {
@@ -52,7 +52,7 @@ public:
     virtual GuitarType getGuitarType () = 0;
 };
 
-class ITuner :  public virtual org::bcom::xpcf::IComponentIntrospect
+class ITuner :  virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     enum TuneType {
@@ -68,7 +68,7 @@ public:
     virtual void setTuneType(const TuneType & tuneType) = 0;
 };
 
-class IElectricGuitar : public virtual org::bcom::xpcf::IComponentIntrospect
+class IElectricGuitar : virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~IElectricGuitar() = default;

@@ -31,10 +31,21 @@
 #include <atomic>
 #include <mutex>
 
+#ifdef XPCF_WITH_LOGS
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/attributes.hpp>
+#endif
+
+#include <boost/function.hpp>
+
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+
 namespace org { namespace bcom { namespace xpcf {
 
 class ModuleManager : public ComponentBase,
-        public virtual IModuleManager {
+        virtual public IModuleManager {
 public:
     static ModuleManager* instance();
     bool isXpcfModule(const char* modulePath) override;
@@ -63,7 +74,9 @@ private:
                                                                    const uuids::uuid& componentUUID);
     static std::atomic<ModuleManager*> m_instance;
     static std::mutex m_mutex;
-    //boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#ifdef XPCF_WITH_LOGS
+    boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#endif
 
     std::map<uuids::uuid, SPtr<ModuleMetadata>> m_moduleMap;
     std::map<uuids::uuid, boost::function<XPCFErrorCode(const uuids::uuid &, SRef<IComponentIntrospect>&)>> m_funcMap;

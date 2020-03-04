@@ -36,7 +36,7 @@
    * @note The InterfaceTraits<IGuitarist> template struct defines the IGuitarist UUID and description.
    * It allows IGuitarist users to use directly the IGuitarist type instead of its UUID to bind the component to this interface.
    */
-class IGuitarist : public virtual IMusician
+class IGuitarist : virtual public IMusician
 {
 public:
     virtual ~IGuitarist() = default;

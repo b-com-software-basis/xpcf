@@ -24,8 +24,8 @@
 #define ORG_BCOM_XPCF_PATHBUILDER_H
 
 #include <boost/filesystem.hpp>
-
 namespace fs = boost::filesystem;
+
 namespace org { namespace bcom { namespace xpcf {
 
 class PathBuilder
@@ -41,6 +41,7 @@ public:
     static fs::path getHomePath();
     static fs::path getXPCFHomePath();
     static fs::path appendModuleDecorations(const fs::path & sl);
+    static fs::path appendModuleDecorations(const char * sl);
     static inline bool is_shared_library(const std::string& s) {
         return (s.find(".dll") != std::string::npos || s.find(".so") != std::string::npos || s.find(".dylib") != std::string::npos);
         // side effects on path typically toto.app/contents/...
@@ -57,7 +58,7 @@ public:
         return is_shared_library(std::string(p));
     }
 
-    static inline bool is_shared_library(const boost::filesystem::path& p) {
+    static inline bool is_shared_library(const fs::path& p) {
         return is_shared_library(p.string());
     }
 

@@ -4,7 +4,7 @@
 #include "IMessage.h"
 
 
-class WorldComponent : public org::bcom::xpcf::ComponentBase, public virtual IMessage
+class WorldComponent : public org::bcom::xpcf::ComponentBase, virtual public IMessage
 {
 public:
     WorldComponent();

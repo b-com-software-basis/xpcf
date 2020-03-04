@@ -6,7 +6,7 @@
 
 namespace component {
 
-class Tuner : public org::bcom::xpcf::ConfigurableBase, public virtual ITuner
+class Tuner : public org::bcom::xpcf::ConfigurableBase, virtual public ITuner
 {
 public:
     Tuner();

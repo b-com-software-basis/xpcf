@@ -22,7 +22,7 @@
 #include "IComponentIntrospect.h"
 
 namespace client {
-class ITemplateInterface : public virtual org::bcom::xpcf::IComponentIntrospect
+class ITemplateInterface : virtual public org::bcom::xpcf::IComponentIntrospect
 {
 
   public:

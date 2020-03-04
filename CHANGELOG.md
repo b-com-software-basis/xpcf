@@ -1,19 +1,14 @@
 ### XPCF evolutions
-- Update xpcf version to 2.3.1
-- Update builddefs-qmake to v3.13.0
+- Update xpcf version to 2.3.2
+- Update builddefs-qmake to v4.0.0: provide compilation defined flags to enable/disable dependencies, replace BCOMDEVROOT with REMAKEN_PKG_ROOT
 
 #### XPCF improvements:
-- ```Factory.cpp```: fix windows regression due to planned injection: remove ```ScopeExit``` calls
-- ```packagedependencies.txt```: fix conan repository name
-- ```interfaces/xpccf/corehelpers.h```: add SWIG define around  code
-- ```README.md```: 
-	- add ```Aliases``` and ```Component dependency injection``` sections
-	- add xpcf xml configuration file documentation
-	- improve ```How to build XPCF``` section 
 
-#### QT Creator wizards for module, component, interface creation improvements:
-- install wizards in xpcf package directory with xpcf library upon ```make install```
-- update wizards installation scripts
-- fix missing macro declaration in XPCF component wizard
-- fix bug in QT module wizard
-- Improve module and application wizards: add dependencies configuration options (shared or static dependencies, whether to install the dependencies or not with the built project)
+- add ```SWIG``` interface files
+- update inheritance declaration for ```cppast``` syntax (```public virtual``` is not supported by libclang-parser hence replaced with ```virtual public``` instead)
+- ```xpcf-std``` target: add ```xpcf-std.pro``` project file to build xpcf based on c++17 std features (shared_ptr, any .. are used from std instead of boost, hence xpcf headers are fully c++ compliant with no need for boost includes. Moreover, boost dependency is statically linked, and boost is not exposed ```in xpcf-std``` interfaces).
+- ```PropertyManager```: allows to try to get the config path, but don't fail when the component has been registered to the ComponentManager with bindLocal
+- ```xpcf.pro``` and ```xpcf-std.pro```: 
+	- add ```XPCF_WITH_LOGS``` define to enable logs from ```xpcf``` creation, configuration ...
+	- set ```QMAKE_MACOSX_DEPLOYMENT_TARGET``` to version ```10.14``` as minimum target version : Apple clang doesn't support  std::any before Mojave
+

@@ -107,12 +107,17 @@ public:
     InternalImpl() {}
     ~InternalImpl() = default;
 
+#ifdef XPCF_WITH_LOGS
     inline boost::log::sources::severity_logger< boost::log::trivial::severity_level > & getLogger() { return m_logger; }
+#endif
+
     inline SRef<IPropertyMap> getPropertyRootNode() const { return m_parameters; }
     SRef<PropertyMap> m_parameters = utils::make_shared<PropertyMap>();
 
 private:
+#ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#endif
     InternalImpl(InternalImpl const &);
     InternalImpl & operator=(InternalImpl const &);
 
@@ -123,8 +128,10 @@ ConfigurableBase::ConfigurableBase(const uuids::uuid & uuid,
                                    const SRef<IPropertyMap> configuration)
     :ComponentBase(uuid), m_internalImpl(new InternalImpl())
 {
+#ifdef XPCF_WITH_LOGS
     m_internalImpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ConfigurableBase"));
     BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<" ConfigurableBase::ConfigurableBase construction";
+#endif
     declareInterface<IConfigurable>(this);
 }
 
@@ -132,14 +139,18 @@ ConfigurableBase::ConfigurableBase(std::map<std::string,std::string> componentTr
                                    const SRef<IPropertyMap> configuration)
     :ComponentBase(componentTrait) ,m_internalImpl(new InternalImpl())
 {
+#ifdef XPCF_WITH_LOGS
     m_internalImpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ConfigurableBase"));
     BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<" ConfigurableBase::ConfigurableBase construction";
+#endif
     declareInterface<IConfigurable>(this);
 }
 
 ConfigurableBase::~ConfigurableBase()
 {
+#ifdef XPCF_WITH_LOGS
     BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<" ConfigurableBase::~ConfigurableBase destruction";
+#endif
 }
 
 XPCFErrorCode ConfigurableBase::serialize(const char * filepath, uint32_t mode)
