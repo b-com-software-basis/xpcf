@@ -161,7 +161,7 @@ win32 {
  }
 
 INCLUDEPATH += $${PWD} $${PWD}/interfaces
-include(builddefs/qmake/bcom_code_scanner.prf)
+#include(builddefs/qmake/bcom_code_scanner.prf)
 
 h_api_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/api
 h_api_files.files = $$files($${PWD}/interfaces/xpcf/api/*)
