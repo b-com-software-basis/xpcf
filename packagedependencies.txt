@@ -1,1 +1,1 @@
-boost#stable|1.70.0|boost|conan|conan-center
+boost#stable|1.71.0|boost|conan|conan-center
