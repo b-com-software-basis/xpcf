@@ -74,7 +74,7 @@ void ModuleMetadata::setPath(const char* modulePath)
     {
         //std::cout<<"Error : Module not found at : "<<m_moduleFullPath.c_str()<<std::endl;
     }
-    m_pimpl->m_moduleFullPath = moduleFullPath.generic_string(utf8);
+    m_pimpl->m_moduleFullPath = moduleFullPath.string(utf8);
 }
 
 void ModuleMetadata::addComponent(SPtr<ComponentMetadata> componentInfo)

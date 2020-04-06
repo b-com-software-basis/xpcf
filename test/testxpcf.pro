@@ -73,6 +73,7 @@ win32 {
 INCLUDEPATH += $${PWD}/../samples/sample_component
 
 DISTFILES += \
+    packagedependencies.txt \
     xpcf_registry_test.xml \
     xpcf_conf_test.xml
 
