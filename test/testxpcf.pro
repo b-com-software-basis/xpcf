@@ -7,6 +7,8 @@ CONFIG -= qt
 
 DEFINES += MYVERSION=$${VERSION}
 
+include(findremakenrules.pri)
+
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
     DEFINES += DEBUG=1
@@ -29,8 +31,7 @@ win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
 DEPENDENCIESCONFIG = sharedlib
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
-include (../builddefs/qmake/templateappconfig.pri)
-
+include ($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)
 HEADERS += \
     TestDefines.h
 
@@ -72,10 +73,11 @@ win32 {
 INCLUDEPATH += $${PWD}/../samples/sample_component
 
 DISTFILES += \
+    packagedependencies.txt \
     xpcf_registry_test.xml \
     xpcf_conf_test.xml
 
-xpcf_xml_files.path = $$(HOME)/.xpcf
+xpcf_xml_files.path = $${USERHOMEFOLDER}/.xpcf
 xpcf_xml_files.files = $${PWD}/xpcf_registry_test.xml
 xpcf_xml_files.files += $${PWD}/xpcf_conf_test.xml
 

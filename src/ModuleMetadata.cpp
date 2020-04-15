@@ -25,9 +25,10 @@
 #include <string.h>
 #include "Collection.h"
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 // implement Component
 //
-
+namespace fs = boost::filesystem;
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -39,7 +40,7 @@ public:
     Collection<SPtr<ComponentMetadata>,std::vector> m_components;
     std::map<uuids::uuid, SPtr<ComponentMetadata>> m_moduleComponentMap;
     std::basic_string<char> m_modulePath;
-    fs::path m_moduleFullPath;
+    std::basic_string<char> m_moduleFullPath;
 };
 
 ModuleMetadata::ModuleMetadata(const char* name, const uuid& moduleID,
@@ -64,14 +65,16 @@ ModuleMetadata::~ModuleMetadata()
 
 void ModuleMetadata::setPath(const char* modulePath)
 {
+    fs::detail::utf8_codecvt_facet utf8;
     if (modulePath != nullptr) {
-        m_pimpl->m_modulePath = modulePath;
+        m_pimpl->m_modulePath =  modulePath;
     }
-    m_pimpl->m_moduleFullPath = PathBuilder::buildModuleFilePath(name(), m_pimpl->m_modulePath);
-    if ( !fs::exists( m_pimpl->m_moduleFullPath ) )
+    fs::path moduleFullPath = PathBuilder::buildModuleFilePath(name(), m_pimpl->m_modulePath);
+    if ( !fs::exists( moduleFullPath ) )
     {
         //std::cout<<"Error : Module not found at : "<<m_moduleFullPath.c_str()<<std::endl;
     }
+    m_pimpl->m_moduleFullPath = moduleFullPath.string(utf8);
 }
 
 void ModuleMetadata::addComponent(SPtr<ComponentMetadata> componentInfo)
@@ -99,7 +102,7 @@ const char * ModuleMetadata::getPath() const
 
 const char * ModuleMetadata::getFullPath() const
 {
-    return m_pimpl->m_moduleFullPath.generic_string().c_str();
+    return m_pimpl->m_moduleFullPath.c_str();
 }
 
 
