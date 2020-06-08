@@ -30,6 +30,7 @@
 #include "PropertyManager.h"
 #include <xpcf/component/ComponentBase.h>
 #include "tinyxmlhelper.h"
+#include <xpcf/collection/Collection.h>
 
 #ifdef XPCF_WITH_LOGS
 #include <boost/log/core.hpp>
@@ -80,6 +81,10 @@ public:
                                                std::deque<FactoryContext> contextLevels = {}) = 0;
     virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const std::string & name,
                                                std::deque<FactoryContext> contextLevels = {}) = 0;
+    virtual const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const SPtr<InjectableMetadata> & injectableInfo,
+                                               std::deque<FactoryContext> contextLevels = {}) = 0;
+    virtual const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const uuids::uuid & interfaceUUID,
+                                       std::deque<FactoryContext> contextLevels = {}) = 0;
     virtual uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID) = 0;
     virtual uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID, const std::string & name) = 0;
 
@@ -154,6 +159,10 @@ public:
                                        std::deque<FactoryContext> contextLevels) override;
     SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const std::string & name,
                                        std::deque<FactoryContext> contextLevels) override;
+    const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const SPtr<InjectableMetadata> & injectableInfo,
+                                                   std::deque<FactoryContext> contextLevels = {}) override;
+    const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const uuids::uuid & interfaceUUID,
+                                       std::deque<FactoryContext> contextLevels) override;
     uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID) override;
     uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID, const std::string & name) override;
     void unloadComponent () override final;
@@ -162,8 +171,11 @@ private:
     void declareBindings(tinyxml2::XMLElement * xmlModuleElt);
     void declareInjects(tinyxml2::XMLElement * xmlModuleElt);
     void declareBind(tinyxml2::XMLElement * xmlBindElt);
+    void declareSingleBind(const uuids::uuid & interfaceUUID, tinyxml2::XMLElement * xmlBindElt);
+    void declareMultiBind(const uuids::uuid & interfaceUUID, tinyxml2::XMLElement * xmlBindElt);
     void declareInject(tinyxml2::XMLElement * xmlBindElt);
     void declareSpecificBind(tinyxml2::XMLElement * xmlBindElt, const uuids::uuid & targetComponentUUID);
+    std::pair<uuids::uuid, IComponentManager::Scope> getComponentBindingInfos(tinyxml2::XMLElement * xmlBindElt);
     SRef<IComponentIntrospect> resolveFromModule(const uuids::uuid & componentUUID);
     SRef<IComponentIntrospect> resolveComponent(const uuids::uuid & componentUUID,
                                                 std::deque<FactoryContext> contextLevels);
@@ -181,6 +193,8 @@ private:
     // interface Uuid resolves to [ component Uuid , scope ]
     std::map<uuids::uuid, std::pair<uuids::uuid, IComponentManager::Scope>> m_autoBindings;
     std::map<uuids::uuid, std::pair<uuids::uuid, IComponentManager::Scope>> m_defaultBindings;
+    std::map<uuids::uuid, Collection<std::pair<uuids::uuid, IComponentManager::Scope>,std::vector> > m_multiBindings;
+
 
     // [interface Uuid, name] resolves to [ component Uuid , scope ]
     std::map<std::pair<uuids::uuid,std::string>, std::pair<uuids::uuid, IComponentManager::Scope> > m_namedBindings;

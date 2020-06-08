@@ -22,7 +22,7 @@
 
 #include "xpcf/api/InjectableMetadata.h"
 #include "PathBuilder.h"
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 #include <string.h>
 
 #include <boost/uuid/uuid_generators.hpp>
@@ -87,11 +87,18 @@ class Injector::InjectorImpl {
 public:
     InjectorImpl(const std::function<void(SRef<IComponentIntrospect>)> & injector);
     InjectorImpl(const InjectorImpl & copy ) = default;
+    InjectorImpl(const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> & injector);
     const std::function<void(SRef<IComponentIntrospect>)> m_injector;
+    const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> m_multiInjector;
+    bool m_isMulti;
 
 };
 
-Injector::InjectorImpl::InjectorImpl( const std::function<void(SRef<IComponentIntrospect>)> & injector): m_injector(injector)
+Injector::InjectorImpl::InjectorImpl( const std::function<void(SRef<IComponentIntrospect>)> & injector): m_injector(injector),m_isMulti(false)
+{
+}
+
+Injector::InjectorImpl::InjectorImpl( const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> & injector): m_multiInjector(injector),m_isMulti(true)
 {
 }
 
@@ -105,11 +112,31 @@ Injector::Injector( const std::function<void(SRef<IComponentIntrospect>)> & inje
 {
 }
 
+Injector::Injector( const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> & injector, uuids::uuid serviceUUID,  bool optional ):
+    InjectableMetadata(serviceUUID,optional), m_pimpl(new InjectorImpl(injector))
+{
+}
+
+Injector::Injector( const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> & injector, uuids::uuid serviceUUID, const char * name, bool optional ):
+    InjectableMetadata(serviceUUID,name,optional), m_pimpl(new InjectorImpl(injector))
+{
+}
+
 Injector::~Injector() {}
 
 void Injector::inject(SRef<IComponentIntrospect> instance)
 {
     m_pimpl->m_injector(instance);
+}
+
+void Injector::inject(SRef<IEnumerable<SRef<IComponentIntrospect>>> instance)
+{
+    m_pimpl->m_multiInjector(instance);
+}
+
+bool Injector::isMulti()
+{
+    return m_pimpl->m_isMulti;
 }
 
 }}} //namespace org::bcom::xpcf

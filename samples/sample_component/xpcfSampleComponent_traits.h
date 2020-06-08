@@ -44,6 +44,7 @@
 namespace component {
     class HumanMusician;
     class VirtualGuitarist;
+    class Ibanez7ElectricGuitar;
     class JacksonDinky6ElectricGuitar;
     class TakamineFolkGuitar;
 }
@@ -76,6 +77,20 @@ XPCF_DEFINE_COMPONENT_TRAITS(component::VirtualGuitarist,
                              "{63FF193D-93E6-4EDE-9947-22F864AC843F}",
                              "VirtualGuitarist component",
                              "VirtualGuitarist implements IConfigurable, I2 and I1 interfaces");
+
+
+/**
+   * @struct ComponentTraits<Ibanez7ElectricGuitar> instanciation
+   * The code below shows the instanciation of the ComponentTraits template struct for Ibanez7ElectricGuitar type.
+   * The syntax is the full template instanciation syntax.
+   * It only requires "ComponentTraits.h" inclusion.
+   */
+template <> struct org::bcom::xpcf::ComponentTraits<component::Ibanez7ElectricGuitar>
+{
+    static constexpr const char * UUID = "ED894181-0FDC-4326-A068-CB2A5899CB13";
+    static constexpr const char * NAME = "Ibanez7ElectricGuitar component - with specific configuration";
+    static constexpr const char * DESCRIPTION = "Ibanez7ElectricGuitar is not Configurable, it implements IElectricGuitar interface";
+};
 
 /**
    * @struct ComponentTraits<JacksonDinky6ElectricGuitar> instanciation

@@ -26,8 +26,8 @@
 #include "IGuitarist.h"
 
 #include "xpcfSampleComponent_traits.h"
-
-#include "xpcf/component/ConfigurableBase.h"
+#include <xpcf/collection/ICollection.h>
+#include <xpcf/component/ConfigurableBase.h>
 
 #include <string>
 /**
@@ -64,6 +64,7 @@ public:
     void party () override;
     SRef<IGuitar> getGuitar() override { return m_guitar; }
     SRef<IGuitar> getGuitar(IGuitar::GuitarType type) override;
+    const org::bcom::xpcf::IEnumerable<SRef<IElectricGuitar>> & getGuitarCollection() override;
 
     void playSolo () override;
     void playRhythm () override;
@@ -74,6 +75,7 @@ private:
     SRef<IGuitar> m_guitar;
     SRef<IGuitar> m_folkGuitar;
     SRef<IElectricGuitar> m_electricGuitar;
+    SRef<org::bcom::xpcf::ICollection<SRef<IElectricGuitar> >> m_guitars;
     std::string m_name;
     // Component properties defined as members' data
     double m_blurFactor;

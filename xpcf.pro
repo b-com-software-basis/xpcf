@@ -3,7 +3,7 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcf
 FRAMEWORK = $${TARGET}
-VERSION=2.3.4
+VERSION=2.4.0
 
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
