@@ -27,7 +27,7 @@
 
 #include "xpcf/api/IComponentManager.h"
 #include "xpcf/component/ComponentBase.h"
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 #include "tinyxmlhelper.h"
 
 #ifdef XPCF_WITH_LOGS

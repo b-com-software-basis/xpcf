@@ -2,7 +2,20 @@
 <xpcf-configuration>
     <aliases>
        <alias name="VirtualGuitarist" type="component" uuid="63FF193D-93E6-4EDE-9947-22F864AC843F"/>
+       <alias name="IElectricGuitar" type="interface" uuid="93E50702-41BA-4497-9BBE-C918C1A87814"/>
+       <alias name="JacksonDinky6ElectricGuitar" type="component" uuid="{7cc64f89-9a81-4fc8-9695-fde123fae225}"/>
+       <alias name="Ibanez7ElectricGuitar" type="component" uuid="{ED894181-0FDC-4326-A068-CB2A5899CB13}"/>
     </aliases>
+    <factory>
+        <!-- default bindings -->
+        <bindings>
+            <!-- multibind -->
+            <bind interface="IElectricGuitar">
+                <component to="JacksonDinky6ElectricGuitar"/>
+                <component to="Ibanez7ElectricGuitar"/>
+            </bind>
+        </bindings>
+    </factory>
     <properties>
         <configure component="VirtualGuitarist">
                 <property name="blurFactor" type="double" value="20.0"/>

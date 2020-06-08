@@ -54,7 +54,7 @@
                     "mandatory": false,
                     "data":
                     {
-                        "trText": "%{BaseCB}",
+                        "trText": "",
                         "trDisabledText": "%{BaseCB}"
                     }
                 },

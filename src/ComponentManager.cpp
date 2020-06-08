@@ -265,8 +265,14 @@ void ComponentManager::inject(SRef<IInjectable> component)
             throw InjectableNotFoundException(injectable);
         }
         if (m_factory->bindExists(injectable)) {
-            SRef<IComponentIntrospect> injectableRef = m_factory->resolve(injectable);
-            injectable->inject(injectableRef);         
+            if (!injectable->isMulti()) {
+                SRef<IComponentIntrospect> injectableRef = m_factory->resolve(injectable);
+                injectable->inject(injectableRef);
+            }
+            else {
+                SRef<IEnumerable<SRef<IComponentIntrospect>>> injectableRef = m_factory->resolveAll(injectable);
+                injectable->inject(injectableRef);
+            }
         }
     }
     component->onInjected();

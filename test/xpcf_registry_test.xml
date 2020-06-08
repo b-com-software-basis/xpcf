@@ -12,6 +12,11 @@
         <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" name="IMusician" description="provides musician related methods"/>
         <interface uuid="41348765-1017-47a7-ab9f-6b59d39e4b95" name="IGuitarist" description="provides guitar player specific methods"/>
     </component>
+    <component uuid="{ED894181-0FDC-4326-A068-CB2A5899CB13}" name="Ibanez7ElectricGuitar" description="Ibanez7ElectricGuitar is not Configurable, it implements IGuitar interface">
+        <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+        <interface uuid="6279bb1d-69b5-42bd-9da1-743c8922bcb9" name="IGuitar" description="provides instrument specific methods"/>
+        <interface uuid="93E50702-41BA-4497-9BBE-C918C1A87814" name="IElectricGuitar" description="provides electric guitar specific methods"/>
+    </component>
     <component uuid="{7cc64f89-9a81-4fc8-9695-fde123fae225}" name="JacksonDinky6ElectricGuitar component - with specific configuration" description="JacksonDinky6ElectricGuitar is not Configurable, it implements IGuitar interface">
         <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
         <interface uuid="6279bb1d-69b5-42bd-9da1-743c8922bcb9" name="IGuitar" description="provides instrument specific methods"/>
@@ -38,6 +43,11 @@
             <bind interface="IGuitar" to="TakamineFolkGuitar" />
             <bind interface="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" to="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" />
             <bind name="electricGuitar" interface="IElectricGuitar" to="JacksonDinky6ElectricGuitar"/>
+            <!-- multibind -->
+            <bind interface="IElectricGuitar">
+                <component to="JacksonDinky6ElectricGuitar"/>
+                <component to="Ibanez7ElectricGuitar"/>
+            </bind>
         </bindings>
         <!-- custom bindings : explicit injection for a particular component -->
         <injects>

@@ -28,7 +28,7 @@
 #include "xpcf/properties/IPropertyMap.h"
 #include "PropertyWrapper.h"
 #include "PropertySequenceWrapper.h"
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 
 namespace org { namespace bcom { namespace xpcf {
 

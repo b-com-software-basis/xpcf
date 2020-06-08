@@ -22,7 +22,7 @@
 
 #include "xpcf/api/ComponentMetadata.h"
 #include "PathBuilder.h"
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 #include <string.h>
 
 #include <boost/uuid/uuid_generators.hpp>
