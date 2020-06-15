@@ -347,8 +347,9 @@ BOOST_FIXTURE_TEST_CASE( test_component_introspection,XpcfFixture,* boost::unit_
 BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
     SRef<xpcf::IComponentIntrospect> rIComponentIntrospect;
-
-    xpcfComponentManager->load() ;
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
 
     rIComponentIntrospect=   xpcfComponentManager->createComponent(clsid_HumanMusician);
     SRef<IHuman> rIHuman = rIComponentIntrospect->queryInterface<IHuman>(iid_IHuman);
@@ -485,7 +486,9 @@ BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_tes
 
 BOOST_FIXTURE_TEST_CASE( test_component_multibind,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
-    xpcfComponentManager->load() ;
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
 
     BOOST_TEST_MESSAGE("Resolve IGuitarist default binding");
     SRef<IGuitarist> rIGuitarist = xpcfComponentManager->resolve<IGuitarist>();
