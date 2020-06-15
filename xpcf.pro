@@ -88,14 +88,11 @@ HEADERS += \
     src/ComponentManager.h \
     src/PathBuilder.h \
     src/ModuleManager.h \
-    src/Enumerator.h \
-    src/Collection.h \
     src/Property.h \
     src/PropertyMap.h \
     src/PropertySequenceWrapper.h \
     src/PropertyWrapper.h \
     src/PropertyManager.h \
-    src/BlockEnumerator.h \
     interfaces/xpcf/core/Result.h \
     interfaces/xpcf/core/Exception.h \
     interfaces/xpcf/core/XPCFErrorCode.h \
@@ -122,6 +119,9 @@ HEADERS += \
     interfaces/xpcf/collection/IEnumerable.h \
     interfaces/xpcf/collection/IEnumerator.h \
     interfaces/xpcf/collection/ICollection.h \
+    interfaces/xpcf/collection/Collection.h \
+    interfaces/xpcf/collection/Enumerator.h \
+    interfaces/xpcf/collection/BlockEnumerator.h \
     interfaces/xpcf/xpcf.h \
     interfaces/xpcf/xpcf_api_define.h \
     interfaces/xpcf/threading/BaseTask.h \
