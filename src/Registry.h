@@ -25,7 +25,7 @@
 
 //#define BOOST_ALL_DYN_LINK 1
 
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 #include "tinyxmlhelper.h"
 #include <xpcf/api/InterfaceMetadata.h>
 #include <xpcf/api/ComponentMetadata.h>

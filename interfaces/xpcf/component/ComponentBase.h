@@ -26,6 +26,7 @@
 #include "xpcf/component/ComponentFactory.h"
 #include "xpcf/api/IInjectable.h"
 #include "xpcf/xpcf_api_define.h"
+#include <xpcf/collection/Collection.h>
 #include <functional>
 #include <map>
 
@@ -90,6 +91,8 @@ protected:
      */
     template <typename I> void declareInjectable(SRef<I> & injectable, const char * name, bool optional = false);
 
+    template <typename I> void declareInjectable(SRef<ICollection<SRef<I>>> & injectable, bool optional = false);
+
 private:
     SRef<IComponentIntrospect> introspect() final;
     void addComponentRef() final;
@@ -97,9 +100,11 @@ private:
     void declareInterface(const uuids::uuid& interfaceUUID, utils::any componentThis, const char * name, const char * description);
     void declareInjectable(const uuids::uuid& interfaceUUID, utils::any injectable, const std::function<void(SRef<IComponentIntrospect>)> & injector, const char * instanceName, bool optional = false);
     void declareInjectable(const uuids::uuid& interfaceUUID, utils::any injectable, const std::function<void(SRef<IComponentIntrospect>)> & injector, bool optional = false);
+    void declareMultiInjectable(const uuids::uuid& interfaceUUID, utils::any injectable, const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> & injector, bool optional = false);
     utils::any queryInterface(const uuids::uuid& interfaceUUID) const final;
     utils::any retrieveInjectable(const uuids::uuid & interfaceUUID) const final;
     utils::any retrieveInjectable(const uuids::uuid &  interfaceUUID, const char * instanceName) const final;
+    utils::any retrieveMultiInjectable(const uuids::uuid & interfaceUUID) final;
     bool injectExists(const uuids::uuid & interfaceUUID) const final;
     bool injectExists(const uuids::uuid & interfaceUUID, const char * name) const final;
 
@@ -149,6 +154,22 @@ void ComponentBase::declareInjectable(SRef<I> & injectable, bool optional)
     std::function<void(SRef<IComponentIntrospect>)> injector = [this] (SRef<IComponentIntrospect> instance) { inject<I>(instance); };
     declareInjectable(interfaceId, &injectable, injector, optional);
 }
+
+template <typename I>
+void ComponentBase::declareInjectable(SRef<ICollection<SRef<I>>> & injectable, bool optional)
+{
+    static_assert(is_interface<I>::value,
+                  "Type passed to declareInjectable is not an interface "
+                  "or InterfaceTraits not defined !!");
+
+    static_assert(utils::is_base_of<IComponentIntrospect, I>::value,
+                  "Interface type passed to declareInjectable is not a derived class of IComponentIntrospect !!");
+    uuids::uuid interfaceId = toUUID<I>();
+    injectable = utils::make_shared<VectorCollection<SRef<I>>>();
+    std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> injector = [this] (SRef<IEnumerable<SRef<IComponentIntrospect>>> instance) { inject<I>(instance); };
+    declareMultiInjectable(interfaceId, injectable, injector, optional);
+}
+
 
 template <typename I>
 void ComponentBase::declareInjectable(SRef<I> & injectable, const char * instanceName, bool optional)

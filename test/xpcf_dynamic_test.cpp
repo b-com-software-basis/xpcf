@@ -138,6 +138,9 @@ BOOST_FIXTURE_TEST_CASE( test_load_modules,XpcfFixture,* boost::unit_test::depen
     catch (std::out_of_range & e) {
         BOOST_TEST_MESSAGE("Catched : "<<e.what());
     }
+    catch (std::exception & e ){
+        BOOST_TEST_MESSAGE("Catched : "<<e.what());
+    }
     xpcfComponentManager->clear();
 }
 
@@ -145,6 +148,7 @@ BOOST_FIXTURE_TEST_CASE( test_load_modules,XpcfFixture,* boost::unit_test::depen
 BOOST_FIXTURE_TEST_CASE( test_load_library,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_fixture"))
 {
     BOOST_TEST(xpcfComponentManager->load("$HOME/.xpcf/xpcf_registry_test.xml",false) == 0, " failed to load library from "<<getenv("HOME")<<"/.xpcf/xpcf_registry_test.xml" );
+    xpcfComponentManager->clear();
 }
 
 
@@ -343,8 +347,9 @@ BOOST_FIXTURE_TEST_CASE( test_component_introspection,XpcfFixture,* boost::unit_
 BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
     SRef<xpcf::IComponentIntrospect> rIComponentIntrospect;
-
-    xpcfComponentManager->load() ;
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
 
     rIComponentIntrospect=   xpcfComponentManager->createComponent(clsid_HumanMusician);
     SRef<IHuman> rIHuman = rIComponentIntrospect->queryInterface<IHuman>(iid_IHuman);
@@ -476,8 +481,25 @@ BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_tes
         BOOST_TEST_MESSAGE("Guitar is a folf guitar");
         BOOST_CHECK_THROW(folkGuitar->bindTo<IElectricGuitar>(),xpcf::InterfaceNotImplementedException);
     }
+    xpcfComponentManager->clear();
 }
 
+BOOST_FIXTURE_TEST_CASE( test_component_multibind,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
+{
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+
+    BOOST_TEST_MESSAGE("Resolve IGuitarist default binding");
+    SRef<IGuitarist> rIGuitarist = xpcfComponentManager->resolve<IGuitarist>();
+    BOOST_TEST_MESSAGE("Multibind guitars:");
+    for (auto electricGuitar: rIGuitarist->getGuitarCollection()) {
+        SRef<IGuitar> guitar = electricGuitar->bindTo<IGuitar>();
+        BOOST_TEST_MESSAGE("guitar brand:" << guitar->getGuitarBrand());
+        BOOST_TEST_MESSAGE("guitar nb strings:" << guitar->getNbStrings());
+    }
+    xpcfComponentManager->clear();
+}
 BOOST_AUTO_TEST_SUITE_END()
 
 

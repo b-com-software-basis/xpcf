@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @copyright Copyright (c) 2019 B-com http://www.b-com.com/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@
 #include <xpcf/api/InjectableMetadata.h>
 #include <xpcf/core/uuid.h>
 #include <xpcf/core/XPCFErrorCode.h>
+#include <xpcf/collection/ICollection.h>
 #include <string>
 
 namespace org { namespace bcom { namespace xpcf {
@@ -47,12 +48,13 @@ public:
      */
     template <typename I> void inject(SRef<I> instance);
 
+    template <typename I> void inject(SRef<IEnumerable<SRef<IComponentIntrospect>>> & instance);
+
     /**
      * Bind concrete instance @em instance from IComponentIntrospect to service @em I and inject instance to I
      * @throws InjectionException when the underlying component doesn't have an injectable for @em I
      */
-    template <typename I>
-    void inject(SRef<IComponentIntrospect> instance);
+    template <typename I> void inject(SRef<IComponentIntrospect> instance);
 
     /**
      * Bind concrete instance @em instance to service @em I and inject instance to injectable {name, I}
@@ -100,6 +102,8 @@ protected:
      * @throws InjectionException when the underlying component doesn't have an injectable for @em {interfaceUUID, name}
      */
     virtual utils::any retrieveInjectable(const uuids::uuid & interfaceUUID, const char * name) const = 0;
+
+    virtual utils::any retrieveMultiInjectable(const uuids::uuid & interfaceUUID) = 0;
 };
 
 template <typename I>
@@ -116,6 +120,24 @@ template <typename I>
 void IInjectable::inject(SRef<IComponentIntrospect> instance)
 {
     inject<I>(instance->bindTo<I>());
+}
+
+template <typename I>
+void IInjectable::inject(SRef<IEnumerable<SRef<IComponentIntrospect>>> & instanceCollection)
+{
+    static_assert(utils::is_base_of<IComponentIntrospect, I>::value,
+                  "Interface type passed to createComponent is not a derived class of IComponentIntrospect !!");
+    utils::any objSet =  retrieveMultiInjectable(toUUID<I>());
+    SRef<ICollection<SRef<I>>> injectableSet = utils::any_cast<SRef<ICollection<SRef<I>>>>(objSet);
+    uint32_t nbInjectableElements = injectableSet->size();
+    if (injectableSet->size() > instanceCollection->size()) {
+        //throw
+        return;
+    }
+
+    for (auto instance : *instanceCollection) {
+        injectableSet->add(instance->bindTo<I>());
+    }
 }
 
 template <typename I>

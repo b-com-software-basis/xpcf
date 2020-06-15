@@ -20,7 +20,7 @@
  * @date 2017-12-11
  */
 
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 #include <string>
 #include <iostream>
 #include <vector>

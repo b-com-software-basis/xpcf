@@ -68,12 +68,57 @@ void Factory::clear()
     m_specificNamedBindings.clear();
     m_singletonInstances.clear();
     m_namedBindings.clear();
+    m_multiBindings.clear();
+}
+
+std::pair<uuids::uuid, IComponentManager::Scope> Factory::getComponentBindingInfos(tinyxml2::XMLElement * xmlBindElt)
+{
+    std::pair<uuids::uuid, IComponentManager::Scope> infos;
+    // Set default scope to Transient
+    infos.second = IComponentManager::Scope::Transient;
+
+    string componentAttrValue =  xmlBindElt->Attribute("to");
+    if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
+        infos.first = m_aliasManager->resolveComponentAlias(componentAttrValue);
+    }
+    else {
+        infos.first =  toUUID(componentAttrValue);
+    }
+    const char * scopeType =  xmlBindElt->Attribute("scope");
+    if (scopeType != nullptr) {
+        infos.second = scopeConvertMap.at(scopeType);
+    }
+    return infos;
+}
+
+void Factory::declareSingleBind(const uuids::uuid & interfaceUUID, tinyxml2::XMLElement * xmlBindElt)
+{
+    std::pair<uuids::uuid, IComponentManager::Scope> infos = getComponentBindingInfos(xmlBindElt);
+
+    if (xmlBindElt->Attribute("name") == nullptr) {
+        bind(interfaceUUID, infos.first, infos.second);
+    }
+    else {
+        string nameAttrValue =  xmlBindElt->Attribute("name");
+        bind(nameAttrValue, interfaceUUID, infos.first, infos.second);
+    }
+}
+
+void Factory::declareMultiBind(const uuids::uuid & interfaceUUID, tinyxml2::XMLElement * xmlBindElt)
+{
+    tinyxml2::XMLElement *element = xmlBindElt->FirstChildElement("component");
+    Collection<std::pair<uuids::uuid, IComponentManager::Scope>,std::vector> & binds = m_multiBindings[interfaceUUID];
+    while (element != nullptr) {
+        std::pair<uuids::uuid, IComponentManager::Scope> infos = getComponentBindingInfos(element);
+        binds.add(infos);
+        element = element->NextSiblingElement("component");
+    }
 }
 
 void Factory::declareBind(tinyxml2::XMLElement * xmlBindElt)
 {
-    if ((xmlBindElt->Attribute("interface") == nullptr) || (xmlBindElt->Attribute("to") == nullptr)) {
-        throw Exception("<bind interface=\"...\"  to=\"...\"/> node incomplete : attributes 'interface' and 'to' are mandatory.");
+    if (xmlBindElt->Attribute("interface") == nullptr) {
+        throw Exception("<bind interface=\"...\" /> node incomplete : attribute 'interface' is mandatory.");
     }
     string interfaceAttrValue =  xmlBindElt->Attribute("interface");
     uuids::uuid interfaceUUID;
@@ -83,26 +128,19 @@ void Factory::declareBind(tinyxml2::XMLElement * xmlBindElt)
     else {
         interfaceUUID =  toUUID(interfaceAttrValue);
     }
-    uuids::uuid componentUUID;
-    string componentAttrValue =  xmlBindElt->Attribute("to");
-    if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
-        componentUUID = m_aliasManager->resolveComponentAlias(componentAttrValue);
+
+
+    tinyxml2::XMLElement * xmlComponentNode = xmlBindElt->FirstChildElement("component");
+    if ((xmlBindElt->Attribute("to") == nullptr) && (xmlComponentNode == nullptr)) {
+        throw Exception("<bind interface=\"...\" /> node incomplete : attributes 'to' or 'component' inner node are mandatory.");
     }
-    else {
-        componentUUID =  toUUID(componentAttrValue);
+
+    if (xmlBindElt->Attribute("to") != nullptr) {
+        declareSingleBind(interfaceUUID, xmlBindElt);
     }
-    const char * scopeType =  xmlBindElt->Attribute("scope");
-    // Set default scope to Transient
-    IComponentManager::Scope scope = IComponentManager::Scope::Transient;
-    if (scopeType != nullptr) {
-        scope = scopeConvertMap.at(scopeType);
-    }
-    if (xmlBindElt->Attribute("name") == nullptr) {
-        bind(interfaceUUID, componentUUID, scope);
-    }
-    else {
-        string nameAttrValue =  xmlBindElt->Attribute("name");
-        bind(nameAttrValue, interfaceUUID, componentUUID, scope);
+
+    if (xmlComponentNode != nullptr) {
+        declareMultiBind(interfaceUUID, xmlBindElt);
     }
 }
 
@@ -119,26 +157,15 @@ void Factory::declareSpecificBind(tinyxml2::XMLElement * xmlBindElt, const uuids
     else {
         interfaceUUID =  toUUID(interfaceAttrValue);
     }
-    uuids::uuid componentUUID;
-    string componentAttrValue =  xmlBindElt->Attribute("to");
-    if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
-        componentUUID = m_aliasManager->resolveComponentAlias(componentAttrValue);
-    }
-    else {
-        componentUUID =  toUUID(componentAttrValue);
-    }
-    const char * scopeType =  xmlBindElt->Attribute("scope");
-    // Set default scope to Transient
-    IComponentManager::Scope scope = IComponentManager::Scope::Transient;
-    if (scopeType != nullptr) {
-        scope = scopeConvertMap.at(scopeType);
-    }
+
+    std::pair<uuids::uuid, IComponentManager::Scope> infos = getComponentBindingInfos(xmlBindElt);
+
     if (xmlBindElt->Attribute("name") == nullptr) {
-        bind(targetComponentUUID, interfaceUUID, componentUUID, scope);
+        bind(targetComponentUUID, interfaceUUID, infos.first, infos.second);
     }
     else {
         string nameAttrValue =  xmlBindElt->Attribute("name");
-        bind(targetComponentUUID, nameAttrValue, interfaceUUID, componentUUID, scope);
+        bind(targetComponentUUID, nameAttrValue, interfaceUUID, infos.first, infos.second);
     }
 }
 
@@ -217,16 +244,16 @@ void Factory::bind(const std::string & name, const uuids::uuid & interfaceUUID,
 }
 
 void Factory::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                        const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                        IComponentManager::Scope scope)
+                   const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                   IComponentManager::Scope scope)
 {
     bind(interfaceUUID, instanceUUID, scope);
     m_factoryMethods[instanceUUID] = factoryFunc;
 }
 
 void Factory::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                              IComponentManager::Scope scope)
+                   const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                   IComponentManager::Scope scope)
 {
     bind(name, interfaceUUID, instanceUUID, scope);
     m_factoryMethods[instanceUUID] = factoryFunc;
@@ -314,7 +341,7 @@ std::pair<uuids::uuid, IComponentManager::Scope> Factory::resolveBind(const uuid
 
 std::pair<uuids::uuid, IComponentManager::Scope> Factory::resolveBind(const uuids::uuid & interfaceUUID, const std::string & name, std::deque<FactoryContext> contextLevels)
 {
-     pair<uuids::uuid, string> key = make_pair(interfaceUUID, name);
+    pair<uuids::uuid, string> key = make_pair(interfaceUUID, name);
     // search for the closest specific declaration of binding for interfaceUUID : the first context is the last one, the latter is the first specific context created in the tree
     for (auto [contextType,contextValue] : contextLevels) {
         if (contextType == ContextType::Component) {
@@ -355,8 +382,14 @@ void Factory::inject(SRef<IInjectable> component, std::deque<FactoryContext> con
             throw InjectableNotFoundException(injectable);
         }
         if (bindExists(injectable)) {
-            SRef<IComponentIntrospect> injectableRef = resolve(injectable, contextLevels);
-            injectable->inject(injectableRef);
+            if (!injectable->isMulti()) {
+                SRef<IComponentIntrospect> injectableRef = resolve(injectable, contextLevels);
+                injectable->inject(injectableRef);
+            }
+            else {
+                SRef<IEnumerable<SRef<IComponentIntrospect>>> injectableRef = resolveAll(injectable, contextLevels);
+                injectable->inject(injectableRef);
+            }
         }
     }
     component->onInjected();
@@ -424,6 +457,39 @@ SRef<IComponentIntrospect> Factory::resolve(const SRef<InjectableMetadata> & inj
         return resolve(injectableInfo->getUuid(), injectableInfo->getName(), contextLevels);
     }
     return resolve(injectableInfo->getUuid(), contextLevels);
+}
+
+const SRef<IEnumerable<SRef<IComponentIntrospect>>> Factory::resolveAll(const SPtr<InjectableMetadata> & injectableInfo,
+                                               std::deque<FactoryContext> contextLevels)
+{
+     return resolveAll(injectableInfo->getUuid(), contextLevels);
+}
+
+const SRef<IEnumerable<SRef<IComponentIntrospect>>> Factory::resolveAll(const uuids::uuid & interfaceUUID,
+                                   std::deque<FactoryContext> contextLevels)
+{
+    SRef<ICollection<SRef<IComponentIntrospect>>> componentSet = utils::make_shared<Collection<SRef<IComponentIntrospect>,std::vector>>();
+    if (!mapContains(m_multiBindings,interfaceUUID)) {
+        //no explicit multibind : resolve any existing single bind default or explicit
+        componentSet->add(resolve(interfaceUUID,contextLevels));
+        return componentSet;
+    }
+
+    //multibind declared !
+    for (auto bindInfos : m_multiBindings.at(interfaceUUID)) {
+        uuids::uuid componentUUID = bindInfos.first;
+        contextLevels.push_front(FactoryContext(ContextType::Component,uuids::to_string(componentUUID)));
+        if (bindInfos.second == IComponentManager::Scope::Singleton) {
+            if (! mapContains(m_singletonInstances,componentUUID)) {
+                SRef<IComponentIntrospect> componentRef = resolveComponent(componentUUID, contextLevels);
+                m_singletonInstances[componentUUID] = componentRef;
+            }
+            componentSet->add(m_singletonInstances.at(componentUUID));
+        }
+        auto component = resolveComponent(componentUUID, contextLevels);
+        componentSet->add(component);
+    }
+    return componentSet;
 }
 
 }}} //namespace org::bcom::xpcf

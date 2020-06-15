@@ -48,8 +48,13 @@ class XPCF_EXPORT_API Injector : public InjectableMetadata {
 public:
     Injector( const std::function<void(SRef<IComponentIntrospect>)> & injector, uuids::uuid serviceUUID, bool optional = false);
     Injector( const std::function<void(SRef<IComponentIntrospect>)> & injector, uuids::uuid serviceUUID, const char * name, bool optional = false);
+    Injector( const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> & injector, uuids::uuid serviceUUID, bool optional = false);
+    Injector( const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> & injector, uuids::uuid serviceUUID, const char * name, bool optional = false);
     virtual ~Injector() override;
     void inject(SRef<IComponentIntrospect> instance);
+    void inject(SRef<IEnumerable<SRef<IComponentIntrospect>>> instance);
+    bool isMulti();
+
 
 private:
     class InjectorImpl;
