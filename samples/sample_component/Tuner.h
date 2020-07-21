@@ -20,7 +20,7 @@ public:
     void onInjected() override;
 
 private:
-    uint64_t m_tuneType;
+    uint64_t m_tuneType = TuneType::Standard;
 };
 }
 

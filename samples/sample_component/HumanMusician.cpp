@@ -30,7 +30,7 @@ namespace xpcf = org::bcom::xpcf;
 template<> component::HumanMusician* xpcf::ComponentFactory::createInstance<component::HumanMusician>();
 
 namespace component {
-HumanMusician::HumanMusician ():ComponentBase(xpcf::toMap<HumanMusician>()),m_name("HumanMusician")
+HumanMusician::HumanMusician ():xpcf::ComponentBase(xpcf::toMap<HumanMusician>()),m_name("HumanMusician")
 {
    declareInterface<IHuman>(this);
    declareInterface<IMusician>(this);

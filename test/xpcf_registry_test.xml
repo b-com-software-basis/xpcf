@@ -42,7 +42,8 @@
             <!--bind interface="41348765-1017-47a7-ab9f-6b59d39e4b95" to="63ff193d-93e6-4ede-9947-22f864ac843f" /-->
             <bind interface="IGuitar" to="TakamineFolkGuitar" />
             <bind interface="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" to="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" />
-            <bind name="electricGuitar" interface="IElectricGuitar" to="JacksonDinky6ElectricGuitar"/>
+            <bind name="jacksonGuitar" interface="IElectricGuitar" to="JacksonDinky6ElectricGuitar"/>
+            <bind name="ibanezGuitar" interface="IElectricGuitar" to="Ibanez7ElectricGuitar"/>
             <!-- multibind -->
             <bind interface="IElectricGuitar">
                 <component to="JacksonDinky6ElectricGuitar"/>
@@ -51,8 +52,14 @@
         </bindings>
         <!-- custom bindings : explicit injection for a particular component -->
         <injects>
+            <inject to="JacksonDinky6ElectricGuitar">
+                    <bind interface="ITuner" to="Tuner" properties="nashville"/>
+            </inject>
             <inject to="VirtualGuitarist">
                     <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" />
+            </inject>
+            <inject to="TakamineFolkGuitar">
+                    <bind interface="ITuner" to="Tuner" properties="DADGAD"/>
             </inject>
         </injects>
     </factory>
@@ -98,6 +105,15 @@
                 </property>
         </configure>
         <configure component="Tuner">
+            <property name="TuneType" type="ulong" value="0"/>
+        </configure>
+        <configure component="Tuner" name="DADGAD">
+            <property name="TuneType" type="ulong" value="4"/>
+        </configure>
+        <configure component="Tuner" name="nashville">
+            <property name="TuneType" type="ulong" value="1"/>
+        </configure>
+        <configure component="Tuner" name="halftunelower">
             <property name="TuneType" type="ulong" value="2"/>
         </configure>
     </properties>

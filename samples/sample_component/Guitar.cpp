@@ -29,10 +29,13 @@ namespace xpcf = org::bcom::xpcf;
 
 namespace component {
 
-Guitar::Guitar (std::map<std::string,std::string> componentInfosMap):ComponentBase(componentInfosMap)
+Guitar::Guitar (std::map<std::string,std::string> componentInfosMap):xpcf::ComponentBase(componentInfosMap)
 {
    declareInterface<IGuitar>(this);
    declareInjectable<ITuner>(m_tuner);
+ /*  declareProperty("brand",m_brandName);
+   declareProperty("numberOfStrings",m_nbStrings);
+   declareProperty("guitarType",m_type);*/
    std::cout<<"Constructor Guitar::Guitar () called!"<<std::endl;
 }
 
