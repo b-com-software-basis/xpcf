@@ -1,0 +1,123 @@
+version: 2.4.{build}
+branches:
+  only:
+    - develop
+    - master
+    
+image:
+  - Ubuntu1804
+  - macOS-Mojave
+environment:
+  QMAKE_ASSET_URL: https://github.com/b-com-software-basis/builddefs-qmake/releases/download/
+  REMAKEN_ASSET_URL: https://github.com/b-com-software-basis/remaken/releases/download/remaken-latest
+  REMAKEN_PKG_ROOT: $APPVEYOR_BUILD_FOLDER/packages
+
+
+for:
+  -
+    matrix:
+      only:
+        - image: Ubuntu1804
+    environment:
+      QMAKE_SPEC: linux-g++
+      CONAN_LIBSTDCPP: libstdc++11
+      BINARY_BUILD_FOLDER: .
+    init:
+    - sh: >-
+        set -e
+
+        sudo apt-get update
+
+        sudo apt-get install zlib1g
+
+        sudo apt-get install zlib1g-dev
+
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+
+        test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
+
+        test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+
+        test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile
+        
+        echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.profile
+      
+  -
+    matrix:
+      only:
+        - image: macOS-Mojave
+    environment:
+      QMAKE_SPEC: macx-clang
+      CONAN_LIBSTDCPP: libc++
+      BINARY_BUILD_FOLDER: ./remaken.app/Contents/MacOS
+    init:
+    - sh: >-
+        set -e
+    
+clone_script:
+- sh: >-
+    git clone --recurse-submodules -q --branch=$APPVEYOR_REPO_BRANCH https://github.com/$APPVEYOR_REPO_NAME.git $APPVEYOR_BUILD_FOLDER
+
+    cd $APPVEYOR_BUILD_FOLDER
+
+    git checkout -qf $APPVEYOR_REPO_COMMIT
+
+install:
+- sh: >-
+    mkdir $HOME/projects/build-zipper
+
+    mkdir $HOME/bin
+
+    export QMAKE_ROOT=$HOME/qmakebin/bin
+
+    export PATH=$PATH:/home/appveyor/.local/bin
+
+    brew install conan
+
+    conan profile new default --detect
+
+    conan profile update settings.compiler.libcxx=$CONAN_LIBSTDCPP default
+
+    mkdir $APPVEYOR_BUILD_FOLDER/build-xpcf-debug
+
+    mkdir $APPVEYOR_BUILD_FOLDER/build-xpcf-release
+
+    curl -L $QMAKE_ASSET_URL/$APPVEYOR_BUILD_WORKER_IMAGE/qmake-latest/qmakebin.tgz -o $HOME/qmakebin.tgz
+
+    cd $HOME && tar -zxvf qmakebin.tgz && cd -
+      
+build_script:
+- sh: >-
+
+    cd $APPVEYOR_BUILD_FOLDER/build-xpcf-release && $QMAKE_ROOT/qmake $APPVEYOR_BUILD_FOLDER/xpcf.pro -spec $QMAKE_SPEC CONFIG+=x86_64 && /usr/bin/make qmake_all  && make -j8 && make install && cd -
+    cd $APPVEYOR_BUILD_FOLDER/build-xpcf-debug && $QMAKE_ROOT/qmake $APPVEYOR_BUILD_FOLDER/xpcf.pro -spec $QMAKE_SPEC CONFIG+=debug CONFIG+=x86_64 && /usr/bin/make qmake_all  && make -j8 && make install && cd -
+
+on_success:
+- sh: >-
+    curl -L $REMAKEN_ASSET_URL/remaken_packager.sh -o $HOME/remaken_packager.sh
+    cd $APPVEYOR_BUILD_FOLDER/packages && remaken_packager.sh && cd -
+
+artifacts:
+- path: 'packages/**/*.zip'
+  name: xpcf_packages
+deploy:
+- provider: GitHub
+  release: xpct-latest
+  auth_token:
+    secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
+  artifact: xpcf_packages
+  draft: false
+  on:
+    branch: develop
+
+- provider: GitHub
+  release: xpcf-${APPVEYOR_REPO_TAG_NAME}
+  auth_token:
+    secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
+  artifact: xpcf_packages
+  draft: false
+  force_update: true
+  tag: $(APPVEYOR_REPO_TAG_NAME)
+  on:
+    branch: master
+    APPVEYOR_REPO_TAG: true
