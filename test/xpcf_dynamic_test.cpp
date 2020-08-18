@@ -484,6 +484,36 @@ BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_tes
     xpcfComponentManager->clear();
 }
 
+void displayGuitarInfo (SRef<IGuitar> guitar)
+{
+    std::vector<std::string> types = {"acoustic","folk","electric"};
+    std::vector<std::string> tuneModes = {"Standard","Nashville","HalfTuneLower","OneTuneLower","TuneDADGAD","dropD"};
+
+    BOOST_TEST_MESSAGE("Guitar details: "<<guitar->getGuitarBrand()<< " type "<<types[guitar->getGuitarType()]<<" tune mode "<<tuneModes[guitar->getTuneType()]);
+}
+
+template <typename T>
+void displayGuitarInfo(SRef<T> guitar)
+{
+    displayGuitarInfo(guitar->template bindTo<IGuitar>());
+}
+
+BOOST_FIXTURE_TEST_CASE( test_properties_injection,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
+{
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+
+    BOOST_TEST_MESSAGE("Resolve IGuitar default binding");
+    SRef<IGuitar> guitar = xpcfComponentManager->resolve<IGuitar>();
+    SRef<IElectricGuitar> electricGuitar = xpcfComponentManager->resolve<IElectricGuitar>("ibanezGuitar");
+    SRef<IElectricGuitar> jacksonGuitar = xpcfComponentManager->resolve<IElectricGuitar>("jacksonGuitar");
+    displayGuitarInfo(guitar);
+    displayGuitarInfo(electricGuitar);
+    displayGuitarInfo(jacksonGuitar);
+    xpcfComponentManager->clear();
+}
+
 BOOST_FIXTURE_TEST_CASE( test_component_multibind,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
     fs::path confPath = "xpcf_registry_test.xml";

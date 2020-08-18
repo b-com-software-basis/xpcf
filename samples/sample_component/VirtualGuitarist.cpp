@@ -32,7 +32,7 @@ template<> component::VirtualGuitarist* xpcf::ComponentFactory::createInstance<c
 
 namespace component {
 
-VirtualGuitarist::VirtualGuitarist ():ConfigurableBase(xpcf::toMap<VirtualGuitarist>()),m_name("VirtualGuitarist")
+VirtualGuitarist::VirtualGuitarist ():xpcf::ConfigurableBase(xpcf::toMap<VirtualGuitarist>()),m_name("VirtualGuitarist")
 {
     declareInterface<IMusician>(this);
     declareInterface<IGuitarist>(this);
