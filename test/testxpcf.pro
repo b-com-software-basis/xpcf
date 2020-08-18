@@ -1,5 +1,5 @@
 TARGET = testxpcf
-VERSION = 2.4.0
+VERSION=2.5.0
 
 CONFIG += c++1z
 CONFIG += console
