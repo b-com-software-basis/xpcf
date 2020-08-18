@@ -38,6 +38,23 @@
 /**
  *  @ingroup interfaces
  */
+class ITuner :  virtual public org::bcom::xpcf::IComponentIntrospect
+{
+public:
+    enum TuneType {
+        Standard = 0,
+        Nashville = 1,
+        HalfTuneLower = 2,
+        OneTuneLower = 3,
+        TuneDADGAD = 4,
+        dropD = 5
+    };
+
+    virtual ~ITuner() = default;
+    virtual TuneType getTuneType () = 0;
+    virtual void setTuneType(const TuneType & tuneType) = 0;
+};
+
 class IGuitar : virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
@@ -50,22 +67,7 @@ public:
     virtual const char * getGuitarBrand () = 0;
     virtual uint32_t getNbStrings () = 0;
     virtual GuitarType getGuitarType () = 0;
-};
-
-class ITuner :  virtual public org::bcom::xpcf::IComponentIntrospect
-{
-public:
-    enum TuneType {
-        Standard = 0,
-        Nashville = 1,
-        HalfTuneLower = 2,
-        OneTuneLower = 3,
-        TuneD = 4
-    };
-
-    virtual ~ITuner() = default;
-    virtual TuneType getTuneType () = 0;
-    virtual void setTuneType(const TuneType & tuneType) = 0;
+    virtual ITuner::TuneType getTuneType () = 0;
 };
 
 class IElectricGuitar : virtual public org::bcom::xpcf::IComponentIntrospect

@@ -42,8 +42,15 @@
     <factory>
         <!-- default bindings -->
         <bindings>
-            <bind interface="9e04c615-8ee7-4c52-83a4-8104a209cafc" to="c97ea5ef-93da-46ed-9a1c-af9ac8f5f5a9" />
+            <bind name="myMessage" interface="9e04c615-8ee7-4c52-83a4-8104a209cafc" to="c97ea5ef-93da-46ed-9a1c-af9ac8f5f5a9" />
             <bind name="peopleMessage" interface="IMessage" to="helloPeopleComponent" scope="Singleton"/>
+            <bind interface="IMessage" to="adapterComponent" properties="messageAdapter"/>
+            <!-- multibind -->
+            <bind interface="IMessage">
+                <component to="xpcfHelloPeople"/>
+                <component to="xpcfHelloWorld" scope="Singleton"/>
+                <component to="adapterComponent" properties="messageAdapter"/>
+            </bind>
         </bindings>
         <!-- custom bindings : explicit injection for a particular component -->
         <injects>
@@ -54,7 +61,7 @@
                 </scope>
             </inject>
             <inject to="adapterComponent">
-                <bind name="message" interface="9e04c615-8ee7-4c52-83a4-8104a209cafc" to="helloPeopleComponent"  />
+                <bind name="message" interface="9e04c615-8ee7-4c52-83a4-8104a209cafc" to="helloPeopleComponent" properties="" />
             </inject>
         </injects>
     </factory>

@@ -26,7 +26,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/attributes.hpp>
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 #include "PropertyWrapper.h"
 #include "PropertyMap.h"
 #include <string>

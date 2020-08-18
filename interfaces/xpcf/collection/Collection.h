@@ -23,9 +23,9 @@
 #ifndef ORG_BCOM_XPCF_COLLECTION_H
 #define ORG_BCOM_XPCF_COLLECTION_H
 
-#include "xpcf/collection/ICollection.h"
-#include "Enumerator.h"
-#include "BlockEnumerator.h"
+#include <xpcf/collection/ICollection.h>
+#include <xpcf/collection/Enumerator.h>
+#include <xpcf/collection/BlockEnumerator.h>
 #include <algorithm>
 
 namespace org { namespace bcom { namespace xpcf {
@@ -199,6 +199,9 @@ inline uint32_t Collection<const char *, S>::size() const
 {
     return m_sequence.size();
 }
+
+template<class T>
+using VectorCollection = Collection<T,std::vector>;
 
 extern template class Collection<uuids::uuid, std::vector>;
 }}}

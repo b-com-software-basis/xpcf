@@ -29,7 +29,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/attributes.hpp>
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 #include <string>
 
 using namespace std;
@@ -64,6 +64,7 @@ public:
     Collection<SPtr<Injector>,vector> m_injectablesCollection;
     //std::map<uuids::uuid,std::reference_wrapper<utils::any>> m_injectablesMap;
     std::map<uuids::uuid, utils::any> m_injectablesMap;
+    std::map<uuids::uuid, utils::any> m_multiInjectablesMap;
     std::map<std::pair<uuids::uuid, std::string>, utils::any> m_namedInjectablesMap;
 
 private:
@@ -185,6 +186,16 @@ void ComponentBase::declareInjectable(const uuids::uuid &  interfaceUUID, utils:
     m_pimpl->m_injectablesCollection.add(injMdata);
 }
 
+void ComponentBase::declareMultiInjectable(const uuids::uuid& interfaceUUID, utils::any injectable, const std::function<void(SRef<IEnumerable<SRef<IComponentIntrospect>>>)> & injector, bool optional)
+{
+    SPtr<Injector> injMdata = utils::make_shared<Injector>(injector,interfaceUUID,optional);
+    if (mapContains(m_pimpl->m_multiInjectablesMap, interfaceUUID)) {
+         throw InjectableDeclarationException(injMdata);
+    }
+    m_pimpl->m_multiInjectablesMap[interfaceUUID] = injectable;
+    m_pimpl->m_injectablesCollection.add(injMdata);
+}
+
 
 utils::any ComponentBase::retrieveInjectable(const uuids::uuid & interfaceUUID) const
 {
@@ -203,6 +214,17 @@ utils::any ComponentBase::retrieveInjectable(const uuids::uuid & interfaceUUID, 
         throw InjectionException(injMdata, XPCFErrorCode::_ERROR_INJECTABLE_UNKNOWN);
     }
     return m_pimpl->m_namedInjectablesMap.at(key);
+}
+
+
+
+utils::any ComponentBase::retrieveMultiInjectable(const uuids::uuid & interfaceUUID)
+{
+    if (!mapContains(m_pimpl->m_multiInjectablesMap, interfaceUUID)) {
+        SPtr<InjectableMetadata> injMdata = utils::make_shared<InjectableMetadata>(interfaceUUID);
+        throw InjectionException(injMdata, XPCFErrorCode::_ERROR_INJECTABLE_UNKNOWN);
+    }
+    return m_pimpl->m_multiInjectablesMap.at(interfaceUUID);
 }
 
 bool ComponentBase::injectExists(const uuids::uuid & interfaceUUID) const

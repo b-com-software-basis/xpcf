@@ -32,12 +32,13 @@ template<> component::VirtualGuitarist* xpcf::ComponentFactory::createInstance<c
 
 namespace component {
 
-VirtualGuitarist::VirtualGuitarist ():ConfigurableBase(xpcf::toMap<VirtualGuitarist>()),m_name("VirtualGuitarist")
+VirtualGuitarist::VirtualGuitarist ():xpcf::ConfigurableBase(xpcf::toMap<VirtualGuitarist>()),m_name("VirtualGuitarist")
 {
     declareInterface<IMusician>(this);
     declareInterface<IGuitarist>(this);
     declareInjectable<IGuitar>(m_guitar);
     declareInjectable<IElectricGuitar>(m_electricGuitar,"electricGuitar");
+    declareInjectable<IElectricGuitar>(m_guitars);
     declareProperty("blurFactor",m_blurFactor);
     m_blurScales.resize(4);
     declarePropertySequence("blurScale",m_blurScales);
@@ -127,6 +128,11 @@ SRef<IGuitar> VirtualGuitarist::getGuitar(IGuitar::GuitarType type)
         break;
     }
     return m_guitar;
+}
+
+const org::bcom::xpcf::IEnumerable<SRef<IElectricGuitar>> & VirtualGuitarist::getGuitarCollection()
+{
+    return *m_guitars;
 }
 
 }

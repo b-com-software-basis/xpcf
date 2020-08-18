@@ -57,6 +57,7 @@ public:
     const char *  getGuitarBrand () override { return m_brandName.c_str(); }
     uint32_t getNbStrings () override { return m_nbStrings; }
     GuitarType getGuitarType () override { return static_cast<IGuitar::GuitarType>(m_type); }
+    ITuner::TuneType getTuneType () override { return m_tuner->getTuneType(); }
 
 protected:
     // Component properties defined as members' data

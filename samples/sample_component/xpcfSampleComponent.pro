@@ -3,7 +3,7 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcfSampleComponent
 FRAMEWORK = $${TARGET}
-VERSION=2.3.4
+VERSION=2.4.0
 DEFINES += MYVERSION=$${VERSION}
 
 CONFIG += c++17
@@ -22,6 +22,7 @@ DEFINES += BOOST_ALL_NO_LIB
 DEFINES += BOOST_ALL_DYN_LINK
 
 SOURCES += \
+    Ibanez7ElectricGuitar.cpp \
     TakamineFolkGuitar.cpp \
     Tuner.cpp \
     xpcfSampleComponent_main.cpp \
@@ -31,6 +32,7 @@ SOURCES += \
     JacksonDinky6ElectricGuitar.cpp
 
 HEADERS += \
+    Ibanez7ElectricGuitar.h \
     TakamineFolkGuitar.h \
     Tuner.h \
     xpcfSampleComponentAPI.h \

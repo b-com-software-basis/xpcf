@@ -21,35 +21,28 @@
  */
 
 #include <stdio.h>
-#include "Guitar.h"
+#include "Ibanez7ElectricGuitar.h"
 #include <iostream>
 #include "xpcfSampleComponentAPI.h"
 
 namespace xpcf = org::bcom::xpcf;
 
+template<> component::Ibanez7ElectricGuitar* xpcf::ComponentFactory::createInstance<component::Ibanez7ElectricGuitar>();
+
 namespace component {
 
-Guitar::Guitar (std::map<std::string,std::string> componentInfosMap):xpcf::ComponentBase(componentInfosMap)
+
+Ibanez7ElectricGuitar::Ibanez7ElectricGuitar ():Guitar(xpcf::toMap<Ibanez7ElectricGuitar>())
 {
-   declareInterface<IGuitar>(this);
-   declareInjectable<ITuner>(m_tuner);
- /*  declareProperty("brand",m_brandName);
-   declareProperty("numberOfStrings",m_nbStrings);
-   declareProperty("guitarType",m_type);*/
-   std::cout<<"Constructor Guitar::Guitar () called!"<<std::endl;
+    declareInterface<IElectricGuitar>(this);
+    std::cout<<"Constructor Ibanez7ElectricGuitar::Ibanez7ElectricGuitar () called!"<<std::endl;
+    m_brandName = "Ibanez";
+    m_nbStrings = 7;
+    m_type = IGuitar::GuitarType::Electric;
 }
 
-Guitar::~Guitar ()
+Ibanez7ElectricGuitar::~Ibanez7ElectricGuitar ()
 {
-    std::cout<<"Destructor Guitar::Guitar () called!"<<std::endl;
+    std::cout<<"Destructor Ibanez7ElectricGuitar::Ibanez7ElectricGuitar () called!"<<std::endl;
 }
-
-void Guitar::unloadComponent ()
-{
-  std::cout<<"Guitar::unload () called!"<<std::endl;
-
-  delete this;
-  return;
-}
-
 }

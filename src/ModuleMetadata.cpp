@@ -23,7 +23,7 @@
 #include "xpcf/api/ModuleMetadata.h"
 #include "PathBuilder.h"
 #include <string.h>
-#include "Collection.h"
+#include <xpcf/collection/Collection.h>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 // implement Component
