@@ -37,30 +37,15 @@ linux {
     LIBS += -ldl
 }
 
+
 macx {
+    DEFINES += _MACOS_TARGET_
     QMAKE_MAC_SDK= macosx
-    QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17
-    # must be migrated to remaken
-    CPPAST_ROOT=$$(HOME)/workspace/labs/DIT/SFT/github/github-cppast
-    CPPAST_ROOT_BUILD=$$(HOME)/workspace/labs/DIT/SFT/github/build-cppast
-    INCLUDEPATH += $${CPPAST_ROOT}/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/cxxopts/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/type_safe/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/type_safe/external/debug_assert
-    LIBS += -L$${CPPAST_ROOT_BUILD}/debug/src -lcppast
-    LIBS += -L$${CPPAST_ROOT_BUILD}/debug -l_cppast_tiny_process
-# cppast and xpcf_grpc_gen depends upon brew llvm installation
-# XCode version update needs sometimes to upgrade brew llvm then to rebuild cppast (with the correct link toward llvm)
-# cppast cmake line is :
-# cmake -DCPPAST_TEMPLATE_FULLARGUMENTSPARSING=ON -DCMAKE_BUILD_TYPE=Debug -DLLVM_CONFIG_BINARY=/usr/local/opt/llvm/bin/llvm-config ../../github-cppast/
-# Xcode version update needs to set a link from current OS sdk towards MacOSX.sdk cf https://stackoverflow.com/questions/52509602/cant-compile-c-program-on-a-mac-after-upgrade-to-mojave
-    LLVM_BINARIES = /usr/local/opt/llvm/bin
-    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config --libdir)
-    LIBS += -L$${LLVM_LIBDIR} -lclang
-    LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
-    LIBS += $${LLVM_CLANG_LIBS}
-    #QMAKE_CXXFLAGS += --coverage
-    #QMAKE_LFLAGS += --coverage
+    QMAKE_CFLAGS += -mmacosx-version-min=10.7 #-x objective-c++
+    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7  -std=c++17 -fPIC#-x objective-c++
+    QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
+    INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
+    LIBS += -lstdc++ -lc -lpthread
 }
 
 win32 {
