@@ -34,10 +34,10 @@ class IGrpcServerManager: virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~IGrpcServerManager() override = default;
-    virtual  grpc::ServerBuilder & registerService(grpc::Service * service) = 0;
-    virtual  grpc::ServerBuilder & registerService(const grpc::string & host, grpc::Service * service) = 0;
-    virtual  grpc::ServerBuilder & registerService(SRef<IGrpcService> service) = 0;
-    virtual  grpc::ServerBuilder & registerService(const grpc::string & host, SRef<IGrpcService> service) = 0;
+    virtual void registerService(grpc::Service * service) = 0;
+    virtual void registerService(const grpc::string & host, grpc::Service * service) = 0;
+    virtual void registerService(SRef<IGrpcService> service) = 0;
+    virtual void registerService(const grpc::string & host, SRef<IGrpcService> service) = 0;
     virtual void runServer() = 0;
 };
 

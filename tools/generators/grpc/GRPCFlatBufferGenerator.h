@@ -24,14 +24,13 @@
 #define GRPCFLATBUFFERGENERATOR_H
 #include <xpcf/component/ComponentBase.h>
 
-#include "interfaces/IRPCGenerator.h"
+#include "AbstractGenerator.h"
 
-class GRPCFlatBufferGenerator : public org::bcom::xpcf::ComponentBase, virtual public IRPCGenerator
+class GRPCFlatBufferGenerator : public AbstractGenerator
 {
 public:
     GRPCFlatBufferGenerator();
     ~GRPCFlatBufferGenerator() override;
-    void unloadComponent () override;
     void generate(const ClassDescriptor & c) override;
 
 private:

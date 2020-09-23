@@ -65,31 +65,14 @@ const std::map<enum cpp_builtin_type,std::string> builtinType2protobufTypeMap =
 };
 
 
-GRPCProtoGenerator::GRPCProtoGenerator():xpcf::ComponentBase(xpcf::toMap<GRPCProtoGenerator>())
+GRPCProtoGenerator::GRPCProtoGenerator():AbstractGenerator(xpcf::toMap<GRPCProtoGenerator>())
 {
-    declareInterface<IRPCGenerator>(this);
-    //  Inject declarations come here : declare any component that must be injected to your component through its interface /////////////////////////..///// declareInjectable<IFilter>(m_filter);
-    //
-    // Inject declaration can have a name :
-    // declareInjectable<IFilter>(m_blurFilter, "blurFilter");
-    //
-    // Inject declaration can be optional i.e. not finding a binding component for the interface is not an error :
-    // declareInjectable<IImageFilter>(m_imageFilter, false);
-
 }
 
 
 GRPCProtoGenerator::~GRPCProtoGenerator()
 {
 
-}
-
-void GRPCProtoGenerator::unloadComponent ()
-{
-    // provide component cleanup strategy
-    // default strategy is to delete self, uncomment following line in this case :
-    // delete this;
-    return;
 }
 
 void GRPCProtoGenerator::generateService(const ClassDescriptor &c)
@@ -115,7 +98,7 @@ void GRPCProtoGenerator::generateService(const ClassDescriptor &c)
     std::cout<<"}"<<std::endl<<std::endl;
 }
 
-const std::string & tryConvertType(enum cpp_builtin_type type)
+inline const std::string & tryConvertType(enum cpp_builtin_type type)
 {
     static const std::string typeStr = "";
     if (builtinType2protobufTypeMap.find(type) != builtinType2protobufTypeMap.end()) {

@@ -44,26 +44,22 @@ xpcf::XPCFErrorCode GrpcManager::onConfigured()
     return xpcf::XPCFErrorCode::_SUCCESS;
 }
 
-grpc::ServerBuilder & GrpcManager::registerService(grpc::Service * service)
+void GrpcManager::registerService(grpc::Service * service)
 {
     m_serverBuilder.RegisterService(service);
-    return m_serverBuilder;
 }
 
-grpc::ServerBuilder & GrpcManager::registerService(const grpc::string & host, grpc::Service * service)
+void GrpcManager::registerService(const grpc::string & host, grpc::Service * service)
 {
     m_serverBuilder.RegisterService(host,service);
-    return m_serverBuilder;
 }
 
-grpc::ServerBuilder & GrpcManager::registerService(SRef<IGrpcService> service) {
+void GrpcManager::registerService(SRef<IGrpcService> service) {
     m_serverBuilder.RegisterService(service->getService());
-    return m_serverBuilder;
 }
 
-grpc::ServerBuilder & GrpcManager::registerService(const grpc::string & host, SRef<IGrpcService> service){
+void GrpcManager::registerService(const grpc::string & host, SRef<IGrpcService> service){
     m_serverBuilder.RegisterService(host,service->getService());
-    return m_serverBuilder;
 }
 
 void GrpcManager::runServer()

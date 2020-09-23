@@ -421,6 +421,9 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
             std::cout<<" => type [ " << cppast::to_string(currentType) << " ]\n";
             std::cout<<" => type kind [ " << typeKind << " ]\n";
             std::cout<<" => derefed type [ " <<derefTypeKind<<" ]\n";
+            if (cppast::to_string(currentType) == derefTypeKind) {
+                bIsLeaf = true;
+            }
         }
         currentType = innerType;
     }

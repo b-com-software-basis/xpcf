@@ -6,18 +6,13 @@ GrpcServerManager::GrpcServerManager():ConfigurableBase(toMap<GrpcServerManager>
 {
     declareInterface<IGrpcServerManager>(this);
     declareProperty("server_address",m_serverAddress);
+    declareInjectable<IGrpcService>(m_services);
 }
 
 
 GrpcServerManager::~GrpcServerManager()
 {
 
-}
-
-XPCFErrorCode GrpcServerManager::onConfigured()
-{
-    builder.AddListeningPort(m_serverAddress, grpc::InsecureServerCredentials());
-    return ConfigurableBase::onConfigured();
 }
 
 void GrpcServerManager::unloadComponent ()
@@ -28,27 +23,32 @@ void GrpcServerManager::unloadComponent ()
     return;
 }
 
-grpc::ServerBuilder & GrpcServerManager::registerService(grpc::Service * service)
+void GrpcServerManager::registerService(grpc::Service * service)
 {
     builder.RegisterService(service);
 }
 
-grpc::ServerBuilder & GrpcServerManager::registerService(const grpc::string & host, grpc::Service * service)
+void GrpcServerManager::registerService(const grpc::string & host, grpc::Service * service)
 {
+    builder.RegisterService(host, service);
 }
 
-grpc::ServerBuilder & GrpcServerManager::registerService(SRef<IGrpcService> service)
+void GrpcServerManager::registerService(SRef<IGrpcService> service)
 {
     registerService(service->getService());
 }
 
-grpc::ServerBuilder & GrpcServerManager::registerService(const grpc::string & host, SRef<IGrpcService> service)
+void GrpcServerManager::registerService(const grpc::string & host, SRef<IGrpcService> service)
 {
-    registerService(service->getService());
+    registerService(host, service->getService());
 }
 
 void GrpcServerManager::runServer()
 {
+    builder.AddListeningPort(m_serverAddress, grpc::InsecureServerCredentials());
+    for (auto service: *m_services) {
+        registerService(service);
+    }
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     std::cout << "Server listening on " << m_serverAddress << std::endl;
     server->Wait();

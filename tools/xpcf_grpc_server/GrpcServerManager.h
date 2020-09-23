@@ -24,6 +24,7 @@
 #define GRPCPROTOGENERATOR_H
 #include <xpcf/component/ConfigurableBase.h>
 #include <xpcf/remoting/IGrpcServerManager.h>
+#include <xpcf/collection/ICollection.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -33,16 +34,16 @@ public:
     GrpcServerManager();
     ~GrpcServerManager() override;
     void unloadComponent () override;
-    grpc::ServerBuilder & registerService(grpc::Service * service) override;
-    grpc::ServerBuilder & registerService(const grpc::string & host, grpc::Service * service) override;
-    grpc::ServerBuilder & registerService(SRef<IGrpcService> service) override;
-    grpc::ServerBuilder & registerService(const grpc::string & host, SRef<IGrpcService> service) override;
+    void registerService(grpc::Service * service) override;
+    void registerService(const grpc::string & host, grpc::Service * service) override;
+    void registerService(SRef<IGrpcService> service) override;
+    void registerService(const grpc::string & host, SRef<IGrpcService> service) override;
     void runServer() override;
-    XPCFErrorCode onConfigured() override;
 
 private:
     grpc::ServerBuilder builder;
     std::string m_serverAddress;
+    SRef<org::bcom::xpcf::ICollection<SRef<IGrpcService> >> m_services;
 
 };
 

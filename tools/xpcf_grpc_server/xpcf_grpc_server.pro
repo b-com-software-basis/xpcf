@@ -59,6 +59,7 @@ win32 {
 }
 
 DISTFILES += \
+    grpc_server_sample.xml \
     packagedependencies.txt
 
 

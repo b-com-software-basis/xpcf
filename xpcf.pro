@@ -8,8 +8,8 @@ VERSION=2.5.0
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
-CONFIG += shared
-CONFIG -= staticlib
+CONFIG -= shared
+CONFIG += staticlib
 macx {
     #CONFIG += use_brew_llvm
     # howto setup conan to use brew llvm ?
@@ -79,6 +79,8 @@ HEADERS += \
     interfaces/swig/xpcf_traits.i \
     interfaces/xpcf/api/InjectableMetadata.h \
     interfaces/xpcf/core/helpers.h \
+    interfaces/xpcf/remoting/BaseBuffer.h \
+    interfaces/xpcf/remoting/ISerializable.h \
     interfaces/xpcf/threading/MultiConsumer.h \
     src/AliasManager.h \
     src/Factory.h \

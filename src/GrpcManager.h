@@ -13,10 +13,10 @@ public:
     ~GrpcManager() override;
     void unloadComponent () override;
 
-    grpc::ServerBuilder & registerService(grpc::Service * service) override;
-    grpc::ServerBuilder & registerService(const grpc::string & host, grpc::Service * service) override;
-    grpc::ServerBuilder & registerService(SRef<IGrpcService> service) override;
-    grpc::ServerBuilder & registerService(const grpc::string & host, SRef<IGrpcService> service) override;
+    void registerService(grpc::Service * service) override;
+    void registerService(const grpc::string & host, grpc::Service * service) override;
+    void registerService(SRef<IGrpcService> service) override;
+    void registerService(const grpc::string & host, SRef<IGrpcService> service) override;
 
     void runServer() override;
 

@@ -9,7 +9,13 @@
 class IRPCGenerator: public virtual org::bcom::xpcf::IComponentIntrospect
 {
 public:
+    typedef enum {
+        STD_COUT = 0,
+        FILE = 1
+    } GenerateMode;
     virtual ~IRPCGenerator() override = default;
+    virtual void setDestinationFolder(const std::string & folder) = 0;
+    virtual void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) = 0;
     virtual void generate(const ClassDescriptor & c) = 0;
 };
 

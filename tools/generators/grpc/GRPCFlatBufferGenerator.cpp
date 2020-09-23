@@ -72,17 +72,8 @@ const std::map<enum cpp_builtin_type,std::string> builtinType2flatbufferTypeMap 
         { cpp_uintmax_t,""},
 };
 
-GRPCFlatBufferGenerator::GRPCFlatBufferGenerator():xpcf::ComponentBase(xpcf::toMap<GRPCFlatBufferGenerator>())
+GRPCFlatBufferGenerator::GRPCFlatBufferGenerator():AbstractGenerator(xpcf::toMap<GRPCFlatBufferGenerator>())
 {
-    declareInterface<IRPCGenerator>(this);
-    //  Inject declarations come here : declare any component that must be injected to your component through its interface /////////////////////////..///// declareInjectable<IFilter>(m_filter);
-    //
-    // Inject declaration can have a name :
-    // declareInjectable<IFilter>(m_blurFilter, "blurFilter");
-    //
-    // Inject declaration can be optional i.e. not finding a binding component for the interface is not an error :
-    // declareInjectable<IImageFilter>(m_imageFilter, false);
-
 }
 
 
@@ -91,12 +82,13 @@ GRPCFlatBufferGenerator::~GRPCFlatBufferGenerator()
 
 }
 
-void GRPCFlatBufferGenerator::unloadComponent ()
+inline const std::string & tryConvertType(enum cpp_builtin_type type)
 {
-    // provide component cleanup strategy
-    // default strategy is to delete self, uncomment following line in this case :
-    // delete this;
-    return;
+    static const std::string typeStr = "";
+    if (builtinType2flatbufferTypeMap.find(type) != builtinType2flatbufferTypeMap.end()) {
+        return builtinType2flatbufferTypeMap.at(type);
+    }
+    return typeStr;
 }
 
 void GRPCFlatBufferGenerator::generateService(const ClassDescriptor &c)
@@ -129,7 +121,57 @@ void GRPCFlatBufferGenerator::generateService(const ClassDescriptor &c)
 
 void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m)
 {
+    if (m.m_requestName != "Empty") {
+        std::cout<<"Message "<<m.m_requestName<<std::endl;
+        std::cout<<"{"<<std::endl;
+        std::size_t fieldIndex = 0;
+        std::string typeName = "int64";
+        for (auto & p : m.m_inParams) {
+            if (p.type().kind() != type_kind::enum_t) {
+                typeName = tryConvertType(p.type().getBuiltinType());
+                if (p.type().kind() != type_kind::builtin_t) {
+                    typeName = p.type().getTypename();
+                }
+            }
+            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        }
 
+        for (auto & p : m.m_inoutParams) {
+            if (p.type().kind() != type_kind::enum_t) {
+                typeName = tryConvertType(p.type().getBuiltinType());
+                if (p.type().kind() != type_kind::builtin_t) {
+                    typeName = p.type().getTypename();
+                }
+            }
+            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        }
+        std::cout<<"}"<<std::endl<<std::endl;
+    }
+    if (m.m_responseName != "Empty") {
+        std::cout<<"Message "<<m.m_responseName<<std::endl;
+        std::cout<<"{"<<std::endl;
+        std::size_t fieldIndex = 0;
+        std::string typeName = "int64";
+        for (auto & p : m.m_inoutParams) {
+            if (p.type().kind() != type_kind::enum_t) {
+                typeName = tryConvertType(p.type().getBuiltinType());
+                if (p.type().kind() != type_kind::builtin_t) {
+                    typeName = p.type().getTypename();
+                }
+            }
+            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        }
+        for (auto & p : m.m_outParams) {
+            if (p.type().kind() != type_kind::enum_t) {
+                typeName = tryConvertType(p.type().getBuiltinType());
+                if (p.type().kind() != type_kind::builtin_t) {
+                    typeName = p.type().getTypename();
+                }
+            }
+            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        }
+        std::cout<<"}"<<std::endl<<std::endl;
+    }
 }
 
 void GRPCFlatBufferGenerator::generate(const ClassDescriptor & c)
