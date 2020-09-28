@@ -32,8 +32,7 @@ void ClassDescriptor::generateRpcMapping(const std::map<std::string, std::vector
 bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
 {
     std::map<std::string, std::vector<std::size_t>> virtualMethodsMap;
-    //m_baseMethod.
-    std::cout << " ==> parsing class "<<m_baseClass.name()<<'\n';
+    std::cout << " ==> parsing class "<<m_baseClass.name()<<" scope "<<'\n';
     if (!m_baseClass.attributes().empty()) {
         // handle attrib
     }

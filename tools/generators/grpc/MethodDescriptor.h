@@ -57,7 +57,9 @@ public:
     MethodDescriptor(const cppast::cpp_member_function& m);
     const std::string & getName() const { return m_baseMethod.name(); }
     const TypeDescriptor & returnType() const { return m_returnDescriptor; }
-
+    const std::string getFullDeclaration() const { return m_returnType + " " + m_declaration; }
+    const std::string & getDeclaration() const { return m_declaration; }
+    const std::string & getReturnType() const { return m_returnType; }
     const streaming_type & streamingType() const { return m_rpcStreamingType; }
   /*  void addAttribute();
     bool isClientStream();
@@ -79,6 +81,8 @@ private:
     streaming_type m_rpcStreamingType = streaming_type::none;
     const cppast::cpp_member_function& m_baseMethod;
     bool m_pureVirtual = false;
+    std::string m_declaration;
+    std::string m_returnType;
 };
 
 #endif // METHODDESCRIPTOR_H

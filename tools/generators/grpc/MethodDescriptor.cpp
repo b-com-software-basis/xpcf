@@ -63,8 +63,14 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
     }
 
     m_pureVirtual = m_baseMethod.is_virtual() && is_pure(m_baseMethod.virtual_info());
-
+    m_returnType = cppast::to_string(m_baseMethod.return_type());
+    m_declaration = m_baseMethod.name() + "(";
+    uint32_t nbTypes = 0;
     for (auto & p : m_baseMethod.parameters()) {
+        if (nbTypes != 0) {
+            m_declaration += ", ";
+        }
+        m_declaration += cppast::to_string(p.type()) + " " + p.name();
         ParameterDescriptor desc (p);
         desc.parse(index);
 
@@ -90,7 +96,9 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
             }
             break;
         }
+        nbTypes++;
     }
+    m_declaration += ")";
     m_returnDescriptor.parse(index, m_baseMethod.return_type());
     if (m_inParams.size() > 0) {
         std::cout<<" ==> End parsing member function : found "<<m_inParams.size()<<" input parameters"<<std::endl;
@@ -101,5 +109,6 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
     if ((m_outParams.size() == 0) && (m_inoutParams.size() == 0)) {
         m_responseName = "Empty";
     }
+    std::cout<<" ==> Method declaration "<<m_declaration<<std::endl;
     return true;
 }

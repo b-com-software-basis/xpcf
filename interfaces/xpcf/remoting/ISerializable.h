@@ -44,6 +44,15 @@
 //Endpoint notion ? Interface with destination configuration ?
 namespace org { namespace bcom { namespace xpcf {
 
+
+class Serializable
+{
+public:
+    virtual ~Serializable() = default;
+    virtual std::vector<uint8_t> serialize() = 0;
+    virtual void deserialize(const std::vector<uint8_t> & buffer) = 0;
+};
+
 class ISerializable: virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:

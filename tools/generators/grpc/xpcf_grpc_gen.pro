@@ -39,11 +39,14 @@ include (../../../builddefs/qmake/templateappconfig.pri)
 HEADERS += \ \
     AbstractGenerator.h \
     ClassDescriptor.h \
+    CppHelpers.h \
     GRPCFlatBufferGenerator.h \
     GRPCMessage.h \
     MethodDescriptor.h \
     ParameterDescriptor.h \
     GRPCProtoGenerator.h \
+    ProxyGenerator.h \
+    ServerGenerator.h \
     TypeDescriptor.h \
     interfaces/IRPCGenerator.h
 
@@ -55,6 +58,8 @@ SOURCES += \
     MethodDescriptor.cpp \
     ParameterDescriptor.cpp \
     GRPCProtoGenerator.cpp \
+    ProxyGenerator.cpp \
+    ServerGenerator.cpp \
     TypeDescriptor.cpp \
     xpcf_grpc_gen.cpp
 

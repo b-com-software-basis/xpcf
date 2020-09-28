@@ -31,12 +31,15 @@ class GRPCFlatBufferGenerator : public AbstractGenerator
 public:
     GRPCFlatBufferGenerator();
     ~GRPCFlatBufferGenerator() override;
-    void generate(const ClassDescriptor & c) override;
+    std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
 
 private:
-    void generateMessages(const MethodDescriptor & m);
+    void generateMessages(const MethodDescriptor & m, std::ostream& out);
 
-    void generateService(const ClassDescriptor & c);
+    void generateService(const ClassDescriptor & c, std::ostream& out);
+
+    std::string m_serviceName;
+    std::string m_grpcServiceFilePath;
 };
 
 template <> struct org::bcom::xpcf::ComponentTraits<GRPCFlatBufferGenerator>

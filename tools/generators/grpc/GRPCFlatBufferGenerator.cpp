@@ -91,9 +91,9 @@ inline const std::string & tryConvertType(enum cpp_builtin_type type)
     return typeStr;
 }
 
-void GRPCFlatBufferGenerator::generateService(const ClassDescriptor &c)
+void GRPCFlatBufferGenerator::generateService(const ClassDescriptor &c, std::ostream& out)
 {
-    std::cout<<"rpc_service grpc"<<c.getName()<<"Service {"<<std::endl;
+    out<<"rpc_service "<<m_serviceName<<" {"<<std::endl;
     for (auto & methodDesc : c.methods()) {
         std::string inRequest = "Empty";
         std::string outRequest = "Empty";
@@ -114,16 +114,16 @@ void GRPCFlatBufferGenerator::generateService(const ClassDescriptor &c)
         if ((methodDesc.streamingType() == MethodDescriptor::streaming_type::bidir)  && methodDesc.m_responseName != "Empty" && methodDesc.m_requestName != "Empty"){
             streaming += "(streaming: bidi)";
         }
-        std::cout<<methodDesc.m_rpcName<<"("<<methodDesc.m_requestName<<"):"<<methodDesc.m_responseName<<" "<<streaming<<";"<<std::endl;
+        out<<methodDesc.m_rpcName<<"("<<methodDesc.m_requestName<<"):"<<methodDesc.m_responseName<<" "<<streaming<<";"<<std::endl;
     }
-    std::cout<<"}"<<std::endl;
+    out<<"}"<<std::endl;
 }
 
-void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m)
+void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m, std::ostream& out)
 {
     if (m.m_requestName != "Empty") {
-        std::cout<<"Message "<<m.m_requestName<<std::endl;
-        std::cout<<"{"<<std::endl;
+        out<<"Message "<<m.m_requestName<<std::endl;
+        out<<"{"<<std::endl;
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
         for (auto & p : m.m_inParams) {
@@ -133,7 +133,7 @@ void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m)
                     typeName = p.type().getTypename();
                 }
             }
-            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
 
         for (auto & p : m.m_inoutParams) {
@@ -143,13 +143,13 @@ void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m)
                     typeName = p.type().getTypename();
                 }
             }
-            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
-        std::cout<<"}"<<std::endl<<std::endl;
+        out<<"}"<<std::endl<<std::endl;
     }
     if (m.m_responseName != "Empty") {
-        std::cout<<"Message "<<m.m_responseName<<std::endl;
-        std::cout<<"{"<<std::endl;
+        out<<"Message "<<m.m_responseName<<std::endl;
+        out<<"{"<<std::endl;
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
         for (auto & p : m.m_inoutParams) {
@@ -159,7 +159,7 @@ void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m)
                     typeName = p.type().getTypename();
                 }
             }
-            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         for (auto & p : m.m_outParams) {
             if (p.type().kind() != type_kind::enum_t) {
@@ -168,13 +168,34 @@ void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m)
                     typeName = p.type().getTypename();
                 }
             }
-            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
-        std::cout<<"}"<<std::endl<<std::endl;
+        out<<"}"<<std::endl<<std::endl;
     }
 }
 
-void GRPCFlatBufferGenerator::generate(const ClassDescriptor & c)
+std::map<IRPCGenerator::MetadataType,std::string> GRPCFlatBufferGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
-    generateService(c);
+    m_serviceName = "grpc" + c.getName() + "Service";
+    m_grpcServiceFilePath = m_serviceName + ".proto";
+    metadata[MetadataType::GRPCSERVICENAME] = m_serviceName;
+    metadata[MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
+
+    if (m_mode == GenerateMode::STD_COUT) {
+        generateService(c, std::cout);
+        for (auto & methodDesc : c.methods()) {
+            generateMessages(methodDesc, std::cout);
+        }
+    }
+    else {
+        fs::detail::utf8_codecvt_facet utf8;
+        fs::path grpcServiceFilePath(m_grpcServiceFilePath,utf8);
+        grpcServiceFilePath = m_folder/grpcServiceFilePath;
+        std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
+        generateService(c, grpcServiceFile);
+        for (auto & methodDesc : c.methods()) {
+            generateMessages(methodDesc, grpcServiceFile);
+        }
+    }
+    return metadata;
 }

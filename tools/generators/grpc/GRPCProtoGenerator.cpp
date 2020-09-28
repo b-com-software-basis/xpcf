@@ -6,62 +6,62 @@ template<> GRPCProtoGenerator * xpcf::ComponentFactory::createInstance<GRPCProto
 
 const std::map<enum cpp_builtin_type,std::string> builtinType2protobufTypeMap =
 {
-    { cpp_void,"Empty"},
+{ cpp_void,"Empty"},
 
-        { cpp_bool,"bool"},
+{ cpp_bool,"bool"},
 
-        { cpp_uchar,"bytes"},
-        { cpp_ushort,"bytes"},
-        { cpp_uint,"uint32"},
-        { cpp_ulong,"uint64"},
-        { cpp_ulonglong,"uint64"},
-        { cpp_uint128,"bytes"},
+{ cpp_uchar,"bytes"},
+{ cpp_ushort,"bytes"},
+{ cpp_uint,"uint32"},
+{ cpp_ulong,"uint64"},
+{ cpp_ulonglong,"uint64"},
+{ cpp_uint128,"bytes"},
 
-        { cpp_schar,"bytes"},
-        { cpp_short,"bytes"},
-        { cpp_int,"sint32"},
-        { cpp_long,"sint64"},
-        { cpp_longlong,"sint64"},
-        { cpp_int128,"bytes"},
+{ cpp_schar,"bytes"},
+{ cpp_short,"bytes"},
+{ cpp_int,"sint32"},
+{ cpp_long,"sint64"},
+{ cpp_longlong,"sint64"},
+{ cpp_int128,"bytes"},
 
-        { cpp_float,"float"},
-        { cpp_double,"double"},
-        { cpp_longdouble,"bytes"},
-        { cpp_float128,"bytes"},
+{ cpp_float,"float"},
+{ cpp_double,"double"},
+{ cpp_longdouble,"bytes"},
+{ cpp_float128,"bytes"},
 
-        { cpp_char,"bytes"},
-        { cpp_wchar,"bytes"},
-        { cpp_char16,"bytes"},
-        { cpp_char32,"bytes"},
-        { cpp_int8_t,"bytes"},
-        { cpp_int16_t,"bytes"},
-        { cpp_int32_t,"sint32"},
-        { cpp_int64_t,"sint64"},
+{ cpp_char,"bytes"},
+{ cpp_wchar,"bytes"},
+{ cpp_char16,"bytes"},
+{ cpp_char32,"bytes"},
+{ cpp_int8_t,"bytes"},
+{ cpp_int16_t,"bytes"},
+{ cpp_int32_t,"sint32"},
+{ cpp_int64_t,"sint64"},
 
-        { cpp_uint8_t,"bytes"},
-        { cpp_uint16_t,"bytes"},
-        { cpp_uint32_t,"uint32"},
-        { cpp_uint64_t,"uint64"},
+{ cpp_uint8_t,"bytes"},
+{ cpp_uint16_t,"bytes"},
+{ cpp_uint32_t,"uint32"},
+{ cpp_uint64_t,"uint64"},
 
-        { cpp_int_least8_t,"bytes"},
-        { cpp_int_least16_t,"bytes"},
-        { cpp_int_least32_t,"sint32"},
-        { cpp_int_least64_t,"sint64"},
+{ cpp_int_least8_t,"bytes"},
+{ cpp_int_least16_t,"bytes"},
+{ cpp_int_least32_t,"sint32"},
+{ cpp_int_least64_t,"sint64"},
 
-        { cpp_uint_least8_t,"bytes"},
-        { cpp_uint_least16_t,"bytes"},
-        { cpp_uint_least32_t,"uint32"},
-        { cpp_uint_least64_t,"uint64"},
+{ cpp_uint_least8_t,"bytes"},
+{ cpp_uint_least16_t,"bytes"},
+{ cpp_uint_least32_t,"uint32"},
+{ cpp_uint_least64_t,"uint64"},
 
-        { cpp_int_fast8_t,""},
-        { cpp_int_fast16_t,""},
-        { cpp_int_fast32_t,"sint32"},
-        { cpp_int_fast64_t,"sint64"},
+{ cpp_int_fast8_t,""},
+{ cpp_int_fast16_t,""},
+{ cpp_int_fast32_t,"sint32"},
+{ cpp_int_fast64_t,"sint64"},
 
-        { cpp_uint_fast8_t,""},
-        { cpp_uint_fast16_t,""},
-        { cpp_uint_fast32_t,"uint32"},
-        { cpp_uint_fast64_t,"uint64"},
+{ cpp_uint_fast8_t,""},
+{ cpp_uint_fast16_t,""},
+{ cpp_uint_fast32_t,"uint32"},
+{ cpp_uint_fast64_t,"uint64"},
 };
 
 
@@ -75,9 +75,9 @@ GRPCProtoGenerator::~GRPCProtoGenerator()
 
 }
 
-void GRPCProtoGenerator::generateService(const ClassDescriptor &c)
+void GRPCProtoGenerator::generateService(const ClassDescriptor &c, std::ostream& out)
 {
-    std::cout<<"service grpc"<<c.getName()<<"Service {"<<std::endl;
+    out<<"service "<<m_serviceName<<" {"<<std::endl;
     for (auto & methodDesc : c.methods()) {
         std::string streamingClient, streamingServer;
 
@@ -93,9 +93,9 @@ void GRPCProtoGenerator::generateService(const ClassDescriptor &c)
         if ((methodDesc.streamingType() & MethodDescriptor::streaming_type::server)  && methodDesc.m_responseName != "Empty"){
             streamingServer = "stream ";
         }
-        std::cout<<"rpc "<<methodDesc.m_rpcName<<"("<<streamingClient<<methodDesc.m_requestName<<") returns("<<streamingServer<<methodDesc.m_responseName<<") {}"<<std::endl;
+        out<<"rpc "<<methodDesc.m_rpcName<<"("<<streamingClient<<methodDesc.m_requestName<<") returns("<<streamingServer<<methodDesc.m_responseName<<") {}"<<std::endl;
     }
-    std::cout<<"}"<<std::endl<<std::endl;
+    out<<"}"<<std::endl<<std::endl;
 }
 
 inline const std::string & tryConvertType(enum cpp_builtin_type type)
@@ -107,11 +107,11 @@ inline const std::string & tryConvertType(enum cpp_builtin_type type)
     return typeStr;
 }
 
-void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m)
+void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostream& out)
 {
     if (m.m_requestName != "Empty") {
-        std::cout<<"Message "<<m.m_requestName<<std::endl;
-        std::cout<<"{"<<std::endl;
+        out<<"Message "<<m.m_requestName<<std::endl;
+        out<<"{"<<std::endl;
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
         for (auto & p : m.m_inParams) {
@@ -121,7 +121,7 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m)
                     typeName = p.type().getTypename();
                 }
             }
-            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
 
         for (auto & p : m.m_inoutParams) {
@@ -131,13 +131,13 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m)
                     typeName = p.type().getTypename();
                 }
             }
-            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
-        std::cout<<"}"<<std::endl<<std::endl;
+        out<<"}"<<std::endl<<std::endl;
     }
     if (m.m_responseName != "Empty") {
-        std::cout<<"Message "<<m.m_responseName<<std::endl;
-        std::cout<<"{"<<std::endl;
+        out<<"Message "<<m.m_responseName<<std::endl;
+        out<<"{"<<std::endl;
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
         for (auto & p : m.m_inoutParams) {
@@ -147,7 +147,7 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m)
                     typeName = p.type().getTypename();
                 }
             }
-            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         for (auto & p : m.m_outParams) {
             if (p.type().kind() != type_kind::enum_t) {
@@ -156,16 +156,34 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m)
                     typeName = p.type().getTypename();
                 }
             }
-            std::cout<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
-        std::cout<<"}"<<std::endl<<std::endl;
+        out<<"}"<<std::endl<<std::endl;
     }
 }
 
-void GRPCProtoGenerator::generate(const ClassDescriptor & c)
+std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
-    generateService(c);
-    for (auto & methodDesc : c.methods()) {
-        generateMessages(methodDesc);
+    m_serviceName = "grpc" + c.getName() + "Service";
+    m_grpcServiceFilePath = m_serviceName + ".proto";
+    metadata[MetadataType::GRPCSERVICENAME] = m_serviceName;
+    metadata[MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
+
+    if (m_mode == GenerateMode::STD_COUT) {
+        generateService(c, std::cout);
+        for (auto & methodDesc : c.methods()) {
+            generateMessages(methodDesc, std::cout);
+        }
     }
+    else {
+        fs::detail::utf8_codecvt_facet utf8;
+        fs::path grpcServiceFilePath(m_grpcServiceFilePath,utf8);
+        grpcServiceFilePath = m_folder/grpcServiceFilePath;
+        std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
+        generateService(c, grpcServiceFile);
+        for (auto & methodDesc : c.methods()) {
+            generateMessages(methodDesc, grpcServiceFile);
+        }
+    }
+    return metadata;
 }

@@ -9,10 +9,8 @@ GrpcServerManager::GrpcServerManager():ConfigurableBase(toMap<GrpcServerManager>
     declareInjectable<IGrpcService>(m_services);
 }
 
-
 GrpcServerManager::~GrpcServerManager()
 {
-
 }
 
 void GrpcServerManager::unloadComponent ()
