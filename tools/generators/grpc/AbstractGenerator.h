@@ -27,6 +27,7 @@
 #include "interfaces/IRPCGenerator.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+#include "CppHelpers.h"
 
 namespace fs = boost::filesystem;
 
@@ -42,7 +43,6 @@ public:
 protected:
     GenerateMode m_mode;
     fs::path m_folder;
-
 };
 
 #endif // ABSTRACTGENERATOR_H

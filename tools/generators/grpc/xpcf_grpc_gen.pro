@@ -45,6 +45,7 @@ HEADERS += \ \
     MethodDescriptor.h \
     ParameterDescriptor.h \
     GRPCProtoGenerator.h \
+    ProjectGenerator.h \
     ProxyGenerator.h \
     ServerGenerator.h \
     TypeDescriptor.h \
@@ -58,6 +59,7 @@ SOURCES += \
     MethodDescriptor.cpp \
     ParameterDescriptor.cpp \
     GRPCProtoGenerator.cpp \
+    ProjectGenerator.cpp \
     ProxyGenerator.cpp \
     ServerGenerator.cpp \
     TypeDescriptor.cpp \
