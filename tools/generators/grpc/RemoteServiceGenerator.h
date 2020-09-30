@@ -20,37 +20,38 @@
  * @date 2020-09-25
  */
 
-#ifndef PROJECTGENERATOR_H
-#define PROJECTGENERATOR_H
+#ifndef REMOTESERVICEGENERATOR_H
+#define REMOTESERVICEGENERATOR_H
 #include <xpcf/component/ComponentBase.h>
 
 #include "AbstractGenerator.h"
 
 
 
-class ProjectGenerator : public AbstractGenerator
+class RemoteServiceGenerator : public AbstractGenerator
 {
 public:
-    ProjectGenerator();
-    ~ProjectGenerator() override;
+    RemoteServiceGenerator();
+    ~RemoteServiceGenerator() override;
     std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
-    //stringstream to aggregate all project info, serialized to out upon destruction ? or unload ?
-    //howto forward project option generation standalone/embedded ? configurable comp? through metadata ?
+    void setDestinationFolder(const std::string & folder) override;
+    void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) override;
+
 private:
-    std::stringstream m_srcProjectInfos;
-    std::stringstream m_headerProjectInfos;
-    std::stringstream m_protoProjectInfos;
-
+    SRef<IRPCGenerator> m_grpcGenerator;
+    SRef<IRPCGenerator> m_proxyGenerator;
+    SRef<IRPCGenerator> m_serverGenerator;
+    SRef<IRPCGenerator> m_projectGenerator;
 };
 
 
 
 
-template <> struct org::bcom::xpcf::ComponentTraits<ProjectGenerator>
+template <> struct org::bcom::xpcf::ComponentTraits<RemoteServiceGenerator>
 {
-    static constexpr const char * UUID = "{9d465f72-0935-4f64-8620-7fd349edcb9a}";
-    static constexpr const char * NAME = "ProjectGenerator";
-    static constexpr const char * DESCRIPTION = "ProjectGenerator implements AbstractGenerator interface";
+    static constexpr const char * UUID = "{0b9f045b-28aa-45c2-b353-e22917208059}";
+    static constexpr const char * NAME = "RemoteServiceGenerator";
+    static constexpr const char * DESCRIPTION = "RemoteServiceGenerator implements AbstractGenerator interface";
 };
 
-#endif // PROJECTGENERATOR_H
+#endif // REMOTESERVICEGENERATOR_H

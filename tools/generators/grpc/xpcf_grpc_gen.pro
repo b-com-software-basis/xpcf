@@ -47,6 +47,7 @@ HEADERS += \ \
     GRPCProtoGenerator.h \
     ProjectGenerator.h \
     ProxyGenerator.h \
+    RemoteServiceGenerator.h \
     ServerGenerator.h \
     TypeDescriptor.h \
     interfaces/IRPCGenerator.h
@@ -61,6 +62,7 @@ SOURCES += \
     GRPCProtoGenerator.cpp \
     ProjectGenerator.cpp \
     ProxyGenerator.cpp \
+    RemoteServiceGenerator.cpp \
     ServerGenerator.cpp \
     TypeDescriptor.cpp \
     xpcf_grpc_gen.cpp

@@ -22,68 +22,68 @@ void ServerGenerator::generateHeader(const ClassDescriptor & c, std::ostream& ou
     //NOTE : proxy is configurable to set grpc channel etc...
     xpcf::uuids::random_generator gen;
     xpcf::uuids::uuid proxyUUID = gen();
-    CppBlockManager m_block(out);
-    m_block.out() << "// GRPC Server Class Header generated with xpcf_grpc_gen\n";
-    m_block.newline();
+    CppBlockManager blockMgr(out);
+    blockMgr.out() << "// GRPC Server Class Header generated with xpcf_grpc_gen\n";
+    blockMgr.newline();
     includeGuardsStart(m_className, out);
-    m_block.out()<< "#include \"" + c.getName() +".h\"\n"; // relative or absolute path?? TODO:  retrieve filepath from metadata
-    m_block.out() << "#include <xpcf/component/ConfigurableBase.h>\n";
-    m_block.out() << "#include <xpcf/remoting/IGrpcService.h>\n";
-    m_block.newline();
+    blockMgr.out()<< "#include \"" + c.getName() +".h\"\n"; // relative or absolute path?? TODO:  retrieve filepath from metadata
+    blockMgr.out() << "#include <xpcf/component/ConfigurableBase.h>\n";
+    blockMgr.out() << "#include <xpcf/remoting/IGrpcService.h>\n";
+    blockMgr.newline();
 
-    m_block.out() << "namespace " + m_nameSpace;
-    m_block.out() << " ";
+    blockMgr.out() << "namespace " + m_nameSpace;
+    blockMgr.out() << " ";
     {
-        auto scopedNspace = m_block.enter<CPP::NSPACE>();
-        m_block.out() << "class " + m_className + ":  public org::bcom::xpcf::ConfigurableBase, virtual public org::bcom::xpcf::IGrpcService\n";
+        auto scopedNspace = blockMgr.enter<CPP::NSPACE>();
+        blockMgr.out() << "class " + m_className + ":  public org::bcom::xpcf::ConfigurableBase, virtual public org::bcom::xpcf::IGrpcService\n";
         {
-            auto classBlk = m_block.enter<CPP::CLASS>();
+            auto classBlk = blockMgr.enter<CPP::CLASS>();
             {
-                auto publicBlk = m_block.enter<CPP::PUBLIC>();
-                m_block.out() <<  m_className +"();\n";
-                m_block.out() << "~"+ m_className +"() override = default;\n";
-                m_block.out() << "grpc::Service * getService() override;\n";
-                m_block.out() << "void unloadComponent () override final;\n";
-                m_block.out() << "XPCFErrorCode onConfigured() override;\n";
-                m_block.newline();
+                auto publicBlk = blockMgr.enter<CPP::PUBLIC>();
+                blockMgr.out() <<  m_className +"();\n";
+                blockMgr.out() << "~"+ m_className +"() override = default;\n";
+                blockMgr.out() << "grpc::Service * getService() override;\n";
+                blockMgr.out() << "void unloadComponent () override final;\n";
+                blockMgr.out() << "XPCFErrorCode onConfigured() override;\n";
+                blockMgr.newline();
 
-                m_block.out() << "class " + m_grpcClassName + "Impl:  public "+ m_grpcClassName+"::Service\n";
+                blockMgr.out() << "class " + m_grpcClassName + "Impl:  public "+ m_grpcClassName+"::Service\n";
                 {
-                    auto innerClassBlk = m_block.enter<CPP::CLASS>();
+                    auto innerClassBlk = blockMgr.enter<CPP::CLASS>();
                     {
-                        auto innerPublicBlk = m_block.enter<CPP::PUBLIC>();
-                        m_block.out() << m_grpcClassName + "Impl() = default;\n";// missing something to set the ref toward the injected I* component
+                        auto innerPublicBlk = blockMgr.enter<CPP::PUBLIC>();
+                        blockMgr.out() << m_grpcClassName + "Impl() = default;\n";// missing something to set the ref toward the injected I* component
                         // foreach method
                         for (auto m : c.methods()) {
-                            m_block.out() << "Status " + m.m_rpcName + "(ServerContext* context, " + m.m_requestName + ", " + m.m_responseName + ") override;\n";
+                            blockMgr.out() << "Status " + m.m_rpcName + "(ServerContext* context, " + m.m_requestName + ", " + m.m_responseName + ") override;\n";
                         }
-                        m_block.newline();
-                        m_block.out() << "SRef<" + c.getName() + "> m_xpcfComponent;\n";
+                        blockMgr.newline();
+                        blockMgr.out() << "SRef<" + c.getName() + "> m_xpcfComponent;\n";
                     }
                 }
             }
             {
-                auto privateBlk = m_block.enter<CPP::PRIVATE>();
-                m_block.out() << m_grpcClassName + "Impl m_grpcService;\n";
+                auto privateBlk = blockMgr.enter<CPP::PRIVATE>();
+                blockMgr.out() << m_grpcClassName + "Impl m_grpcService;\n";
             }
         }
     }
 
-    m_block.newline();
+    blockMgr.newline();
 
-    m_block.out() << "template <> struct org::bcom::xpcf::ComponentTraits<" + m_nameSpace + "::" + m_className +">\n";//xpcf::grpc::proxy::c.name::c.name_grpcProxy>
+    blockMgr.out() << "template <> struct org::bcom::xpcf::ComponentTraits<" + m_nameSpace + "::" + m_className +">\n";//xpcf::grpc::proxy::c.name::c.name_grpcProxy>
     {
-        auto blk = m_block.enter();
-        m_block.out() << "static constexpr const char * UUID = \"" + xpcf::uuids::to_string(proxyUUID) + "\";\n";
-        m_block.out() << "static constexpr const char * NAME = \"" + m_className + "\";\n";
-        m_block.out() << "static constexpr const char * DESCRIPTION = \"" + m_className + " grpc server component\";\n";
+        auto blk = blockMgr.enter<CPP::CLASS>();
+        blockMgr.out() << "static constexpr const char * UUID = \"" + xpcf::uuids::to_string(proxyUUID) + "\";\n";
+        blockMgr.out() << "static constexpr const char * NAME = \"" + m_className + "\";\n";
+        blockMgr.out() << "static constexpr const char * DESCRIPTION = \"" + m_className + " grpc server component\";\n";
     }
     includeGuardsEnd(out);
 }
 
 void ServerGenerator::generateBody(const ClassDescriptor & c, std::ostream& out)
 {
-    CppBlockManager m_block(out);
+    CppBlockManager blockMgr(out);
     out << "// GRPC Server Class implementation generated with xpcf_grpc_gen\n";
     out << "#include \"" + m_headerFileName + "\"\n";
     out << "#include <cstddef>\n";
@@ -91,45 +91,45 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::ostream& out)
     //#include "grpcgeneratedclient.grpc.[pb|fb].h"
 
 
-    m_block.out() << "namespace xpcf = org::bcom::xpcf;\n";
-    m_block.newline();
-    m_block.out() << "template<> " + m_nameSpace + "::" + m_className + "* xpcf::ComponentFactory::createInstance<"+ m_nameSpace + "::" + m_className + ">();\n";
-    m_block.newline();
+    blockMgr.out() << "namespace xpcf = org::bcom::xpcf;\n";
+    blockMgr.newline();
+    blockMgr.out() << "template<> " + m_nameSpace + "::" + m_className + "* xpcf::ComponentFactory::createInstance<"+ m_nameSpace + "::" + m_className + ">();\n";
+    blockMgr.newline();
 
-    m_block.out() << "namespace " + m_nameSpace;
-    m_block.out() << " ";
+    blockMgr.out() << "namespace " + m_nameSpace;
+    blockMgr.out() << " ";
     {
-        auto blk = m_block.enter<CPP::NSPACE>();
-        m_block.newline();
-        m_block.out() << m_className + "::" + m_className + "()\n";
+        auto blk = blockMgr.enter<CPP::NSPACE>();
+        blockMgr.newline();
+        blockMgr.out() << m_className + "::" + m_className + "()\n";
         {
-            auto methodBlock = m_block.enter();
-            m_block.out() << "declareInterface<xpcf::IGrpcService>(this);\n";
-            m_block.out() << "declareInjectable<" +  c.getName() + ">(m_grpcService.m_xpcfComponent);\n";
+            auto methodBlock = blockMgr.enter();
+            blockMgr.out() << "declareInterface<xpcf::IGrpcService>(this);\n";
+            blockMgr.out() << "declareInjectable<" +  c.getName() + ">(m_grpcService.m_xpcfComponent);\n";
         }
-        m_block.newline();
+        blockMgr.newline();
         out << "void " + m_className + "::unloadComponent ()\n";
         {
-            auto methodBlock = m_block.enter();
-            m_block.out() << "delete this;\n";
-            m_block.out() << "return;\n";
+            auto methodBlock = blockMgr.enter();
+            blockMgr.out() << "delete this;\n";
+            blockMgr.out() << "return;\n";
         }
-        m_block.newline();
-        m_block.out() << "XPCFErrorCode " + m_className +"::onConfigured()\n";
+        blockMgr.newline();
+        blockMgr.out() << "XPCFErrorCode " + m_className +"::onConfigured()\n";
         {
-            auto methodBlock = m_block.enter();
+            auto methodBlock = blockMgr.enter();
         }
-        m_block.newline();
-        m_block.out() << "grpc::Service * " + m_className +"::getService()\n";
+        blockMgr.newline();
+        blockMgr.out() << "grpc::Service * " + m_className +"::getService()\n";
         {
-            auto methodBlock = m_block.enter();
-            m_block.out() << "return &m_grpcService;\n";
+            auto methodBlock = blockMgr.enter();
+            blockMgr.out() << "return &m_grpcService;\n";
         }
 
         for (auto m : c.methods()) {
             out << "Status "+ m_grpcClassName + "Impl()::" + m.m_rpcName + "(ServerContext* context,"+ m.m_requestName+", "+m.m_responseName+")\n";
             {
-                auto methodBlock = m_block.enter();
+                auto methodBlock = blockMgr.enter();
             }
         }
     }

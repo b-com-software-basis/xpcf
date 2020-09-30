@@ -36,10 +36,12 @@
 #include "ClassDescriptor.h"
 #include <xpcf/api/IComponentManager.h>
 #include <xpcf/core/helpers.h>
+#include "RemoteServiceGenerator.h"
 #include "GRPCProtoGenerator.h"
 #include "GRPCFlatBufferGenerator.h"
 #include "ProxyGenerator.h"
 #include "ServerGenerator.h"
+#include "ProjectGenerator.h"
 #include <boost/log/core/core.hpp>
 namespace xpcf = org::bcom::xpcf;
 
@@ -178,8 +180,6 @@ void parse_entity(const cppast::cpp_entity_index& idx, std::ostream& out, const 
         std::map<IRPCGenerator::MetadataType,std::string> metadata;
         metadata [IRPCGenerator::MetadataType::INTERFACENAMESPACE] = "";
         metadata = xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>()->generate(c, metadata);
-        xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>("proxy")->generate(c, metadata);
-        xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>("server")->generate(c, metadata);
     }
 }
 
@@ -361,6 +361,15 @@ catch (std::exception& ex)
     return 1;
 }
 
+SRef<xpcf::IComponentManager> bindXpcfComponents() {
+    SRef<xpcf::IComponentManager> cmpMgr = xpcf::getComponentManagerInstance();
+    cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::IComponentManager::Singleton>();
+    cmpMgr->bindLocal<IRPCGenerator, GRPCFlatBufferGenerator>("grpc");
+    cmpMgr->bindLocal<IRPCGenerator, ProxyGenerator>("proxy");
+    cmpMgr->bindLocal<IRPCGenerator, ServerGenerator>("server");
+    cmpMgr->bindLocal<IRPCGenerator, ProjectGenerator>("project");
+    return cmpMgr;
+}
 
 int main(int argc, char* argv[])
 try
@@ -417,11 +426,10 @@ try
         std::cout << "Using libclang version  \n";
     }
     else {
-        cmpMgr->bindLocal<IRPCGenerator, GRPCFlatBufferGenerator, xpcf::IComponentManager::Singleton>();
-        cmpMgr->bindLocal<IRPCGenerator, ProxyGenerator, xpcf::IComponentManager::Singleton>("proxy");
-        cmpMgr->bindLocal<IRPCGenerator, ServerGenerator, xpcf::IComponentManager::Singleton>("server");
+        auto cmpMgr = bindXpcfComponents();
+
         if (options["generator"].as<std::string>() == "protobuf") {
-            cmpMgr->bindLocal<IRPCGenerator, GRPCProtoGenerator, xpcf::IComponentManager::Singleton>();
+            cmpMgr->bindLocal<IRPCGenerator, GRPCProtoGenerator>("grpc");
         }
         else if (options["generator"].as<std::string>() != "flatbuffers") {
             print_error("invalid value " + options["generator"].as<std::string>() + " for generator option. See usage :");
@@ -429,15 +437,9 @@ try
             return 1;
         }
         if (options.count("output")) {
-            auto rpcGenerator = cmpMgr->resolve<IRPCGenerator>();
-            auto proxyGenerator = cmpMgr->resolve<IRPCGenerator>("proxy");
-            auto serverGenerator = cmpMgr->resolve<IRPCGenerator>("server");
-            rpcGenerator->setGenerateMode(IRPCGenerator::GenerateMode::FILE);
-            proxyGenerator->setGenerateMode(IRPCGenerator::GenerateMode::FILE);
-            serverGenerator->setGenerateMode(IRPCGenerator::GenerateMode::FILE);
-            rpcGenerator->setDestinationFolder(options["output"].as<std::string>());
-            proxyGenerator->setDestinationFolder(options["output"].as<std::string>());
-            serverGenerator->setDestinationFolder(options["output"].as<std::string>());
+            auto serviceGenerator = cmpMgr->resolve<IRPCGenerator>();
+            serviceGenerator->setGenerateMode(IRPCGenerator::GenerateMode::FILE);
+            serviceGenerator->setDestinationFolder(options["output"].as<std::string>());
         }
 
         if (!options.count("file") || options["file"].as<std::string>().empty()) {

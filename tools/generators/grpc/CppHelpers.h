@@ -12,14 +12,6 @@ const std::string cppEndBlock = "}\n\n";
 const std::string classEndBlock = "};\n\n";
 const std::string indentStr = "  ";
 
-inline std::string indent(uint32_t nb = 1)
-{
-    std::string ind;
-    for (uint32_t i = 0; i<nb; i++) {
-        ind += indentStr;
-    }
-    return ind;
-}
 typedef enum {
     STD = 0,
     CLASS = 1,
@@ -74,6 +66,17 @@ public:
         return ScopeHolder<t>([&]() { this->leave(); });
     }
 
+    std::ostream& out() { return m_out << indent(); }
+
+    std::string indent() {
+        std::string ind;
+        for (uint32_t i = 0; i<m_indentLevel; i++) {
+            ind += indentStr;
+        }
+        return ind;
+    }
+
+private:
     void leave() {
         CPP t = m_blockStack.top();
         m_blockStack.pop();
@@ -96,18 +99,6 @@ public:
         }
         m_out << b;
     }
-
-    std::ostream& out() { return m_out << indent(); }
-
-    std::string indent() {
-        std::string ind;
-        for (uint32_t i = 0; i<m_indentLevel; i++) {
-            ind += indentStr;
-        }
-        return ind;
-    }
-
-private:
     uint32_t m_indentLevel = 0;
     std::ostream& m_out;
     std::stack<CPP> m_blockStack;
