@@ -29,9 +29,14 @@ void ProxyGenerator::generateHeader(const ClassDescriptor & c, std::ostream& out
     blockMgr.newline();
     blockMgr.includeGuardsStart(m_className);
     blockMgr.include(c.getName() + ".h"); // relative or absolute path?? TODO:  retrieve filepath from metadata
-    blockMgr.include("<xpcf/component/ConfigurableBase.h>");
-    blockMgr.include("<memory>");
-    blockMgr.include("<string>");
+    blockMgr.include("xpcf/component/ConfigurableBase.h",false);
+    blockMgr.include("memory",false);
+    blockMgr.include("string",false);
+    blockMgr.include("grpc/grpc.h",false);
+    blockMgr.include("grpc/channel.h",false);
+
+    blockMgr.newline();
+    blockMgr.out() << "class "<< m_grpcClassName <<"::Stub;\n";
     blockMgr.newline();
     blockMgr.out() << "namespace " + m_nameSpace +" {\n";
     {
@@ -79,8 +84,12 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::ostream& out)
 {
     CppBlockManager blockMgr(out);
     blockMgr.out() << "// GRPC Proxy Class implementation generated with xpcf_grpc_gen\n";
-    blockMgr.out() << "#include \"" + m_headerFileName + "\"\n";
-    blockMgr.out() << "#include <cstddef>\n";
+    blockMgr.include(m_headerFileName);
+    blockMgr.include("cstddef",false);
+    blockMgr.include("grpcpp/client_context.h",false);
+    blockMgr.include("grpcpp/create_channel.h",false);
+    blockMgr.include("grpcpp/security/credentials.h",false);
+    blockMgr.include(m_grpcClassName + ".grpc.pb.h");
     // the body will use the grpcCLient generated from the proto or flat generators hence the following inclusion :
     //#include "grpcgeneratedclient.grpc.[pb|fb].h"
     blockMgr.out() << "namespace xpcf = org::bcom::xpcf;\n";

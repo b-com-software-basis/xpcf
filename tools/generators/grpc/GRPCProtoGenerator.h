@@ -36,10 +36,11 @@ public:
     GRPCProtoGenerator();
     ~GRPCProtoGenerator() override;
     std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    static const std::string & tryConvertType(enum cpp_builtin_type type);
 
 private:
+    void prepareMessages(const ClassDescriptor &c);
     void generateMessages(const MethodDescriptor & m, std::ostream& out);
-
     void generateService(const ClassDescriptor & c, std::ostream& out);
     std::string m_serviceName;
     std::string m_grpcServiceFilePath;

@@ -54,11 +54,15 @@ void ProjectGenerator::generateModuleMain(const ClassDescriptor & c, std::map<Me
 
 std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
-    m_headerProjectInfos << "\\\n" << metadata.at(MetadataType::PROXY_HEADERFILENAME);
-    m_headerProjectInfos << "\\\n" << metadata.at(MetadataType::SERVER_HEADERFILENAME);
-    m_srcProjectInfos << "\\\n" << metadata.at(MetadataType::PROXY_CPPFILENAME);
-    m_srcProjectInfos << "\\\n" << metadata.at(MetadataType::SERVER_CPPFILENAME);
-    m_protoProjectInfos << "\\\n" << metadata.at(MetadataType::GRPCPROTOFILENAME);
+    m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::PROXY_HEADERFILENAME);
+    m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::SERVER_HEADERFILENAME);
+    m_headerProjectInfos << " \\\n" << metadata[MetadataType::GRPCSERVICENAME] << ".pb.h";
+    m_headerProjectInfos << " \\\n" << metadata[MetadataType::GRPCSERVICENAME] << ".grpc.pb.h";
+    m_srcProjectInfos << " \\\n" << metadata.at(MetadataType::PROXY_CPPFILENAME);
+    m_srcProjectInfos << " \\\n" << metadata.at(MetadataType::SERVER_CPPFILENAME);
+    m_srcProjectInfos << " \\\n" << metadata[MetadataType::GRPCSERVICENAME] << ".pb.cc";
+    m_srcProjectInfos << " \\\n" << metadata[MetadataType::GRPCSERVICENAME] << ".grpc.pb.cc";
+    m_protoProjectInfos << " \\\n" << metadata.at(MetadataType::GRPCPROTOFILENAME);
     generateModuleMain(c,metadata);
     return metadata;
 }
@@ -71,6 +75,9 @@ void ProjectGenerator::finalize(std::map<MetadataType,std::string> metadata)
     m_moduleSrcMgr->newline();
     m_moduleMainDeclareComponents << "XPCF_END_COMPONENTS_DECLARATION\n";
     m_moduleSrcMgr->out() << m_moduleMainDeclareComponents.str();
+    m_headerProjectInfos << " \\\n" << "xpcfGrpcModuleMain.h" << "\n";
+    m_srcProjectInfos << " \\\n" << "xpcfGrpcModuleMain.cpp" << "\n";
+
     if (m_mode == GenerateMode::STD_COUT) {
         std::cout << m_protoProjectInfos.str();
         std::cout << m_headerProjectInfos.str();

@@ -82,7 +82,7 @@ GRPCFlatBufferGenerator::~GRPCFlatBufferGenerator()
 
 }
 
-inline const std::string & tryConvertType(enum cpp_builtin_type type)
+const std::string & GRPCFlatBufferGenerator::tryConvertType(enum cpp_builtin_type type)
 {
     static const std::string typeStr = "";
     if (builtinType2flatbufferTypeMap.find(type) != builtinType2flatbufferTypeMap.end()) {
@@ -91,7 +91,7 @@ inline const std::string & tryConvertType(enum cpp_builtin_type type)
     return typeStr;
 }
 
-inline void prepareMessages(const ClassDescriptor &c)
+void GRPCFlatBufferGenerator::prepareMessages(const ClassDescriptor &c)
 {
     for (auto & methodDesc : c.methods()) {
         std::string streamingClient, streamingServer;

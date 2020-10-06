@@ -3,7 +3,10 @@
 namespace xpcf = org::bcom::xpcf;
 
 template<> GRPCProtoGenerator * xpcf::ComponentFactory::createInstance<GRPCProtoGenerator>();
-
+// service generation: generates grpcIPointCloudManagerService.grpc.pb.[h/cc]
+//protoc grpcIPointCloudManagerService.proto --grpc_out=. --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin
+//message generation: generates grpcIPointCloudManagerService.pb.[h/cc]
+// protoc grpcIPointCloudManagerService.proto --cpp_out=./
 const std::map<enum cpp_builtin_type,std::string> builtinType2protobufTypeMap =
 {
 { cpp_void,"Empty"},
@@ -75,7 +78,7 @@ GRPCProtoGenerator::~GRPCProtoGenerator()
 
 }
 
-inline void prepareMessages(const ClassDescriptor &c)
+void GRPCProtoGenerator::prepareMessages(const ClassDescriptor &c)
 {
     for (auto & methodDesc : c.methods()) {
         std::string streamingClient, streamingServer;
@@ -83,8 +86,14 @@ inline void prepareMessages(const ClassDescriptor &c)
         if (methodDesc.m_inParams.size() != 0 || methodDesc.m_inoutParams.size() != 0) {
             methodDesc.m_requestName = methodDesc.m_rpcName + "Request";
         }
+        else {
+            methodDesc.m_requestName = "google.protobuf.Empty";
+        }
         if (methodDesc.m_outParams.size() != 0 || methodDesc.m_inoutParams.size() != 0 || !methodDesc.returnType().isVoid()) {
             methodDesc.m_responseName = methodDesc.m_rpcName + "Response";
+        }
+        else {
+            methodDesc.m_responseName = "google.protobuf.Empty";
         }
     }
 }
@@ -95,10 +104,10 @@ void GRPCProtoGenerator::generateService(const ClassDescriptor &c, std::ostream&
     for (auto & methodDesc : c.methods()) {
         std::string streamingClient, streamingServer;
 
-        if ((methodDesc.streamingType() & MethodDescriptor::streaming_type::client) && methodDesc.m_requestName != "Empty") {
+        if ((methodDesc.streamingType() & MethodDescriptor::streaming_type::client) && methodDesc.m_requestName != "google.protobuf.Empty") {
             streamingClient = "stream ";
         }
-        if ((methodDesc.streamingType() & MethodDescriptor::streaming_type::server)  && methodDesc.m_responseName != "Empty"){
+        if ((methodDesc.streamingType() & MethodDescriptor::streaming_type::server)  && methodDesc.m_responseName != "google.protobuf.Empty"){
             streamingServer = "stream ";
         }
         out<<"rpc "<<methodDesc.m_rpcName<<"("<<streamingClient<<methodDesc.m_requestName<<") returns("<<streamingServer<<methodDesc.m_responseName<<") {}"<<std::endl;
@@ -106,7 +115,7 @@ void GRPCProtoGenerator::generateService(const ClassDescriptor &c, std::ostream&
     out<<"}"<<std::endl<<std::endl;
 }
 
-inline const std::string & tryConvertType(enum cpp_builtin_type type)
+const std::string & GRPCProtoGenerator::tryConvertType(enum cpp_builtin_type type)
 {
     static const std::string typeStr = "";
     if (builtinType2protobufTypeMap.find(type) != builtinType2protobufTypeMap.end()) {
@@ -122,7 +131,7 @@ inline std::string getTypeName(const ParameterDescriptor & p) {
     }
     else {
         if (p.type().kind() != type_kind::enum_t) {
-            typeName = tryConvertType(p.type().getBuiltinType());
+            typeName = GRPCProtoGenerator::tryConvertType(p.type().getBuiltinType());
             if (p.type().kind() != type_kind::builtin_t) {
                 typeName = p.type().getTypename();
             }
@@ -136,8 +145,8 @@ inline std::string getTypeName(const ParameterDescriptor & p) {
 
 void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostream& out)
 {
-    if (m.m_requestName != "Empty") {
-        out<<"Message "<<m.m_requestName<<std::endl;
+    if (m.m_requestName != "google.protobuf.Empty") {
+        out<<"message "<<m.m_requestName<<std::endl;
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
@@ -150,8 +159,8 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostre
         }
         out<<"}"<<std::endl<<std::endl;
     }
-    if (m.m_responseName != "Empty") {
-        out<<"Message "<<m.m_responseName<<std::endl;
+    if (m.m_responseName != "google.protobuf.Empty") {
+        out<<"message "<<m.m_responseName<<std::endl;
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";

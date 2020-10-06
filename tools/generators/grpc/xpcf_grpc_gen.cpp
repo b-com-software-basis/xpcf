@@ -366,7 +366,6 @@ catch (std::exception& ex)
 SRef<xpcf::IComponentManager> bindXpcfComponents() {
     SRef<xpcf::IComponentManager> cmpMgr = xpcf::getComponentManagerInstance();
     cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::IComponentManager::Singleton>();
-    cmpMgr->bindLocal<IRPCGenerator, GRPCFlatBufferGenerator>("grpc");
     cmpMgr->bindLocal<IRPCGenerator, ProxyGenerator>("proxy");
     cmpMgr->bindLocal<IRPCGenerator, ServerGenerator>("server");
     cmpMgr->bindLocal<IRPCGenerator, ProjectGenerator>("project");
@@ -429,7 +428,6 @@ try
     }
     else {
         auto cmpMgr = bindXpcfComponents();
-        auto serviceGenerator = cmpMgr->resolve<IRPCGenerator>();
 
         if (options["generator"].as<std::string>() == "protobuf") {
             cmpMgr->bindLocal<IRPCGenerator, GRPCProtoGenerator>("grpc");
@@ -439,6 +437,13 @@ try
             print_help(option_list);
             return 1;
         }
+        else {
+            cmpMgr->bindLocal<IRPCGenerator, GRPCFlatBufferGenerator>("grpc");
+        }
+
+        // every injectable is bound : able to resolve the serviceGenerator
+        auto serviceGenerator = cmpMgr->resolve<IRPCGenerator>();
+
         if (options.count("output")) {
             serviceGenerator->setGenerateMode(IRPCGenerator::GenerateMode::FILE);
             serviceGenerator->setDestinationFolder(options["output"].as<std::string>());
