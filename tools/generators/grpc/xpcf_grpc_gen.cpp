@@ -48,7 +48,7 @@ namespace xpcf = org::bcom::xpcf;
 
 /// usage sample:
 /// --database_file /path/to/database_dir/compile_commands.json --database_dir /path/to/database_dir/ --remove_comments_in_macro --std c++1z
-
+std::map<IRPCGenerator::MetadataType,std::string> metadata;
 // print help options
 void print_help(const cxxopts::Options& options)
 {
@@ -174,12 +174,14 @@ void parse_entity(const cppast::cpp_entity_index& idx, std::ostream& out, const 
         // print generated code
         out << ": `" << generator.str() << '`' << '\n';
     }
+
     for (auto & c : interfaces) {
         // check every typedescriptor in each method of the interface is known in classes map or is a builtin type??
         // Note : we must find a message/serialized buffer for each type in each interface
-        std::map<IRPCGenerator::MetadataType,std::string> metadata;
+        auto serviceGenerator = xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>();
         metadata [IRPCGenerator::MetadataType::INTERFACENAMESPACE] = "";
-        metadata = xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>()->generate(c, metadata);
+        metadata = serviceGenerator->generate(c, metadata);
+        metadata = serviceGenerator->validate(c,metadata);
     }
 }
 
@@ -427,6 +429,7 @@ try
     }
     else {
         auto cmpMgr = bindXpcfComponents();
+        auto serviceGenerator = cmpMgr->resolve<IRPCGenerator>();
 
         if (options["generator"].as<std::string>() == "protobuf") {
             cmpMgr->bindLocal<IRPCGenerator, GRPCProtoGenerator>("grpc");
@@ -437,7 +440,6 @@ try
             return 1;
         }
         if (options.count("output")) {
-            auto serviceGenerator = cmpMgr->resolve<IRPCGenerator>();
             serviceGenerator->setGenerateMode(IRPCGenerator::GenerateMode::FILE);
             serviceGenerator->setDestinationFolder(options["output"].as<std::string>());
         }
@@ -485,6 +487,7 @@ try
                 return 2;
             parse_ast(idx, std::cout, *file);
         }
+        serviceGenerator->finalize(metadata);
     }
 }
 catch (const cppast::libclang_error& ex)

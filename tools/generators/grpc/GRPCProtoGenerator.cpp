@@ -75,9 +75,8 @@ GRPCProtoGenerator::~GRPCProtoGenerator()
 
 }
 
-void GRPCProtoGenerator::generateService(const ClassDescriptor &c, std::ostream& out)
+inline void prepareMessages(const ClassDescriptor &c)
 {
-    out<<"service "<<m_serviceName<<" {"<<std::endl;
     for (auto & methodDesc : c.methods()) {
         std::string streamingClient, streamingServer;
 
@@ -87,6 +86,15 @@ void GRPCProtoGenerator::generateService(const ClassDescriptor &c, std::ostream&
         if (methodDesc.m_outParams.size() != 0 || methodDesc.m_inoutParams.size() != 0 || !methodDesc.returnType().isVoid()) {
             methodDesc.m_responseName = methodDesc.m_rpcName + "Response";
         }
+    }
+}
+
+void GRPCProtoGenerator::generateService(const ClassDescriptor &c, std::ostream& out)
+{
+    out<<"service "<<m_serviceName<<" {"<<std::endl;
+    for (auto & methodDesc : c.methods()) {
+        std::string streamingClient, streamingServer;
+
         if ((methodDesc.streamingType() & MethodDescriptor::streaming_type::client) && methodDesc.m_requestName != "Empty") {
             streamingClient = "stream ";
         }
@@ -107,6 +115,25 @@ inline const std::string & tryConvertType(enum cpp_builtin_type type)
     return typeStr;
 }
 
+inline std::string getTypeName(const ParameterDescriptor & p) {
+    std::string typeName;
+    if (p.type().kind() == type_kind::std_string_t) {
+        typeName = "string";
+    }
+    else {
+        if (p.type().kind() != type_kind::enum_t) {
+            typeName = tryConvertType(p.type().getBuiltinType());
+            if (p.type().kind() != type_kind::builtin_t) {
+                typeName = p.type().getTypename();
+            }
+        }
+        else {
+            typeName = "uint32_t";
+        }
+    }
+    return typeName;
+}
+
 void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostream& out)
 {
     if (m.m_requestName != "Empty") {
@@ -115,23 +142,11 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostre
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
         for (auto & p : m.m_inParams) {
-            if (p.type().kind() != type_kind::enum_t) {
-                typeName = tryConvertType(p.type().getBuiltinType());
-                if (p.type().kind() != type_kind::builtin_t) {
-                    typeName = p.type().getTypename();
-                }
-            }
-            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<getTypeName(p)<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
 
         for (auto & p : m.m_inoutParams) {
-            if (p.type().kind() != type_kind::enum_t) {
-                typeName = tryConvertType(p.type().getBuiltinType());
-                if (p.type().kind() != type_kind::builtin_t) {
-                    typeName = p.type().getTypename();
-                }
-            }
-            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<getTypeName(p)<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
@@ -141,22 +156,10 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostre
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
         for (auto & p : m.m_inoutParams) {
-            if (p.type().kind() != type_kind::enum_t) {
-                typeName = tryConvertType(p.type().getBuiltinType());
-                if (p.type().kind() != type_kind::builtin_t) {
-                    typeName = p.type().getTypename();
-                }
-            }
-            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<getTypeName(p)<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         for (auto & p : m.m_outParams) {
-            if (p.type().kind() != type_kind::enum_t) {
-                typeName = tryConvertType(p.type().getBuiltinType());
-                if (p.type().kind() != type_kind::builtin_t) {
-                    typeName = p.type().getTypename();
-                }
-            }
-            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<getTypeName(p)<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
@@ -168,22 +171,23 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(c
     m_grpcServiceFilePath = m_serviceName + ".proto";
     metadata[MetadataType::GRPCSERVICENAME] = m_serviceName;
     metadata[MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
-
+    prepareMessages(c);
     if (m_mode == GenerateMode::STD_COUT) {
-        generateService(c, std::cout);
         for (auto & methodDesc : c.methods()) {
             generateMessages(methodDesc, std::cout);
         }
+        generateService(c, std::cout);
     }
     else {
         fs::detail::utf8_codecvt_facet utf8;
         fs::path grpcServiceFilePath(m_grpcServiceFilePath,utf8);
         grpcServiceFilePath = m_folder/grpcServiceFilePath;
         std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
-        generateService(c, grpcServiceFile);
         for (auto & methodDesc : c.methods()) {
             generateMessages(methodDesc, grpcServiceFile);
         }
+        generateService(c, grpcServiceFile);
+        grpcServiceFile.close();
     }
     return metadata;
 }

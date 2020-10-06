@@ -106,7 +106,7 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
     if ((m_inParams.size() == 0) && (m_inoutParams.size() == 0)) {
         m_requestName = "Empty";
     }
-    if ((m_outParams.size() == 0) && (m_inoutParams.size() == 0)) {
+    if ((m_outParams.size() == 0) && (m_inoutParams.size() == 0) && m_returnDescriptor.isVoid()) {
         m_responseName = "Empty";
     }
     std::cout<<" ==> Method declaration "<<m_declaration<<std::endl;

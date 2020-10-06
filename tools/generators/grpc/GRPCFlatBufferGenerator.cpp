@@ -91,6 +91,20 @@ inline const std::string & tryConvertType(enum cpp_builtin_type type)
     return typeStr;
 }
 
+inline void prepareMessages(const ClassDescriptor &c)
+{
+    for (auto & methodDesc : c.methods()) {
+        std::string streamingClient, streamingServer;
+
+        if (methodDesc.m_inParams.size() != 0 || methodDesc.m_inoutParams.size() != 0) {
+            methodDesc.m_requestName = methodDesc.m_rpcName + "Request";
+        }
+        if (methodDesc.m_outParams.size() != 0 || methodDesc.m_inoutParams.size() != 0 || !methodDesc.returnType().isVoid()) {
+            methodDesc.m_responseName = methodDesc.m_rpcName + "Response";
+        }
+    }
+}
+
 void GRPCFlatBufferGenerator::generateService(const ClassDescriptor &c, std::ostream& out)
 {
     out<<"rpc_service "<<m_serviceName<<" {"<<std::endl;
@@ -99,12 +113,6 @@ void GRPCFlatBufferGenerator::generateService(const ClassDescriptor &c, std::ost
         std::string outRequest = "Empty";
         std::string streaming;
 
-        if (methodDesc.m_inParams.size() != 0 || methodDesc.m_inoutParams.size() != 0) {
-            methodDesc.m_requestName = methodDesc.m_rpcName + "Request";
-        }
-        if (methodDesc.m_outParams.size() != 0 || methodDesc.m_inoutParams.size() != 0 || !methodDesc.returnType().isVoid()) {
-            methodDesc.m_responseName = methodDesc.m_rpcName + "Response";
-        }
         if ((methodDesc.streamingType() == MethodDescriptor::streaming_type::client) && methodDesc.m_requestName != "Empty") {
             streaming += "(streaming: client)";
         }
@@ -181,21 +189,23 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCFlatBufferGenerator::gener
     metadata[MetadataType::GRPCSERVICENAME] = m_serviceName;
     metadata[MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
 
+    prepareMessages(c);
     if (m_mode == GenerateMode::STD_COUT) {
-        generateService(c, std::cout);
         for (auto & methodDesc : c.methods()) {
             generateMessages(methodDesc, std::cout);
         }
+        generateService(c, std::cout);
     }
     else {
         fs::detail::utf8_codecvt_facet utf8;
         fs::path grpcServiceFilePath(m_grpcServiceFilePath,utf8);
         grpcServiceFilePath = m_folder/grpcServiceFilePath;
         std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
-        generateService(c, grpcServiceFile);
         for (auto & methodDesc : c.methods()) {
             generateMessages(methodDesc, grpcServiceFile);
         }
+        generateService(c, grpcServiceFile);
+        grpcServiceFile.close();
     }
     return metadata;
 }

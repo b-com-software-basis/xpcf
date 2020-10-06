@@ -21,16 +21,6 @@ typedef enum {
     NSPACE = 5
 } CPP;
 
-template< CPP t = STD>
-class ScopeHolder {
-public:
-    ScopeHolder(std::function<void ()> leaveFunc):m_leaveFunc(leaveFunc) {} ;
-    ~ScopeHolder() { m_leaveFunc(); }
-
-private:
-    std::function<void ()> m_leaveFunc;
-};
-
 class CppBlockManager {
 public:
 
@@ -42,7 +32,7 @@ public:
     }
 
     template< CPP t = STD>
-    ScopeHolder<t> enter() {
+    void enter() {
         m_blockStack.push(t);
         std::string b;
         switch (t) {
@@ -63,20 +53,8 @@ public:
             m_indentLevel ++;
         }
         m_out << b;
-        return ScopeHolder<t>([&]() { this->leave(); });
     }
 
-    std::ostream& out() { return m_out << indent(); }
-
-    std::string indent() {
-        std::string ind;
-        for (uint32_t i = 0; i<m_indentLevel; i++) {
-            ind += indentStr;
-        }
-        return ind;
-    }
-
-private:
     void leave() {
         CPP t = m_blockStack.top();
         m_blockStack.pop();
@@ -99,28 +77,55 @@ private:
         }
         m_out << b;
     }
+
+    std::ostream& out() { return m_out << indent(); }
+
+    void includeGuardsStart(const std::string & name) {
+        std::string upcasedName =  boost::to_upper_copy(name);
+        out() << "#ifndef " + upcasedName + "_H" ;
+        newline();
+        out() << "#define " + upcasedName + "_H" ;
+        newline();
+    }
+
+    void includeGuardsEnd() {
+        out() << "#endif";
+    }
+
+    void include(const std::string & headerName, bool quoted = true) {
+        char includeStartSep = '<';
+        char includeEndSep = '>';
+        if (quoted) {
+            includeStartSep = includeEndSep = '"';
+        }
+        out() << "#include " << includeStartSep << headerName << includeEndSep <<"\n";
+    }
+
+    std::string indent() {
+        std::string ind;
+        for (uint32_t i = 0; i<m_indentLevel; i++) {
+            ind += indentStr;
+        }
+        return ind;
+    }
+
+
+private:
+
     uint32_t m_indentLevel = 0;
     std::ostream& m_out;
     std::stack<CPP> m_blockStack;
 };
 
-inline void newline(std::ostream& out)
-{
-    out << '\n';
-}
+template< CPP t = STD>
+class block_guard {
+public:
+    block_guard(CppBlockManager & mgr):m_blockMgr(mgr) { m_blockMgr.enter<t>(); }
+    ~block_guard() { m_blockMgr.leave(); }
 
-inline void includeGuardsStart(const std::string & name, std::ostream& out)
-{
-    std::string upcasedName =  boost::to_upper_copy(name);
-    out << "#ifndef " + upcasedName + "_H" ;
-    newline(out);
-    out << "#define " + upcasedName + "_H" ;
-    newline(out);
-}
+private:
+    CppBlockManager & m_blockMgr;
+};
 
-inline void includeGuardsEnd(std::ostream& out)
-{
-    out << "#endif";
-}
 
 #endif // CPPHELPERS_H

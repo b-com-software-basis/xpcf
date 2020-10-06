@@ -40,14 +40,22 @@ public:
         GRPCSERVICENAME,
         GRPCPROTOFILENAME,
         GRPCPACKAGE,
-        HEADERFILENAME,
-        CPPFILENAME,
+        PROXY_HEADERFILENAME,
+        PROXY_CPPFILENAME,
+        PROXY_XPCFGRPCCOMPONENTNAME,
+        PROXY_XPCFGRPCNAMESPACE,
+        SERVER_HEADERFILENAME,
+        SERVER_CPPFILENAME,
+        SERVER_XPCFGRPCCOMPONENTNAME,
+        SERVER_XPCFGRPCNAMESPACE,
         CPPNAMESPACE
     } MetadataType;
     virtual ~IRPCGenerator() override = default;
     virtual void setDestinationFolder(const std::string & folder) = 0;
     virtual void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) = 0;
     virtual std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) = 0;
+    virtual std::map<MetadataType,std::string> validate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) = 0;
+    virtual void finalize(std::map<MetadataType,std::string> metadata) = 0;
 };
 
 template <> struct org::bcom::xpcf::InterfaceTraits<IRPCGenerator>

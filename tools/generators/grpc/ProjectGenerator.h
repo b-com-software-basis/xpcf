@@ -36,10 +36,18 @@ public:
     std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
     //stringstream to aggregate all project info, serialized to out upon destruction ? or unload ?
     //howto forward project option generation standalone/embedded ? configurable comp? through metadata ?
+    void finalize(std::map<MetadataType,std::string> metadata) override;
+
 private:
+    void generateModuleMain(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata);
     std::stringstream m_srcProjectInfos;
     std::stringstream m_headerProjectInfos;
     std::stringstream m_protoProjectInfos;
+    std::stringstream m_moduleMainInfosHeader;
+    std::stringstream m_moduleMainInfosSource;
+    std::stringstream m_moduleMainDeclareComponents;
+    std::unique_ptr<CppBlockManager> m_moduleHdrMgr;
+    std::unique_ptr<CppBlockManager> m_moduleSrcMgr;
 
 };
 

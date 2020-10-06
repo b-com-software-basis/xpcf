@@ -131,11 +131,12 @@ enum cpp_builtin_type {
     cpp_uintptr_t,
 
     cpp_intmax_t,
-    cpp_uintmax_t,
+    cpp_uintmax_t
 };
 
 enum type_kind {
     builtin_t,
+    std_string_t,
     user_defined_t,
     array_t,
     enum_t,

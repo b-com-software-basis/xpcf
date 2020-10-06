@@ -37,6 +37,12 @@ bool isCppFixedWidthType(const cppast::cpp_type & p)
     return (cppFixedWidthTypeList.find(to_string(p) + '|') != std::string::npos);
 }
 
+bool isStdString(const cppast::cpp_type & p)
+{
+    const std::string typeStr="std::string|std::basic_string<char>|";
+    return (typeStr.find(to_string(p) + '|') != std::string::npos);
+}
+
 
 const std::map<std::string,enum cpp_builtin_type> builtinStrToEnumMap = {
 {"int8_t",cpp_builtin_type::cpp_int8_t},
@@ -318,6 +324,11 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
             info.m_builtinType = cppFixedWidthType(currentType);
             info.m_kind = type_kind::builtin_t;
         }
+        if (isStdString(currentType)) {
+            bIsLeaf = true;
+            info.m_typename = "std::string";
+            info.m_kind = type_kind::std_string_t;
+        }
         if (currentType.get().kind() == cppast::cpp_type_kind::pointer_t) {
             if (m_foundConst.size() == 0) {
                 info.m_const = false;
@@ -380,7 +391,9 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
         else {
             info.m_void = false;
         }
-        if (currentType.get().kind() ==  cppast::cpp_type_kind::user_defined_t && !isCppFixedWidthType(currentType)) {
+        if (currentType.get().kind() ==  cppast::cpp_type_kind::user_defined_t &&
+                !isCppFixedWidthType(currentType) &&
+                !isStdString(currentType)) {
             bIsLeaf = true;
             info.m_kind = type_kind::user_defined_t;
             auto & userType = static_cast<const cppast::cpp_user_defined_type&>(currentType.get());

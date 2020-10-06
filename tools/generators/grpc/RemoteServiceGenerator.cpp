@@ -49,3 +49,19 @@ std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::genera
     return metadata;
 }
 
+std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::validate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+{
+    metadata = m_grpcGenerator->validate(c, metadata);
+    metadata = m_proxyGenerator->validate(c, metadata);
+    metadata = m_serverGenerator->validate(c, metadata);
+    metadata =  m_projectGenerator->validate(c, metadata);
+    return metadata;
+}
+
+void RemoteServiceGenerator::finalize(std::map<MetadataType,std::string> metadata)
+{
+    m_grpcGenerator->finalize(metadata);
+    m_proxyGenerator->finalize(metadata);
+    m_serverGenerator->finalize(metadata);
+    m_projectGenerator->finalize(metadata);
+}
