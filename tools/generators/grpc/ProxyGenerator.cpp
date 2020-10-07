@@ -86,6 +86,7 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::ostream& out)
     blockMgr.out() << "// GRPC Proxy Class implementation generated with xpcf_grpc_gen\n";
     blockMgr.include(m_headerFileName);
     blockMgr.include("cstddef",false);
+    blockMgr.include("xpcf/core/Exception.h",false);
     blockMgr.include("grpcpp/client_context.h",false);
     blockMgr.include("grpcpp/create_channel.h",false);
     blockMgr.include("grpcpp/security/credentials.h",false);
@@ -156,15 +157,15 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::ostream& out)
             {
                 block_guard methodBlk(blockMgr);
                 blockMgr.out() << "ClientContext context;\n";
-                if (m.m_inParams.size() > 0 ) {
+                if (m.hasInputs()) {
                     blockMgr.out() << m.m_requestName << " reqIn;\n";
                     for (auto p: m.m_inParams) {
                         //missing serialize/deserialize from method cpp params !
                         blockMgr.out() << "reqIn.set_"<<p.getName()<<"("<<p.getName() <<");\n";
                     }
                 }
-                if ((m.m_outParams.size() > 0) || !m.returnType().isVoid() ) {
-                    blockMgr.out() << m.m_responseName << " respOut;";
+                if (m.hasOutputs()) {
+                    blockMgr.out() << m.m_responseName << " respOut;\n";
                     for (auto p: m.m_outParams) {
                         //missing serialize/deserialize from method cpp params !
                         if (p.type().kind() == type_kind::builtin_t) {
@@ -176,20 +177,22 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::ostream& out)
                     }
                 }
                 blockMgr.out() << "Status status = m_grpcStub->" + m.m_rpcName + "(&context";
-                if (m.m_inParams.size() > 0 ) {
+                if (m.hasInputs() ) {
                     blockMgr.out() << ", reqIn";
                 }
-                if (m.m_outParams.size() > 0 ) {
+                if (m.hasOutputs()) {
                     blockMgr.out() <<", &respOut";
                 }
                 blockMgr.out() << ");\n";
                 blockMgr.out() << "if (!status.ok())";
                 {
                     block_guard condBlk(blockMgr);
-                    blockMgr.out() << "std::cblockMgr.out() << \"" + m.m_rpcName + "rpc failed.\" << std::endl;\n";
-                    blockMgr.out() << "return static_cast<" + m.getReturnType() + ">(XPCFErrorCode::_FAIL);\n";//TODO : differentiate semantic return type from status return type : provide status type name ?
+                    blockMgr.out() << "std::cout() << \"" + m.m_rpcName + "rpc failed.\" << std::endl;\n";
+                    blockMgr.out() << "throw xpcf::RemotingException(\"" << m_grpcClassName <<"\",\""<< m.m_rpcName <<"\",status);\n";//TODO : differentiate semantic return type from status return type : provide status type name ?
                 }
-                blockMgr.out() << " return static_cast<" + m.getReturnType() + ">(XPCFErrorCode::_SUCCESS);\n";
+                if (!m.returnType().isVoid()) {
+                    blockMgr.out() << "return static_cast<" + m.getReturnType() + ">(respOut.xpcfgrpcreturnvalue());\n";
+                }
             }
             blockMgr.newline();
         }

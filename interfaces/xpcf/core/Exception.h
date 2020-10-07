@@ -133,6 +133,14 @@ public:
     virtual ~InjectableDeclarationException() = default;
 };
 
+class XPCF_EXPORT_API RemotingException : public Exception {
+public:
+    RemotingException(const std::string & componentName, const std::string & rpcName, uint32_t status = 0);
+    RemotingException(const char * what);
+    RemotingException(const std::string & what);
+    virtual ~RemotingException() = default;
+};
+
 }}}
 
 #endif

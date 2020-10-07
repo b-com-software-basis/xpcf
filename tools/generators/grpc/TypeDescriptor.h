@@ -178,7 +178,7 @@ public:
     bool isConst() const { return m_descriptorInfo.m_const; }
     bool isSharedRef() const { return m_descriptorInfo.m_sharedRef; }
     bool isReference() const { return m_descriptorInfo.m_isReference; }
-    bool isVoid() const { return m_void; }
+    bool isVoid() const { return m_descriptorInfo.m_void; }
     void addTemplateArgument(const std::string & arg, const std::shared_ptr<TypeDescriptor> & d);
     enum type_kind kind() const { return m_descriptorInfo.m_kind; }
     const std::string & getTypename() const { return m_descriptorInfo.m_typename; }
@@ -196,7 +196,6 @@ private:
     std::map<std::string,std::pair<std::string,std::shared_ptr<TypeDescriptor>>> m_templateGroups;
     std::map<std::string,std::shared_ptr<TypeDescriptor>> m_tmplArgs; // only for template type desc
     std::string m_typename;
-    bool m_void = true;
     //bool isLeaf = false; // false for intermediate template
     std::deque<bool> m_foundConst;
     std::deque<bool> m_foundRef;

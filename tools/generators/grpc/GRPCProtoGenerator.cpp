@@ -1,5 +1,10 @@
 #include "GRPCProtoGenerator.h"
 
+#include <boost/process.hpp>
+#include <boost/predef.h>
+
+namespace bp = boost::process;
+
 namespace xpcf = org::bcom::xpcf;
 
 template<> GRPCProtoGenerator * xpcf::ComponentFactory::createInstance<GRPCProtoGenerator>();
@@ -83,13 +88,13 @@ void GRPCProtoGenerator::prepareMessages(const ClassDescriptor &c)
     for (auto & methodDesc : c.methods()) {
         std::string streamingClient, streamingServer;
 
-        if (methodDesc.m_inParams.size() != 0 || methodDesc.m_inoutParams.size() != 0) {
+        if (methodDesc.hasInputs()) {
             methodDesc.m_requestName = methodDesc.m_rpcName + "Request";
         }
         else {
             methodDesc.m_requestName = "google.protobuf.Empty";
         }
-        if (methodDesc.m_outParams.size() != 0 || methodDesc.m_inoutParams.size() != 0 || !methodDesc.returnType().isVoid()) {
+        if (methodDesc.hasOutputs()) {
             methodDesc.m_responseName = methodDesc.m_rpcName + "Response";
         }
         else {
@@ -124,16 +129,16 @@ const std::string & GRPCProtoGenerator::tryConvertType(enum cpp_builtin_type typ
     return typeStr;
 }
 
-inline std::string getTypeName(const ParameterDescriptor & p) {
+inline std::string getTypeName(const TypeDescriptor & p) {
     std::string typeName;
-    if (p.type().kind() == type_kind::std_string_t) {
+    if (p.kind() == type_kind::std_string_t) {
         typeName = "string";
     }
     else {
-        if (p.type().kind() != type_kind::enum_t) {
-            typeName = GRPCProtoGenerator::tryConvertType(p.type().getBuiltinType());
-            if (p.type().kind() != type_kind::builtin_t) {
-                typeName = p.type().getTypename();
+        if (p.kind() != type_kind::enum_t) {
+            typeName = GRPCProtoGenerator::tryConvertType(p.getBuiltinType());
+            if (p.kind() != type_kind::builtin_t) {
+                typeName = "bytes";
             }
         }
         else {
@@ -148,27 +153,30 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostre
     if (m.m_requestName != "google.protobuf.Empty") {
         out<<"message "<<m.m_requestName<<std::endl;
         out<<"{"<<std::endl;
-        std::size_t fieldIndex = 0;
+        std::size_t fieldIndex = 1;
         std::string typeName = "int64";
         for (auto & p : m.m_inParams) {
-            out<<getTypeName(p)<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<getTypeName(p.type())<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
 
         for (auto & p : m.m_inoutParams) {
-            out<<getTypeName(p)<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<getTypeName(p.type())<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
     if (m.m_responseName != "google.protobuf.Empty") {
         out<<"message "<<m.m_responseName<<std::endl;
         out<<"{"<<std::endl;
-        std::size_t fieldIndex = 0;
+        std::size_t fieldIndex = 1;
         std::string typeName = "int64";
         for (auto & p : m.m_inoutParams) {
-            out<<getTypeName(p)<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<getTypeName(p.type())<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         for (auto & p : m.m_outParams) {
-            out<<getTypeName(p)<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<getTypeName(p.type())<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        }
+        if (!m.returnType().isVoid()) {
+            out<<getTypeName(m.returnType())<<" xpcfGrpcReturnValue = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
@@ -192,6 +200,8 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(c
         fs::path grpcServiceFilePath(m_grpcServiceFilePath,utf8);
         grpcServiceFilePath = m_folder/grpcServiceFilePath;
         std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
+        grpcServiceFile << "syntax = \"proto3\";\n\n";
+        grpcServiceFile << "import \"google/protobuf/empty.proto\";\n\n";
         for (auto & methodDesc : c.methods()) {
             generateMessages(methodDesc, grpcServiceFile);
         }
@@ -199,4 +209,34 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(c
         grpcServiceFile.close();
     }
     return metadata;
+}
+
+void GRPCProtoGenerator::finalize(std::map<MetadataType,std::string> metadata)
+{
+    fs::path toolPath = bp::search_path("protoc");
+    fs::path pluginPath = bp::search_path("grpc_cpp_plugin");
+    if (toolPath.empty()) {
+        std::cerr<<"Error grpc protoc compiler not found : check your grpc installation !"<<std::endl;
+        return;
+    }
+    if (pluginPath.empty()) {
+        std::cerr<<"Error grpc cpp plugin not found : check your grpc installation !"<<std::endl;
+        return;
+    }
+    int result = -1;
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path protoFile = metadata[IRPCGenerator::MetadataType::GRPCSERVICENAME] + ".proto";
+    protoFile = m_folder/protoFile;
+    std::string protoPath = "--proto_path=";
+    protoPath += m_folder.generic_string(utf8).c_str();
+    std::string destProto = "--cpp_out=";
+    destProto += m_folder.generic_string(utf8).c_str();
+    result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destProto.c_str());
+
+    std::string destGrpc = "--grpc_out=";
+    destGrpc += m_folder.generic_string(utf8).c_str();
+    std::string plugin = "--plugin=protoc-gen-grpc=";
+    plugin += pluginPath.generic_string(utf8).c_str();
+
+    result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destGrpc.c_str(), plugin.c_str());
 }

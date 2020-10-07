@@ -87,7 +87,7 @@ const std::map<std::string,enum template_type> templateToContainerMap = {
 
 enum cpp_builtin_type cppFixedWidthType(const cppast::cpp_type & p)
 {
-    builtinStrToEnumMap.at(cppast::to_string(p));
+    return builtinStrToEnumMap.at(cppast::to_string(p));
 }
 
 bool isContainer(const cppast::cpp_template_instantiation_type& p)
@@ -128,7 +128,7 @@ std::shared_ptr<TypeDescriptor> TypeDescriptor::deduceTemplateType(const std::st
 
 enum template_type getContainerType(const cppast::cpp_template_instantiation_type& p)
 {
-    templateToContainerMap.at(p.primary_template().name());
+    return templateToContainerMap.at(p.primary_template().name());
 }
 
 void TypeDescriptor::addTemplateArgument(const std::string & arg, const std::shared_ptr<TypeDescriptor> & d)

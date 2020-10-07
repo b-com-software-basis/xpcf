@@ -67,6 +67,8 @@ public:
     void addParameter();*/
     bool isPureVirtual() const { return m_pureVirtual; }
     bool parse(const cppast::cpp_entity_index& index);
+    bool hasInputs() { return ((m_inParams.size() != 0) || (m_inoutParams.size() != 0)); }
+    bool hasOutputs() { return ((m_inoutParams.size() != 0) || (m_outParams.size() != 0 ) || !m_returnDescriptor.isVoid() ); }
 
     std::vector<ParameterDescriptor> m_inParams;
     std::vector<ParameterDescriptor> m_outParams;
