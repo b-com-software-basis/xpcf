@@ -274,7 +274,7 @@ void Factory::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instan
     bind(interfaceUUID, factoryFunc, FactoryBindInfos{instanceUUID, scope, ""});
 }
 
-void Factory::bind(const char * name, const uuids::uuid & interfaceUUID,
+void Factory::bind(const std::string & name, const uuids::uuid & interfaceUUID,
                    const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
                    const FactoryBindInfos & bindInfos)
 {
@@ -282,11 +282,41 @@ void Factory::bind(const char * name, const uuids::uuid & interfaceUUID,
     m_factoryMethods[bindInfos.componentUUID] = factoryFunc;
 }
 
-void Factory::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
+void Factory::bind(const std::string & name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                    const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
                    IComponentManager::Scope scope)
 {
     bind(name, interfaceUUID, factoryFunc, FactoryBindInfos{instanceUUID, scope, ""});
+}
+
+void Factory::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
+               const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+               const FactoryBindInfos & bindInfos)
+{
+    bind(targetComponentUUID, interfaceUUID, bindInfos);
+    m_factoryMethods[bindInfos.componentUUID] = factoryFunc;
+}
+
+void Factory::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
+          const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+          const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+{
+    bind(targetComponentUUID, interfaceUUID, factoryFunc, FactoryBindInfos{instanceUUID, scope, ""});
+}
+
+void Factory::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
+               const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+               const FactoryBindInfos & bindInfos)
+{
+    bind(targetComponentUUID, name, interfaceUUID, bindInfos);
+    m_factoryMethods[bindInfos.componentUUID] = factoryFunc;
+}
+
+void Factory::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
+          const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+          const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+{
+    bind(targetComponentUUID, name, interfaceUUID, factoryFunc, FactoryBindInfos{instanceUUID, scope, ""});
 }
 
 
@@ -518,7 +548,7 @@ const SRef<IEnumerable<SRef<IComponentIntrospect>>> Factory::resolveAll(const uu
     SRef<ICollection<SRef<IComponentIntrospect>>> componentSet = utils::make_shared<Collection<SRef<IComponentIntrospect>,std::vector>>();
     if (!mapContains(m_multiBindings,interfaceUUID)) {
         //no explicit multibind : resolve any existing single bind default or explicit
-        componentSet->add(resolve(interfaceUUID,contextLevels));
+        componentSet->add(resolve(interfaceUUID, contextLevels));
         return componentSet;
     }
 

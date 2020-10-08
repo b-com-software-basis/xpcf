@@ -66,12 +66,23 @@ public:
 
     void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
     void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+    void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
+              const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+    void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
+              const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
     void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                   const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                   IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+              IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
     void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                   const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                   IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+              IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+    void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
+              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+              const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+
+    void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
+              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+              const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
 
     void unloadComponent () override final;
     void releaseComponent(uuids::uuid componentUUID);

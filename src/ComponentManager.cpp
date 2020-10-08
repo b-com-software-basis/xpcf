@@ -334,6 +334,19 @@ void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID
     m_factory->bind(name, interfaceUUID, instanceUUID, scope);
 }
 
+void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
+                  const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+
+{
+    m_factory->bind(targetComponentUUID, interfaceUUID, instanceUUID, scope);
+}
+
+void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
+                  const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+{
+    m_factory->bind(targetComponentUUID, name, interfaceUUID, instanceUUID, scope);
+}
+
 void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                     const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
                     IComponentManager::Scope scope)
@@ -346,6 +359,20 @@ void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID
                     IComponentManager::Scope scope)
 {
     m_factory->bind(name, interfaceUUID, instanceUUID, factoryFunc, scope);
+}
+
+void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
+          const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+          const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+{
+    m_factory->bind(targetComponentUUID, interfaceUUID, factoryFunc, instanceUUID, scope);
+}
+
+void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
+          const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+          const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+{
+    m_factory->bind(targetComponentUUID, name, interfaceUUID, factoryFunc, instanceUUID, scope);
 }
 
 template <class T>

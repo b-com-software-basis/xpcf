@@ -58,28 +58,55 @@ public:
      */
     virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                       IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+
     virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                       IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+
+    virtual void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
+                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+
+    virtual void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
+                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
 
     virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                            const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
                            IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+
     virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                            const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
                            IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
 
+    virtual void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
+                      const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+
+    virtual void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
+                      const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
+                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+
     template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const uuids::uuid& componentUUID);
+
+    template < typename T, typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const uuids::uuid& componentUUID);
 
     template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind();
 
+    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind();
+
     template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name, const uuids::uuid& componentUUID);
+
+    template < typename T, typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name, const uuids::uuid& componentUUID);
 
     template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name);
 
+    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name);
+
     template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal();
+
+    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal();
 
     template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal(const char * name);
 
+    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal(const char * name);
 
     /**
      * Virtual destructor of IComponentManager
@@ -324,15 +351,30 @@ template < typename I, IComponentManager::Scope scope> void  IComponentManager::
     bind(toUUID<I>(),componentUUID,scope);
 }
 
+template < typename T, typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const uuids::uuid & componentUUID)
+{
+    bind(toUUID<T>(), toUUID<I>(), componentUUID, scope);
+}
+
 template < typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind()
 {
 
     bind<I,scope>(toUUID<C>());
 }
 
+template < typename T, typename I, typename C, IComponentManager::Scope scope > void IComponentManager::bind()
+{
+    bind(toUUID<T>(), toUUID<I>(), toUUID<C>(), scope);
+}
+
 template < typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
 {
-    bind(name, toUUID<I>(),componentUUID,scope);
+    bind(name, toUUID<I>(), componentUUID, scope);
+}
+
+template < typename T, typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
+{
+    bind(toUUID<T>(), name, toUUID<I>(), componentUUID, scope);
 }
 
 template < typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name)
@@ -340,14 +382,29 @@ template < typename I, typename C, IComponentManager::Scope scope> void  ICompon
     bind<I,scope>(name, toUUID<C>());
 }
 
+template < typename T, typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name)
+{
+    bind<T,I,scope>(name, toUUID<C>());
+}
+
 template < typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal()
 {
     bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope);
 }
 
+template < typename T, typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal()
+{
+    bind(toUUID<T>(), toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope);
+}
+
 template < typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal(const char * name)
 {
     bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope);
+}
+
+template < typename T, typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal(const char * name)
+{
+    bind(toUUID<T>(), name, toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope);
 }
 
 /**
