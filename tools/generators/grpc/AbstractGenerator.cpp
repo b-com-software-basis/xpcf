@@ -15,8 +15,9 @@ AbstractGenerator::AbstractGenerator(std::map<std::string,std::string> component
     // declareInjectable<IFilter>(m_blurFilter, "blurFilter");
     //
     // Inject declaration can be optional i.e. not finding a binding component for the interface is not an error :
-    // declareInjectable<IImageFilter>(m_imageFilter, false);
-
+#ifndef XPCF_NAMEDINJECTIONAPPROACH
+    declareInjectable<IRPCGenerator>(m_nextGenerator, true);
+#endif
 }
 
 
@@ -41,10 +42,16 @@ void AbstractGenerator::setDestinationFolder(const std::string & folder)
         fs::create_directories(folderPath); // TODO : manage error
     }
     m_folder = folderPath;
+    if (m_nextGenerator) {
+        m_nextGenerator->setDestinationFolder(folder);
+    }
 }
 
 void AbstractGenerator::setGenerateMode(const GenerateMode & mode)
 {
     m_mode = mode;
+    if (m_nextGenerator) {
+        m_nextGenerator->setGenerateMode(mode);
+    }
 }
 

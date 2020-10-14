@@ -36,8 +36,8 @@ public:
     std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
 
 protected:
-    void generateHeader(const ClassDescriptor & c, std::ostream& out);
-    void generateBody(const ClassDescriptor & c, std::ostream& out);
+    void generateHeader(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out);
+    void generateBody(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out);
 
 private:
     std::string m_nameSpace;

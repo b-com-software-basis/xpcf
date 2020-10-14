@@ -39,12 +39,30 @@ public:
     void unloadComponent () override final;
     void setDestinationFolder(const std::string & folder) override;
     void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) override;
-    std::map<MetadataType,std::string> validate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override { return metadata; }
-    void finalize(std::map<MetadataType,std::string> metadata) override {}
+    std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override {
+        if (m_nextGenerator) {
+            return m_nextGenerator->generate(c,metadata);
+        }
+        return metadata;
+    }
+
+    std::map<MetadataType,std::string> validate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override {
+        if (m_nextGenerator) {
+            return m_nextGenerator->validate(c,metadata);
+        }
+        return metadata;
+    }
+
+    void finalize(std::map<MetadataType,std::string> metadata) override {
+        if (m_nextGenerator) {
+            m_nextGenerator->finalize(metadata);
+        }
+    }
 
 protected:
     GenerateMode m_mode;
     fs::path m_folder;
+    SRef<IRPCGenerator> m_nextGenerator;
 };
 
 #endif // ABSTRACTGENERATOR_H

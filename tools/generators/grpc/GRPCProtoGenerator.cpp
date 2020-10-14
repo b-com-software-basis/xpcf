@@ -207,6 +207,7 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(c
         }
         generateService(c, grpcServiceFile);
         grpcServiceFile.close();
+        m_protoFilesPath.push_back(grpcServiceFilePath);
     }
     return metadata;
 }
@@ -225,18 +226,20 @@ void GRPCProtoGenerator::finalize(std::map<MetadataType,std::string> metadata)
     }
     int result = -1;
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path protoFile = metadata[IRPCGenerator::MetadataType::GRPCSERVICENAME] + ".proto";
-    protoFile = m_folder/protoFile;
-    std::string protoPath = "--proto_path=";
-    protoPath += m_folder.generic_string(utf8).c_str();
-    std::string destProto = "--cpp_out=";
-    destProto += m_folder.generic_string(utf8).c_str();
-    result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destProto.c_str());
+    for (auto protoFile : m_protoFilesPath) {
+        std::cout << "generating grpc service and messages for " << metadata[MetadataType::GRPCSERVICENAME] << " from .proto "<< protoFile.generic_string(utf8) << std::endl;
+        std::string protoPath = "--proto_path=";
+        protoPath += m_folder.generic_string(utf8).c_str();
+        std::string destProto = "--cpp_out=";
+        destProto += m_folder.generic_string(utf8).c_str();
+        result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destProto.c_str());
 
-    std::string destGrpc = "--grpc_out=";
-    destGrpc += m_folder.generic_string(utf8).c_str();
-    std::string plugin = "--plugin=protoc-gen-grpc=";
-    plugin += pluginPath.generic_string(utf8).c_str();
+        std::string destGrpc = "--grpc_out=";
+        destGrpc += m_folder.generic_string(utf8).c_str();
+        std::string plugin = "--plugin=protoc-gen-grpc=";
+        plugin += pluginPath.generic_string(utf8).c_str();
 
-    result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destGrpc.c_str(), plugin.c_str());
+        result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destGrpc.c_str(), plugin.c_str());
+    }
+    m_protoFilesPath.clear();
 }

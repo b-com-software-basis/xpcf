@@ -46,6 +46,7 @@ private:
     void generateService(const ClassDescriptor & c, std::ostream& out);
     std::string m_serviceName;
     std::string m_grpcServiceFilePath;
+    std::vector<fs::path> m_protoFilesPath;
 };
 
 

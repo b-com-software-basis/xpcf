@@ -40,6 +40,7 @@ public:
 
 private:
     void generateModuleMain(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata);
+    void generateProjectFile(std::map<MetadataType,std::string> metadata, std::ostream& out);
     std::stringstream m_srcProjectInfos;
     std::stringstream m_headerProjectInfos;
     std::stringstream m_protoProjectInfos;

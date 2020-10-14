@@ -37,6 +37,7 @@ public:
 
     typedef enum {
         INTERFACENAMESPACE,
+        INTERFACEFILEPATH,
         GRPCSERVICENAME,
         GRPCPROTOFILENAME,
         GRPCPACKAGE,
@@ -48,7 +49,10 @@ public:
         SERVER_CPPFILENAME,
         SERVER_XPCFGRPCCOMPONENTNAME,
         SERVER_XPCFGRPCNAMESPACE,
-        CPPNAMESPACE
+        CPPNAMESPACE,
+        PROJECT_NAME,
+        PROJECT_VERSION,
+        PROJECT_DEPENDENCY_URL
     } MetadataType;
     virtual ~IRPCGenerator() override = default;
     virtual void setDestinationFolder(const std::string & folder) = 0;

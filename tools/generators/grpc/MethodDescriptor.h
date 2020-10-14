@@ -73,6 +73,7 @@ public:
     std::vector<ParameterDescriptor> m_inParams;
     std::vector<ParameterDescriptor> m_outParams;
     std::vector<ParameterDescriptor> m_inoutParams;
+    std::vector<ParameterDescriptor> m_params;
     std::string m_requestName = "Empty";
     std::string m_responseName = "Empty";
     std::string m_rpcName;

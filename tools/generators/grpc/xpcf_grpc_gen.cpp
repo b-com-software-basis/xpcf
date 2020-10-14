@@ -179,7 +179,6 @@ void parse_entity(const cppast::cpp_entity_index& idx, std::ostream& out, const 
         // check every typedescriptor in each method of the interface is known in classes map or is a builtin type??
         // Note : we must find a message/serialized buffer for each type in each interface
         auto serviceGenerator = xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>();
-        metadata [IRPCGenerator::MetadataType::INTERFACENAMESPACE] = "";
         metadata = serviceGenerator->generate(c, metadata);
         metadata = serviceGenerator->validate(c,metadata);
     }
@@ -191,6 +190,7 @@ void parse_ast(const cppast::cpp_entity_index& idx, std::ostream& out, const cpp
     // print file name
     out << "AST for '" << file.name() << "':\n";
     std::string prefix; // the current prefix string
+    std::vector<std::string> currentNamespace;
     // recursively visit file and all children
     cppast::visit(file, [&](const cppast::cpp_entity& e, cppast::visitor_info info) {
         if (e.kind() == cppast::cpp_entity_kind::file_t || cppast::is_templated(e)
@@ -205,6 +205,10 @@ void parse_ast(const cppast::cpp_entity_index& idx, std::ostream& out, const cpp
             // remove prefix
             prefix.pop_back();
             prefix.pop_back();
+            if (e.kind() == cppast::cpp_entity_kind::namespace_t) {
+                out << "leaving namespace "<< currentNamespace.back();
+                currentNamespace.pop_back();
+            }
         }
         else
         {
@@ -215,6 +219,7 @@ void parse_ast(const cppast::cpp_entity_index& idx, std::ostream& out, const cpp
                 if (info.event == cppast::visitor_info::container_entity_enter)
                     prefix += "  ";
                 out << "+-";
+
             }
             else
             {
@@ -222,7 +227,20 @@ void parse_ast(const cppast::cpp_entity_index& idx, std::ostream& out, const cpp
                     prefix += "| ";
                 out << "|-";
             }
-
+            if (e.kind() == cppast::cpp_entity_kind::namespace_t) {
+                currentNamespace.push_back(e.name());
+                std::string nspace;
+                uint32_t nspaceIdx = 0;
+                for (auto n : currentNamespace) {
+                    if (nspaceIdx > 0) {
+                        nspace += "::";
+                    }
+                    nspace += n;
+                    nspaceIdx ++;
+                }
+                metadata[IRPCGenerator::MetadataType::INTERFACENAMESPACE] = nspace;
+            }
+            metadata[IRPCGenerator::MetadataType::INTERFACEFILEPATH] = file.name();
             parse_entity(idx, out, e);
         }
 
@@ -365,10 +383,20 @@ catch (std::exception& ex)
 
 SRef<xpcf::IComponentManager> bindXpcfComponents() {
     SRef<xpcf::IComponentManager> cmpMgr = xpcf::getComponentManagerInstance();
+#ifdef XPCF_NAMEDINJECTIONAPPROACH
+    // global component holding all sub components approach with named injections:
     cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::IComponentManager::Singleton>();
     cmpMgr->bindLocal<IRPCGenerator, ProxyGenerator>("proxy");
     cmpMgr->bindLocal<IRPCGenerator, ServerGenerator>("server");
     cmpMgr->bindLocal<IRPCGenerator, ProjectGenerator>("project");
+#else
+    // chained injection through base classe composite approach :
+    cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::IComponentManager::Singleton>("service");
+    cmpMgr->bindLocal<GRPCProtoGenerator, IRPCGenerator, ProxyGenerator, xpcf::IComponentManager::Transient, xpcf::IComponentManager::BindingRange::Explicit>();
+    cmpMgr->bindLocal<GRPCFlatBufferGenerator, IRPCGenerator, ProxyGenerator, xpcf::IComponentManager::Transient, xpcf::IComponentManager::BindingRange::Explicit>();
+    cmpMgr->bindLocal<ProxyGenerator, IRPCGenerator, ServerGenerator, xpcf::IComponentManager::Transient, xpcf::IComponentManager::BindingRange::Explicit>();
+    cmpMgr->bindLocal<ServerGenerator, IRPCGenerator, ProjectGenerator, xpcf::IComponentManager::Transient, xpcf::IComponentManager::BindingRange::Explicit>();
+#endif
     return cmpMgr;
 }
 
@@ -384,9 +412,15 @@ try
     option_list.add_options()
             ("h,help", "display this help and exit")
             ("version", "display version information and exit")
-            ("v,verbose", "be verbose when parsing")
-            ("g,generator", "the message format to use : either 'flatbuffers' or 'protobuf'",
-             cxxopts::value<std::string>()->default_value("flatbuffers"))
+            ("d,verbose", "be verbose when parsing")
+            ("n,name", "the parsed project/framework name",
+             cxxopts::value<std::string>())
+            ("v,project_version", "the parsed project/framework version",
+             cxxopts::value<std::string>())
+            ("r,repository", "the project/framework host repository type [github,conan,system...] ",
+             cxxopts::value<std::string>())
+            ("u,url", "the project/framework host repository url",
+             cxxopts::value<std::string>())
             ("fatal_errors", "abort program when a parser error occurs, instead of doing error correction")
             ("file", "the file that is being parsed",
              cxxopts::value<std::string>());
@@ -411,8 +445,11 @@ try
             ("fast_preprocessing", "enable fast preprocessing, be careful, this breaks if you e.g. redefine macros in the same file!")
             ("remove_comments_in_macro", "whether or not comments generated by macro are kept, enable if you run into errors");
     option_list.add_options("generation")
+            ("g,generator", "the message format to use : either 'flatbuffers' or 'protobuf'",
+             cxxopts::value<std::string>()->default_value("flatbuffers"))
             ("o,output", "set the destination folder where the generated grpc files will be created. The folder is created if it doesn't already exists",
              cxxopts::value<std::string>());
+
 
     // clang-format on
     waitForUserInput();
@@ -421,16 +458,21 @@ try
         print_help(option_list);
     else if (options.count("version"))
     {
-        std::cout << "cppast version MYVERSION \n";
-        std::cout << "Copyright (C) Jonathan Müller 2017-2019 <jonathanmueller.dev@gmail.com>\n";
+        std::string version = MYVERSIONSTRING;
+        std::cout << "xpcf_grpc_gen version "<< version <<std::endl;
+        std::cout << "Copyright (C) Loïc Touraine 2019-2020\n";
         std::cout << '\n';
-        std::cout << "Using libclang version  \n";
     }
     else {
         auto cmpMgr = bindXpcfComponents();
 
         if (options["generator"].as<std::string>() == "protobuf") {
+#ifdef XPCF_NAMEDINJECTIONAPPROACH
+            // global component holding all sub components approach with named injections:
             cmpMgr->bindLocal<IRPCGenerator, GRPCProtoGenerator>("grpc");
+#else
+            cmpMgr->bindLocal<RemoteServiceGenerator, IRPCGenerator, GRPCProtoGenerator>();
+#endif
         }
         else if (options["generator"].as<std::string>() != "flatbuffers") {
             print_error("invalid value " + options["generator"].as<std::string>() + " for generator option. See usage :");
@@ -438,11 +480,28 @@ try
             return 1;
         }
         else {
+#ifdef XPCF_NAMEDINJECTIONAPPROACH
+            // global component holding all sub components approach with named injections:
             cmpMgr->bindLocal<IRPCGenerator, GRPCFlatBufferGenerator>("grpc");
+#else
+            cmpMgr->bindLocal<RemoteServiceGenerator, IRPCGenerator, GRPCFlatBufferGenerator>();
+#endif
         }
 
         // every injectable is bound : able to resolve the serviceGenerator
         auto serviceGenerator = cmpMgr->resolve<IRPCGenerator>();
+        if (options.count("name")) {
+            metadata[IRPCGenerator::MetadataType::PROJECT_NAME] = options["name"].as<std::string>();
+        }
+        if (options.count("project_version")) {
+            metadata[IRPCGenerator::MetadataType::PROJECT_VERSION] = options["project_version"].as<std::string>();
+        }
+
+        if (options.count("name") && options.count("project_version") && options.count("repository") && options.count("url")) {
+            metadata[IRPCGenerator::MetadataType::PROJECT_DEPENDENCY_URL] = options["name"].as<std::string>() + "|"
+                    + options["project_version"].as<std::string>() + "|"+ options["name"].as<std::string>() + "|"
+                    + options["repository"].as<std::string>()+ "|"+  options["url"].as<std::string>();
+        }
 
         if (options.count("output")) {
             serviceGenerator->setGenerateMode(IRPCGenerator::GenerateMode::FILE);
@@ -494,6 +553,8 @@ try
         }
         serviceGenerator->finalize(metadata);
     }
+
+
 }
 catch (const cppast::libclang_error& ex)
 {

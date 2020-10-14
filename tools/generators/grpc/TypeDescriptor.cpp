@@ -244,7 +244,7 @@ std::string TypeDescriptor::parseTemplateArguments(const std::string & argStr, u
 }
 
 
-TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseTemplateInstanciation(const cppast::cpp_entity_index& index, const cppast::cpp_type & p)
+void TypeDescriptor::parseTemplateInstanciation(const cppast::cpp_entity_index& index, const cppast::cpp_type & p, TypeDescriptorInfo & info)
 {
     // to fully parse a template, all headers (std::vector, others...) must be parsed before to have the template types indexed with cppast
     // to avoid such parsing, pattern recognition or index fill function should be implemented
@@ -252,7 +252,6 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseTemplateInstanciation(co
     std::string derefTypeKind;
     bool exposed = false;
     std::reference_wrapper<const cppast::cpp_type> innerType = (p);
-    TypeDescriptorInfo info;
     // howto handle recursive template inst ? Parameter in parameter maybe or templateDescriptor ?
     // will support container<T,R> or container<T> where T/R can be one of a std::tuple, an SRef or an SRef<std::tuple>
     // composed containers will not be supported, as it involves performance question to serialize vectors of vectors or map of vectors and so on ...
@@ -306,7 +305,6 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseTemplateInstanciation(co
             }
         }
     }
-    return info;
 }
 
 TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_entity_index& index, const cppast::cpp_type & p)
@@ -356,6 +354,7 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
             if (refType.reference_kind() == cppast::cpp_reference::cpp_ref_lvalue) {
                 info.m_isReference = true;
                 typeKind += "lvalue ref";
+                m_foundRef.push_back(true);
             }
             else if (refType.reference_kind() == cppast::cpp_reference::cpp_ref_rvalue) {
                 typeKind += "rvalue ref";
@@ -428,7 +427,7 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
 
         if (currentType.get().kind() ==  cppast::cpp_type_kind::template_instantiation_t) {
             bIsLeaf = true;
-            info = parseTemplateInstanciation(index,currentType);
+            parseTemplateInstanciation(index,currentType,info);
         }
         else {
             std::cout<<" => type [ " << cppast::to_string(currentType) << " ]\n";
@@ -441,6 +440,10 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
         currentType = innerType;
     }
     while(!bIsLeaf);
+    if (m_foundConst.size() < m_foundRef.size()) {
+        // found less const than ref : type is not fully const
+        info.m_const = false;
+    }
     return info;
     /*if (!bIsLeaf) {
         parseType(index,innerType);

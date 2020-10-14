@@ -6,6 +6,9 @@ CONFIG += console
 CONFIG -= qt
 
 DEFINES += MYVERSION=$${VERSION}
+DEFINES += MYVERSIONSTRING=\\\"$${VERSION}\\\"
+
+DEFINES += XPCF_NAMEDINJECTIONAPPROACH
 
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
@@ -19,6 +22,9 @@ CONFIG(release,debug|release) {
 }
 
 exists($${CPPAST_ROOT_BUILD}) {
+#note : after llvm upgrade from brew, execution of the xpcf_grpc_gen can show errors such as
+# [libclang] [error] /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/include/xmmintrin.h:1934: use of undeclared identifier '__builtin_ia32_storehps'
+# in this case, rebuild cppast and xpcf_grpc_gen
     CPPAST_ROOT=$${_PRO_FILE_PWD_}/../../../libs/cppast
     INCLUDEPATH += $${CPPAST_ROOT}/include
     INCLUDEPATH += $${CPPAST_ROOT}/external/cxxopts/include
@@ -27,7 +33,7 @@ exists($${CPPAST_ROOT_BUILD}) {
     LIBS += -L$${CPPAST_ROOT_BUILD}/src -lcppast
     LIBS += -L$${CPPAST_ROOT_BUILD} -l_cppast_tiny_process
 } else {
-    error("cppast root build folder doesn't exist: create cppast root build folder and build cppast prior to running qmake")
+    error("cppast root build folder doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd " $${_PRO_FILE_PWD_} "/../../../libs/cppast/$$escape_expand(\\n)./build_cppast.sh" )
 }
 win32:CONFIG -= static
 win32:CONFIG += shared
@@ -73,7 +79,7 @@ linux {
 
 macx {
     QMAKE_MAC_SDK= macosx
-    QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17
+
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.14
     # must be migrated to remaken
 # cppast and xpcf_grpc_gen depends upon brew llvm installation
@@ -83,9 +89,12 @@ macx {
 # Xcode version update needs to set a link from current OS sdk towards MacOSX.sdk cf https://stackoverflow.com/questions/52509602/cant-compile-c-program-on-a-mac-after-upgrade-to-mojave
     LLVM_BINARIES = /usr/local/opt/llvm/bin
     LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config --libdir)
+    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config --includedir)
     LIBS += -L$${LLVM_LIBDIR} -lclang
     LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
     LIBS += $${LLVM_CLANG_LIBS}
+    QMAKE_LFLAGS += -L$${LLVM_LIBDIR}
+    QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17 -I$${LLVM_INCDIR}
     #QMAKE_CXXFLAGS += --coverage
     #QMAKE_LFLAGS += --coverage
 }

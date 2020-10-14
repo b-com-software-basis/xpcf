@@ -73,6 +73,7 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
         m_declaration += cppast::to_string(p.type()) + " " + p.name();
         ParameterDescriptor desc (p);
         desc.parse(index);
+        m_params.push_back(desc);
 
         switch (desc.ioType()) {
         case ParameterDescriptor::io_type::in :

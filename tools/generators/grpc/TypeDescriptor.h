@@ -189,7 +189,7 @@ public:
 private:
     TypeDescriptor::TypeDescriptorInfo parseType(const cppast::cpp_entity_index& index, const cppast::cpp_type & p);
     std::string parseTemplateArguments(const std::string & argStr, uint32_t groupNumber = 0);
-    TypeDescriptor::TypeDescriptorInfo parseTemplateInstanciation(const cppast::cpp_entity_index& index, const cppast::cpp_type & p);
+    void parseTemplateInstanciation(const cppast::cpp_entity_index& index, const cppast::cpp_type & p, TypeDescriptorInfo & info);
     void linkArgumentsType(const std::string & args, const std::map<std::string,std::pair<std::string,std::shared_ptr<TypeDescriptor>>> & templateGroups);
 
     std::shared_ptr<TypeDescriptor> deduceTemplateType(const std::string & leafTemplate);

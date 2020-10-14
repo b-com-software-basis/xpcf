@@ -35,10 +35,18 @@ void ParameterDescriptor::setIOType(const std::string & ioType)
     }
 }
 
+
 bool ParameterDescriptor::parse(const cppast::cpp_entity_index& index)
 {
     std::cout << " ==> parsing parameter "<<baseParam.name()<<'\n';
     m_typeDescriptor.parse(index, baseParam.type());
+    if (m_typeDescriptor.isConst()) {
+        m_ioType = io_type::in;
+    }
+    else if (m_typeDescriptor.isReference() || m_typeDescriptor.isSharedRef()) {
+        m_ioType = io_type::inout;
+    }
+
     if (!baseParam.attributes().empty()) {
         // handle parameter attributes
         for (auto & attrib : baseParam.attributes()) {
