@@ -160,11 +160,11 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
             out << "::grpc::Status " + m_className +"::"+ m_grpcClassName + "Impl::" + m.m_rpcName + "(::grpc::ServerContext* context, const "+ request + "* request, " + response + "* response)\n";
             {
                 block_guard methodBlock(blockMgr);
+                std::stringstream methodCall;
                 if (!m.returnType().isVoid()) {
                     blockMgr.out() << m.getReturnType() << " returnValue;\n";
-                    //                    blockMgr.out() << m.m_responseName << "->set_xpcfGrpcReturnValue(" << << ")";
+                    methodCall << "returnValue = ";
                 }
-                std::stringstream methodCall;
                 methodCall << "m_xpcfComponent->" << m.getName() << "(";
                 uint32_t nbTypes = 0;
                 for (auto p : m.m_params) {
@@ -173,7 +173,7 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                     }
                     std::stringstream requestParamTranscription;
                     if (p.ioType() == ParameterDescriptor::io_type::in || p.ioType() == ParameterDescriptor::io_type::inout) {
-                        requestParamTranscription << " = deserialize<"<<p.type().getFullTypeDescription()<<">("<<m.m_requestName<<"->" << boost::to_lower_copy(p.getName()) << ");\n";
+                        requestParamTranscription << " = deserialize<"<<p.type().getFullTypeDescription()<<">(request->" << boost::to_lower_copy(p.getName()) << ");\n";
                     }
                     else {
                         requestParamTranscription << ";\n";
@@ -200,12 +200,12 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                            T inout = deserialize<T>(request->inout());
                            f(deserialize<T>(request->in),out,inout);
                            response->set_out(serialize<T>(out));*/
-                        blockMgr.out() << m.m_responseName << "->set_" << boost::to_lower_copy(p.getName()) << "(serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << ");\n";
+                        blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << ");\n";
                     }
                 }
                 if (!m.returnType().isVoid()) {
                     // TODO : serialize return type !!!
-                    blockMgr.out() << m.m_responseName << "->set_xpcfgrpcreturnvalue(serialize<" << m.getReturnType() << ">(returnValue));\n";
+                    blockMgr.out() << "response->set_xpcfgrpcreturnvalue(serialize<" << m.getReturnType() << ">(returnValue));\n";
                 }
                 blockMgr.out() << "return ::grpc::Status::OK;\n";
             }
