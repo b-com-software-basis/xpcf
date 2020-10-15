@@ -103,6 +103,8 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
     out << "// GRPC Server Class implementation generated with xpcf_grpc_gen\n";
     out << "#include \"" + m_headerFileName + "\"\n";
     out << "#include <cstddef>\n";
+    blockMgr.include("xpcf/remoting/ISerializable.h",false);
+
     // the body will use the grpcCLient generated from the proto or flat generators hence the following inclusion :
     //#include "grpcgeneratedclient.grpc.[pb|fb].h"
 
@@ -173,7 +175,7 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                     }
                     std::stringstream requestParamTranscription;
                     if (p.ioType() == ParameterDescriptor::io_type::in || p.ioType() == ParameterDescriptor::io_type::inout) {
-                        requestParamTranscription << " = deserialize<"<<p.type().getFullTypeDescription()<<">(request->" << boost::to_lower_copy(p.getName()) << ");\n";
+                        requestParamTranscription << " = xpcf::deserialize<"<<p.type().getFullTypeDescription()<<">(request->" << boost::to_lower_copy(p.getName()) << "());\n";
                     }
                     else {
                         requestParamTranscription << ";\n";
@@ -185,7 +187,7 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                         blockMgr.out() <<"request->"<< boost::to_lower_copy(p.getName()) <<"()";
                     }
                     else if (p.type().kind() == type_kind::user_defined_t) {
-                        blockMgr.out() << "deserialize<" << p.type().getTypename() << ">(request->"<<boost::to_lower_copy(p.getName()) <<"())";
+                        blockMgr.out() << "xpcf::deserialize<" << p.type().getTypename() << ">(request->"<<boost::to_lower_copy(p.getName()) <<"())";
                     }*/
                     nbTypes++;
                 }
@@ -193,19 +195,19 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                 for (auto p : m.m_params) {
                     if (p.ioType() == ParameterDescriptor::io_type::inout || p.ioType() == ParameterDescriptor::io_type::out) {
                         /* si in :
-                           T in = deserialize<T>(request->in);
+                           T in = xpcf::deserialize<T>(request->in);
                            si out (ref ou pointer):
                            T out
                            si inout:
-                           T inout = deserialize<T>(request->inout());
-                           f(deserialize<T>(request->in),out,inout);
-                           response->set_out(serialize<T>(out));*/
-                        blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << ");\n";
+                           T inout = xpcf::deserialize<T>(request->inout());
+                           f(xpcf::deserialize<T>(request->in),out,inout);
+                           response->set_out(xpcf::serialize<T>(out));*/
+                        blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
                     }
                 }
                 if (!m.returnType().isVoid()) {
                     // TODO : serialize return type !!!
-                    blockMgr.out() << "response->set_xpcfgrpcreturnvalue(serialize<" << m.getReturnType() << ">(returnValue));\n";
+                    blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m.getReturnType() << ">(returnValue));\n";
                 }
                 blockMgr.out() << "return ::grpc::Status::OK;\n";
             }

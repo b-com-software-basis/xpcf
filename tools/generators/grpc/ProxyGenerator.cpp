@@ -92,6 +92,7 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
     blockMgr.include(m_headerFileName);
     blockMgr.include("cstddef",false);
     blockMgr.include("xpcf/core/Exception.h",false);
+    blockMgr.include("xpcf/remoting/ISerializable.h",false);
     blockMgr.include("grpcpp/client_context.h",false);
     blockMgr.include("grpcpp/create_channel.h",false);
     blockMgr.include("grpcpp/security/credentials.h",false);
@@ -169,7 +170,7 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
                             blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) <<"("<<p.getName() <<");\n";
                         }
                         else if (p.type().kind() == type_kind::user_defined_t) {
-                            blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) <<"(serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << ");\n";
+                            blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) <<"(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
                         }
 
                     }
@@ -182,7 +183,7 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
                             blockMgr.out() <<p.getName()<<" = respOut."<< boost::to_lower_copy(p.getName()) <<"();\n";
                         }
                         else if (p.type().kind() == type_kind::user_defined_t) {
-                            blockMgr.out() <<p.getName()<<" = deserialize<" << p.type().getFullTypeDescription() << ">(respOut."<<boost::to_lower_copy(p.getName()) <<"());\n";
+                            blockMgr.out() <<p.getName()<<" = xpcf::deserialize<" << p.type().getFullTypeDescription() << ">(respOut."<<boost::to_lower_copy(p.getName()) <<"());\n";
                         }
                     }
                 }
