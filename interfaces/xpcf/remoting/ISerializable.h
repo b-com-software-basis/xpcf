@@ -5,6 +5,17 @@
 #include <xpcf/api/IComponentIntrospect.h>
 #include <xpcf/remoting/BaseBuffer.h>
 
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/set.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 // template typename T to_proto/from_proto OR another solution with IGrpcProtoInterface / IRemotingBufferInterface ??
 // Simple backend [proto|flat] buffers
 // Data class C either :
@@ -49,25 +60,34 @@ class Serializable
 {
 public:
     virtual ~Serializable() = default;
-    virtual std::vector<uint8_t> serialize() = 0;
-    virtual void deserialize(const std::vector<uint8_t> & buffer) = 0;
+    virtual std::string serialize() = 0;
+    virtual void deserialize(const std::string & buffer) = 0;
 };
 
 class ISerializable: virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~ISerializable() override = default;
-    virtual std::vector<uint8_t> serialize() = 0;
-    virtual void deserialize(const std::vector<uint8_t> & buffer) = 0;
+    virtual std::string serialize() = 0;
+    virtual void deserialize(const std::string & buffer) = 0;
 };
 
-template <typename T> std::vector<uint8_t> serialize(SRef<T> & object);
+template <typename T, typename S = boost::archive::binary_oarchive> std::string serialize(const T & object)
+{
+    std::stringstream ss;
+    S oa(ss);
+    oa << object;
+    return ss.str();
+}
 
-template <typename T> SRef<T> deserialize(const std::vector<uint8_t> & buffer);
-
-template <typename T> std::vector<uint8_t> serialize(const T & object);
-
-template <typename T> T deserialize(const std::vector<uint8_t> & buffer);
+template <typename T, typename S = boost::archive::binary_iarchive> T deserialize(const std::string & buffer)
+{
+    std::stringstream ss(buffer);
+    S ia(ss);
+    T obj; // T must be default-constructible
+    ia >> obj;
+    return obj;
+}
 
 template <> struct InterfaceTraits<ISerializable>
 {

@@ -175,7 +175,12 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                     }
                     std::stringstream requestParamTranscription;
                     if (p.ioType() == ParameterDescriptor::io_type::in || p.ioType() == ParameterDescriptor::io_type::inout) {
-                        requestParamTranscription << " = xpcf::deserialize<"<<p.type().getFullTypeDescription()<<">(request->" << boost::to_lower_copy(p.getName()) << "());\n";
+                        if (p.type().kind() == type_kind::builtin_t || p.type().kind() == type_kind::enum_t) {
+                            requestParamTranscription << " = request->" << boost::to_lower_copy(p.getName()) << "();\n";
+                        }
+                        else {
+                            requestParamTranscription << " = xpcf::deserialize<"<<p.type().getFullTypeDescription()<<">(request->" << boost::to_lower_copy(p.getName()) << "());\n";
+                        }
                     }
                     else {
                         requestParamTranscription << ";\n";
@@ -183,7 +188,7 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
 
                     blockMgr.out() << p.type().getFullTypeDescription() << " " << p.getName() << requestParamTranscription.str();
                     methodCall << p.getName();
-                   /* if (p.type().kind() == type_kind::builtin_t) {
+                    /* if (p.type().kind() == type_kind::builtin_t) {
                         blockMgr.out() <<"request->"<< boost::to_lower_copy(p.getName()) <<"()";
                     }
                     else if (p.type().kind() == type_kind::user_defined_t) {
@@ -202,12 +207,23 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                            T inout = xpcf::deserialize<T>(request->inout());
                            f(xpcf::deserialize<T>(request->in),out,inout);
                            response->set_out(xpcf::serialize<T>(out));*/
-                        blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
+                        if (p.type().kind() == type_kind::builtin_t) {
+                            blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(" << p.getName() << ");\n";
+                        }
+                        else if (p.type().kind() == type_kind::user_defined_t) {
+                            blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
+                        }
                     }
                 }
                 if (!m.returnType().isVoid()) {
                     // TODO : serialize return type !!!
-                    blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m.getReturnType() << ">(returnValue));\n";
+                    if (m.returnType().kind() == type_kind::builtin_t) {
+                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
+                    }
+                    else if (m.returnType().kind() == type_kind::user_defined_t) {
+                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m.getReturnType() << ">(returnValue));\n";
+                    }
+
                 }
                 blockMgr.out() << "return ::grpc::Status::OK;\n";
             }

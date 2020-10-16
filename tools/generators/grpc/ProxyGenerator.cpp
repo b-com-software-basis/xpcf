@@ -162,7 +162,10 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
             {
                 block_guard methodBlk(blockMgr);
                 blockMgr.out() << "::grpc::ClientContext context;\n";
-                if (m.hasInputs()) {
+                if (!m.hasInputs()) {
+                    blockMgr.out() << "::google::protobuf::Empty reqIn;\n";
+                }
+                else {
                     blockMgr.out() << m.m_requestName << " reqIn;\n";
                     for (auto p: m.m_inParams) {
                         //missing serialize/deserialize from method cpp params !
@@ -175,7 +178,10 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
 
                     }
                 }
-                if (m.hasOutputs()) {
+                if (!m.hasOutputs())  {
+                    blockMgr.out() << "::google::protobuf::Empty respOut;\n";
+                }
+                else {
                     blockMgr.out() << m.m_responseName << " respOut;\n";
                     for (auto p: m.m_outParams) {
                         //missing serialize/deserialize from method cpp params !
@@ -187,14 +193,8 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
                         }
                     }
                 }
-                blockMgr.out() << "::grpc::Status status = m_grpcStub->" + m.m_rpcName + "(&context";
-                if (m.hasInputs() ) {
-                    blockMgr.out() << ", reqIn";
-                }
-                if (m.hasOutputs()) {
-                    blockMgr.out() <<", &respOut";
-                }
-                blockMgr.out() << ");\n";
+                blockMgr.out() << "::grpc::Status status = m_grpcStub->" + m.m_rpcName + "(&context, reqIn, &respOut);\n";
+
                 blockMgr.out() << "if (!status.ok())";
                 {
                     block_guard condBlk(blockMgr);
@@ -202,7 +202,12 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
                     blockMgr.out() << "throw xpcf::RemotingException(\"" << m_grpcClassName <<"\",\""<< m.m_rpcName <<"\",static_cast<uint32_t>(status.error_code()));\n";//TODO : differentiate semantic return type from status return type : provide status type name ?
                 }
                 if (!m.returnType().isVoid()) {
-                    blockMgr.out() << "return static_cast<" + m.getReturnType() + ">(respOut.xpcfgrpcreturnvalue());\n";
+                    if (m.returnType().kind() == type_kind::builtin_t) {
+                        blockMgr.out() << "return respOut.xpcfgrpcreturnvalue();\n";
+                    }
+                    else if (m.returnType().kind() == type_kind::user_defined_t) {
+                        blockMgr.out() << "return xpcf::deserialize<" << m.getReturnType() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                    }
                 }
             }
             blockMgr.newline();

@@ -276,12 +276,12 @@ RemotingException::RemotingException(const std::string & componentName,
 }
 
 RemotingException::RemotingException(const char * what):
-    Exception(what, XPCFErrorCode::_ERROR_INTERFACE_UNKNOWN)
+    Exception(what, XPCFErrorCode::_ERROR_REMOTING)
 {
 }
 
 RemotingException::RemotingException(const std::string & what):
-    Exception(what, XPCFErrorCode::_ERROR_INTERFACE_UNKNOWN)
+    Exception(what, XPCFErrorCode::_ERROR_REMOTING)
 {
 }
 
