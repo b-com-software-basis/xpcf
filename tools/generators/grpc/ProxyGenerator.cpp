@@ -22,9 +22,12 @@ void ProxyGenerator::generateHeader(const ClassDescriptor & c, std::map<Metadata
 {
     CppBlockManager blockMgr(out);
     //NOTE : proxy is configurable to set grpc channel etc...
-    xpcf::uuids::random_generator gen;
-    xpcf::uuids::uuid proxyUUID = gen();
-
+    xpcf::uuids::uuid proxyUUID = c.getClientUUID();
+    if (proxyUUID.is_nil()) {
+        xpcf::uuids::random_generator gen;
+        proxyUUID = gen();
+        m_serviceUuidMap[m_className] = xpcf::uuids::to_string(proxyUUID);
+    }
     blockMgr.out() << "// GRPC Proxy Class Header generated with xpcf_grpc_gen\n\n";
     blockMgr.newline();
     blockMgr.includeGuardsStart(m_className);
@@ -247,5 +250,13 @@ std::map<IRPCGenerator::MetadataType,std::string> ProxyGenerator::generate(const
     metadata[MetadataType::PROXY_HEADERFILENAME] = m_headerFileName;
     metadata[MetadataType::PROXY_CPPFILENAME] = m_cppFileName;
     return metadata;
+}
+
+void ProxyGenerator::finalize(std::map<MetadataType,std::string> metadata)
+{
+    for (auto [name, uuid] : m_serviceUuidMap) {
+        std::cout << "Component " << name << " generated uuid = [[xpcf::clientUUID(" << uuid <<")]]" << std::endl;
+    }
+    m_serviceUuidMap.clear();
 }
 

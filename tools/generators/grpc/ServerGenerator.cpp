@@ -19,9 +19,14 @@ ServerGenerator::~ServerGenerator()
 
 void ServerGenerator::generateHeader(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out)
 {
-    //NOTE : proxy is configurable to set grpc channel etc...
-    xpcf::uuids::random_generator gen;
-    xpcf::uuids::uuid proxyUUID = gen();
+    //NOTE : server is configurable to set grpc channel etc...
+    xpcf::uuids::uuid serverUUID = c.getServerUUID();
+    if (serverUUID.is_nil()) {
+        xpcf::uuids::random_generator gen;
+        serverUUID = gen();
+        m_serviceUuidMap[m_className] = xpcf::uuids::to_string(serverUUID);
+    }
+
     CppBlockManager blockMgr(out);
     blockMgr.out() << "// GRPC Server Class Header generated with xpcf_grpc_gen\n";
     blockMgr.newline();
@@ -90,7 +95,7 @@ void ServerGenerator::generateHeader(const ClassDescriptor & c, std::map<Metadat
     blockMgr.out() << "template <> struct org::bcom::xpcf::ComponentTraits<" + m_nameSpace + "::" + m_className +">\n";//xpcf::grpc::proxy::c.name::c.name_grpcProxy>
     {
         block_guard<CPP::CLASS> classBlk(blockMgr);
-        blockMgr.out() << "static constexpr const char * UUID = \"" + xpcf::uuids::to_string(proxyUUID) + "\";\n";
+        blockMgr.out() << "static constexpr const char * UUID = \"" + xpcf::uuids::to_string(serverUUID) + "\";\n";
         blockMgr.out() << "static constexpr const char * NAME = \"" + m_className + "\";\n";
         blockMgr.out() << "static constexpr const char * DESCRIPTION = \"" + m_className + " grpc server component\";\n";
     }
@@ -262,3 +267,12 @@ std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generate(cons
     metadata[MetadataType::SERVER_CPPFILENAME] = m_cppFileName;
     return metadata;
 }
+
+void ServerGenerator::finalize(std::map<MetadataType,std::string> metadata)
+{
+    for (auto [name, uuid] : m_serviceUuidMap) {
+        std::cout << "Component " << name << " generated uuid = [[xpcf::serverUUID(" << uuid <<")]]" << std::endl;
+    }
+    m_serviceUuidMap.clear();
+}
+

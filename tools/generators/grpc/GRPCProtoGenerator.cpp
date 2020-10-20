@@ -136,13 +136,16 @@ inline std::string getTypeName(const TypeDescriptor & p) {
     }
     else {
         if (p.kind() != type_kind::enum_t) {
+            if (p.isVoid() && p.isReference()) {
+                throw GenerationException("GRPCProtoGenerator: void * serialization is not defined !");
+            }
             typeName = GRPCProtoGenerator::tryConvertType(p.getBuiltinType());
-            if (p.kind() != type_kind::builtin_t) {
+            if (typeName.size() == 0 && p.kind() != type_kind::builtin_t) {
                 typeName = "bytes";
             }
         }
         else {
-            typeName = "uint32_t";
+            typeName = "sint32";
         }
     }
     return typeName;
@@ -189,25 +192,35 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(c
     metadata[MetadataType::GRPCSERVICENAME] = m_serviceName;
     metadata[MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
     prepareMessages(c);
-    if (m_mode == GenerateMode::STD_COUT) {
-        for (auto & methodDesc : c.methods()) {
-            generateMessages(methodDesc, std::cout);
+
+    try {
+        if (m_mode == GenerateMode::STD_COUT) {
+            for (auto & methodDesc : c.methods()) {
+                generateMessages(methodDesc, std::cout);
+            }
+            generateService(c, std::cout);
         }
-        generateService(c, std::cout);
+        else {
+            fs::detail::utf8_codecvt_facet utf8;
+            fs::path grpcServiceFilePath(m_grpcServiceFilePath,utf8);
+            grpcServiceFilePath = m_folder/grpcServiceFilePath;
+            std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
+            grpcServiceFile << "syntax = \"proto3\";\n\n";
+            grpcServiceFile << "import \"google/protobuf/empty.proto\";\n\n";
+            for (auto & methodDesc : c.methods()) {
+                generateMessages(methodDesc, grpcServiceFile);
+            }
+            generateService(c, grpcServiceFile);
+            grpcServiceFile.close();
+            m_protoFilesPath.push_back(grpcServiceFilePath);
+            m_protoNameFilesPathMap[ metadata[MetadataType::GRPCSERVICENAME] ] = grpcServiceFilePath;
+        }
     }
-    else {
+    catch (const GenerationException & e) {
         fs::detail::utf8_codecvt_facet utf8;
         fs::path grpcServiceFilePath(m_grpcServiceFilePath,utf8);
-        grpcServiceFilePath = m_folder/grpcServiceFilePath;
-        std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
-        grpcServiceFile << "syntax = \"proto3\";\n\n";
-        grpcServiceFile << "import \"google/protobuf/empty.proto\";\n\n";
-        for (auto & methodDesc : c.methods()) {
-            generateMessages(methodDesc, grpcServiceFile);
-        }
-        generateService(c, grpcServiceFile);
-        grpcServiceFile.close();
-        m_protoFilesPath.push_back(grpcServiceFilePath);
+        fs::remove(grpcServiceFilePath);
+        throw e;
     }
     return metadata;
 }
@@ -226,8 +239,8 @@ void GRPCProtoGenerator::finalize(std::map<MetadataType,std::string> metadata)
     }
     int result = -1;
     fs::detail::utf8_codecvt_facet utf8;
-    for (auto protoFile : m_protoFilesPath) {
-        std::cout << "generating grpc service and messages for " << metadata[MetadataType::GRPCSERVICENAME] << " from .proto "<< protoFile.generic_string(utf8) << std::endl;
+    for (auto [name, protoFile] : m_protoNameFilesPathMap) {
+        std::cout << "generating grpc service and messages for " << name << " from .proto "<< protoFile.generic_string(utf8) << std::endl;
         std::string protoPath = "--proto_path=";
         protoPath += m_folder.generic_string(utf8).c_str();
         std::string destProto = "--cpp_out=";

@@ -23,6 +23,7 @@
 #ifndef ABSTRACTGENERATOR_H
 #define ABSTRACTGENERATOR_H
 #include <xpcf/component/ComponentBase.h>
+#include <xpcf/core/Exception.h>
 
 #include "interfaces/IRPCGenerator.h"
 #include <boost/filesystem.hpp>
@@ -63,6 +64,13 @@ protected:
     GenerateMode m_mode;
     fs::path m_folder;
     SRef<IRPCGenerator> m_nextGenerator;
+};
+
+class GenerationException : public org::bcom::xpcf::Exception {
+public:
+    GenerationException(org::bcom::xpcf::XPCFErrorCode errCode = org::bcom::xpcf::XPCFErrorCode::_FAIL);
+    GenerationException(const char * what, org::bcom::xpcf::XPCFErrorCode errCode = org::bcom::xpcf::XPCFErrorCode::_FAIL);
+    GenerationException(const std::string & what, org::bcom::xpcf::XPCFErrorCode errCode = org::bcom::xpcf::XPCFErrorCode::_FAIL);
 };
 
 #endif // ABSTRACTGENERATOR_H

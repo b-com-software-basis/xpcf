@@ -47,8 +47,10 @@ private:
     std::stringstream m_moduleMainInfosHeader;
     std::stringstream m_moduleMainInfosSource;
     std::stringstream m_moduleMainDeclareComponents;
+    std::stringstream m_moduleMainDeclareModule;
     std::unique_ptr<CppBlockManager> m_moduleHdrMgr;
     std::unique_ptr<CppBlockManager> m_moduleSrcMgr;
+    std::unique_ptr<CppBlockManager> m_moduleDeclareMgr;
 
 };
 

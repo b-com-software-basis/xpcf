@@ -57,19 +57,29 @@ void RemoteServiceGenerator::setGenerateMode(const GenerateMode & mode)
 std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 
 {
+    std::string generationStep;
     // generation chain is ordered : metadata from grpc generator must be forwarded to proxy, server and project generators
+    try {
     AbstractGenerator::generate(c, metadata);
     if (m_grpcGenerator) {
+        generationStep = "GRPC proto files";
         metadata = m_grpcGenerator->generate(c, metadata);
     }
     if (m_proxyGenerator) {
+        generationStep = "GRPC C++ client proxy files";
         metadata = m_proxyGenerator->generate(c, metadata);
     }
     if (m_serverGenerator) {
+        generationStep = "GRPC C++ server files";
         metadata = m_serverGenerator->generate(c, metadata);
     }
     if (m_projectGenerator) {
+        generationStep = "GRPC C++ project files";
         metadata = m_projectGenerator->generate(c, metadata);
+    }
+    }
+    catch (const GenerationException & e) {
+        std::cerr << "Error generating " << generationStep << " " << e.what();
     }
     return metadata;
 }

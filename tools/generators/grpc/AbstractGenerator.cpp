@@ -55,3 +55,18 @@ void AbstractGenerator::setGenerateMode(const GenerateMode & mode)
     }
 }
 
+GenerationException::GenerationException(org::bcom::xpcf::XPCFErrorCode errCode):xpcf::Exception(errCode)
+{
+
+}
+
+GenerationException::GenerationException(const char * what, org::bcom::xpcf::XPCFErrorCode errCode):xpcf::Exception(what, errCode)
+{
+
+}
+
+GenerationException::GenerationException(const std::string & what, org::bcom::xpcf::XPCFErrorCode errCode):xpcf::Exception(what, errCode)
+{
+
+}
+

@@ -86,11 +86,11 @@ void parse_entity(const cppast::cpp_entity_index& idx, std::ostream& out, const 
         out << " [" << e.name() << "] is class"<< '\n';
         ClassDescriptor c(e);
         c.parse(idx);
-        if (c.isInterface()) {
+        if (c.isInterface() && !c.ignored()) {
             interfaces.push_back(c);
         }
         else {
-            if (!xpcf::mapContains(classes,c.getName())) {
+            if (!xpcf::mapContains(classes, c.getName())) {
                 classes.insert(std::make_pair(c.getName(),c));
                 out << "Found user defined type = "<<c.getName()<<'\n';
             }

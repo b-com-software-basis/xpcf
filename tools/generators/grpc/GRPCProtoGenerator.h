@@ -47,6 +47,7 @@ private:
     std::string m_serviceName;
     std::string m_grpcServiceFilePath;
     std::vector<fs::path> m_protoFilesPath;
+    std::map<std::string,fs::path> m_protoNameFilesPathMap;
 };
 
 

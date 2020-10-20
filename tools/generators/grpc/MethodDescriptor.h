@@ -37,6 +37,11 @@
 // - T & with no const
 // - T(*)n with no const
 // mixed or inout types are not deduced and must be disambiguated with custom attributes at the parameter level : [[xpcf::in]], [[xpcf::out]], [[xpcf::inout]]
+// [[xpcf::ignore]] : can be used at class or method level to specify the corresponding class/method must be ignored while generating remoting code
+// [[xpcf::clientUUID(uuid_string)]] : can be used at class level only : used to specify the xpcf remoting client UUID
+// [[xpcf::serverUUID(uuid_string)]] : can be used at class level only : used to specify the xpcf remoting server UUID
+// -> uuid_string is a uuid formed string without quotes !!
+// side note : there will be a need to differentiate between grpc protobuf UUIDs vs flatbuffers UUIDs vs another rpc layer UUIDs ?
 // streaming rpc must be indicated with [[grpc::server_streaming]], [[grpc::client_streaming]] or [[grpc::streaming]] at the method level
 // optionally, grpc request and response message name can be set with [[grpc::request("requestMessageName")]] and [[grpc::response("responseMessageName")]]
 // However, if you set the request and response across several methods, and use the same messages for several methods, you are responsible to ensure that message content are consistent
@@ -66,6 +71,7 @@ public:
     bool isServerStream();
     void addParameter();*/
     bool isPureVirtual() const { return m_pureVirtual; }
+    bool ignored() const { return m_ignored; }
     bool parse(const cppast::cpp_entity_index& index);
     bool hasInputs() { return ((m_inParams.size() != 0) || (m_inoutParams.size() != 0)); }
     bool hasOutputs() { return ((m_inoutParams.size() != 0) || (m_outParams.size() != 0 ) || !m_returnDescriptor.isVoid() ); }
@@ -84,6 +90,7 @@ private:
     streaming_type m_rpcStreamingType = streaming_type::none;
     const cppast::cpp_member_function& m_baseMethod;
     bool m_pureVirtual = false;
+    bool m_ignored = false;
     std::string m_declaration;
     std::string m_returnType;
 };

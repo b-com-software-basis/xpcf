@@ -34,6 +34,7 @@ public:
     ProxyGenerator();
     ~ProxyGenerator() override;
     std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    void finalize(std::map<MetadataType,std::string> metadata) override;
 
 protected:
     void generateHeader(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out);
@@ -45,6 +46,7 @@ private:
     std::string m_headerFileName;
     std::string m_cppFileName;
     std::string m_grpcClassName;
+    std::map<std::string,std::string> m_serviceUuidMap;
 };
 
 template <> struct org::bcom::xpcf::ComponentTraits<ProxyGenerator>

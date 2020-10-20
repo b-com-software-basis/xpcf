@@ -3,6 +3,9 @@
 #include "MethodDescriptor.h"
 #include <cppast/cpp_entity_kind.hpp>
 
+
+namespace xpcf = org::bcom::xpcf;
+
 ClassDescriptor::ClassDescriptor(const cppast::cpp_entity& c):m_baseClass(static_cast<const cppast::cpp_class&>(c))
 {
 }
@@ -35,6 +38,26 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
     std::cout << " ==> parsing class "<<m_baseClass.name()<<" scope "<<'\n';
     if (!m_baseClass.attributes().empty()) {
         // handle attrib
+        for (auto & attrib : m_baseClass.attributes()) {
+            if (attrib.scope().has_value()) {
+                if (attrib.scope().value() == "xpcf") {
+                    if (attrib.name() == "ignore") {
+                        m_ignored = true;
+                        return true;
+                    }
+                    if (attrib.name() == "clientUUID") {
+                        if (attrib.arguments().has_value()) {
+                            m_clientUUID = xpcf::toUUID(attrib.arguments().value().as_string());
+                        }
+                    }
+                    if (attrib.name() == "serverUUID") {
+                        if (attrib.arguments().has_value()) {
+                            m_serverUUID = xpcf::toUUID(attrib.arguments().value().as_string());
+                        }
+                    }
+                }
+            }
+        }
     }
 
     if (cppast::is_templated(m_baseClass)) { // template class is ignored : not part of services : need an instantiation
@@ -53,7 +76,7 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
             // cast to member_function
             MethodDescriptor desc(m);
             desc.parse(index);
-            if (desc.isPureVirtual()) {
+            if (desc.isPureVirtual() && !desc.ignored()) {
                 m_virtualMethods.push_back(desc);
                 virtualMethodsMap[desc.getName()].push_back(m_virtualMethods.size() - 1);
             }
