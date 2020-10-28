@@ -10,10 +10,17 @@
 #include <map>
 
 
-ParameterDescriptor::ParameterDescriptor(const cppast::cpp_function_parameter & p):baseParam(p)
+ParameterDescriptor::ParameterDescriptor(const cppast::cpp_function_parameter & p):m_baseParam(p)
 {
-
+    m_name = m_baseParam.name();
 }
+
+ ParameterDescriptor::ParameterDescriptor(const ParameterDescriptor & other):m_baseParam(other.m_baseParam)
+ {
+     m_ioType = other.m_ioType;
+     m_child = other.m_child;
+     m_typeDescriptor = other.m_typeDescriptor;
+ }
 
 const std::map<std::string,ParameterDescriptor::io_type> str2typeIoMap =
 {
@@ -38,8 +45,8 @@ void ParameterDescriptor::setIOType(const std::string & ioType)
 
 bool ParameterDescriptor::parse(const cppast::cpp_entity_index& index)
 {
-    std::cout << " ==> parsing parameter "<<baseParam.name()<<'\n';
-    m_typeDescriptor.parse(index, baseParam.type());
+    std::cout << " ==> parsing parameter "<< m_name <<'\n';
+    m_typeDescriptor.parse(index, m_baseParam.type());
     if (m_typeDescriptor.isConst()) {
         m_ioType = io_type::in;
     }
@@ -47,9 +54,9 @@ bool ParameterDescriptor::parse(const cppast::cpp_entity_index& index)
         m_ioType = io_type::inout;
     }
 
-    if (!baseParam.attributes().empty()) {
+    if (!m_baseParam.attributes().empty()) {
         // handle parameter attributes
-        for (auto & attrib : baseParam.attributes()) {
+        for (auto & attrib : m_baseParam.attributes()) {
             if (attrib.scope().has_value()) {
                 if (attrib.scope().value() == "xpcf") {
                     setIOType(attrib.name());

@@ -33,7 +33,7 @@ class ServerGenerator : public AbstractGenerator
 public:
     ServerGenerator();
     ~ServerGenerator() override;
-    std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    std::map<MetadataType,std::string> generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
     void finalize(std::map<MetadataType,std::string> metadata) override;
 
 protected:
@@ -42,6 +42,9 @@ protected:
 
 
 private:
+    void bindInput(const ParameterDescriptor & p, CppBlockManager & blockMgr);
+    void bindOutput(const ParameterDescriptor & p, CppBlockManager & blockMgr);
+
     std::string m_nameSpace;
     std::string m_className;
     std::string m_headerFileName;

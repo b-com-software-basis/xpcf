@@ -54,7 +54,7 @@ void RemoteServiceGenerator::setGenerateMode(const GenerateMode & mode)
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 
 {
     std::string generationStep;

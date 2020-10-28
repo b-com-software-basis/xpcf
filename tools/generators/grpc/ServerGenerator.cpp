@@ -65,12 +65,6 @@ void ServerGenerator::generateHeader(const ClassDescriptor & c, std::map<Metadat
                         for (auto m : c.methods()) {
                             std::string request = m.m_requestName;
                             std::string response = m.m_responseName;
-                            if (!m.hasInputs()) {
-                                request = "::google::protobuf::Empty";
-                            }
-                            if (!m.hasOutputs()) {
-                                response = "::google::protobuf::Empty";
-                            }
                             blockMgr.out() << "::grpc::Status " + m.m_rpcName + "(::grpc::ServerContext* context, const " + request + "* request, " + response + "* response) override;\n";
                         }
                         blockMgr.newline();
@@ -100,6 +94,46 @@ void ServerGenerator::generateHeader(const ClassDescriptor & c, std::map<Metadat
         blockMgr.out() << "static constexpr const char * DESCRIPTION = \"" + m_className + " grpc server component\";\n";
     }
     blockMgr.includeGuardsEnd();
+}
+
+void ServerGenerator::bindInput(const ParameterDescriptor & p, CppBlockManager & blockMgr)
+{
+    std::stringstream requestParamTranscription;
+    if (p.ioType() == ParameterDescriptor::io_type::in || p.ioType() == ParameterDescriptor::io_type::inout) {
+        if (p.type().kind() == type_kind::builtin_t || p.type().kind() == type_kind::enum_t) {
+            if (p.type().needsStaticCast()) {
+                requestParamTranscription << " = static_cast<" << p.type().getFullTypeDescription() << ">(request->" << boost::to_lower_copy(p.getName()) << "());\n";
+            }
+            else {
+                requestParamTranscription << " = request->" << boost::to_lower_copy(p.getName()) << "();\n";
+            }
+        }
+        else {
+            requestParamTranscription << " = xpcf::deserialize<"<<p.type().getFullTypeDescription()<<">(request->" << boost::to_lower_copy(p.getName()) << "());\n";
+        }
+    }
+    else {
+        requestParamTranscription << ";\n";
+    }
+
+    blockMgr.out() << p.type().getFullTypeDescription() << " " << p.getName() << requestParamTranscription.str();
+}
+
+void ServerGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager & blockMgr)
+{
+    if (p.ioType() == ParameterDescriptor::io_type::inout || p.ioType() == ParameterDescriptor::io_type::out) {
+        if (p.type().kind() == type_kind::builtin_t) {
+            if (p.type().needsStaticCast()) {
+                blockMgr.out() << "response->set_"<< boost::to_lower_copy(p.getName()) <<"(static_cast<"<< p.type().getRPCType() <<">("<<p.getName() <<"));\n";
+            }
+            else {
+                blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(" << p.getName() << ");\n";
+            }
+        }
+        else if (p.type().kind() == type_kind::user_defined_t) {
+            blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
+        }
+    }
 }
 
 void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out)
@@ -157,12 +191,6 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
         for (auto m : c.methods()) {
             std::string request = m.m_requestName;
             std::string response = m.m_responseName;
-            if (!m.hasInputs()) {
-                request = "::google::protobuf::Empty";
-            }
-            if (!m.hasOutputs()) {
-                response = "::google::protobuf::Empty";
-            }
 
             out << "::grpc::Status " + m_className +"::"+ m_grpcClassName + "Impl::" + m.m_rpcName + "(::grpc::ServerContext* context, const "+ request + "* request, " + response + "* response)\n";
             {
@@ -174,56 +202,27 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                 }
                 methodCall << "m_xpcfComponent->" << m.getName() << "(";
                 uint32_t nbTypes = 0;
-                for (auto p : m.m_params) {
+                for (SRef<ParameterDescriptor> p : m.m_params) {
                     if (nbTypes != 0) {
                         methodCall << ", ";
                     }
-                    std::stringstream requestParamTranscription;
-                    if (p.ioType() == ParameterDescriptor::io_type::in || p.ioType() == ParameterDescriptor::io_type::inout) {
-                        if (p.type().kind() == type_kind::builtin_t || p.type().kind() == type_kind::enum_t) {
-                            requestParamTranscription << " = request->" << boost::to_lower_copy(p.getName()) << "();\n";
-                        }
-                        else {
-                            requestParamTranscription << " = xpcf::deserialize<"<<p.type().getFullTypeDescription()<<">(request->" << boost::to_lower_copy(p.getName()) << "());\n";
-                        }
-                    }
-                    else {
-                        requestParamTranscription << ";\n";
-                    }
-
-                    blockMgr.out() << p.type().getFullTypeDescription() << " " << p.getName() << requestParamTranscription.str();
-                    methodCall << p.getName();
-                    /* if (p.type().kind() == type_kind::builtin_t) {
-                        blockMgr.out() <<"request->"<< boost::to_lower_copy(p.getName()) <<"()";
-                    }
-                    else if (p.type().kind() == type_kind::user_defined_t) {
-                        blockMgr.out() << "xpcf::deserialize<" << p.type().getTypename() << ">(request->"<<boost::to_lower_copy(p.getName()) <<"())";
-                    }*/
+                    bindInput(*p, blockMgr);
+                    methodCall << p->getName();
                     nbTypes++;
                 }
                 blockMgr.out() << methodCall.str() << ");\n";
-                for (auto p : m.m_params) {
-                    if (p.ioType() == ParameterDescriptor::io_type::inout || p.ioType() == ParameterDescriptor::io_type::out) {
-                        /* si in :
-                           T in = xpcf::deserialize<T>(request->in);
-                           si out (ref ou pointer):
-                           T out
-                           si inout:
-                           T inout = xpcf::deserialize<T>(request->inout());
-                           f(xpcf::deserialize<T>(request->in),out,inout);
-                           response->set_out(xpcf::serialize<T>(out));*/
-                        if (p.type().kind() == type_kind::builtin_t) {
-                            blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(" << p.getName() << ");\n";
-                        }
-                        else if (p.type().kind() == type_kind::user_defined_t) {
-                            blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
-                        }
-                    }
+                for (SRef<ParameterDescriptor> p : m.m_params) {
+                    bindOutput(*p, blockMgr);
                 }
                 if (!m.returnType().isVoid()) {
                     // TODO : serialize return type !!!
                     if (m.returnType().kind() == type_kind::builtin_t) {
-                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
+                        if (m.returnType().needsStaticCast()) {
+                            blockMgr.out() << "response->set_xpcfgrpcreturnvalue(static_cast<"<< m.returnType().getRPCType() <<">(returnValue));\n";
+                        }
+                        else {
+                            blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
+                        }
                     }
                     else if (m.returnType().kind() == type_kind::user_defined_t) {
                         blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m.getReturnType() << ">(returnValue));\n";
@@ -236,7 +235,7 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
     m_nameSpace =  "org::bcom::xpcf::grpc::server::" + c.getName();
     m_className = c.getName() + "_grpcServer";

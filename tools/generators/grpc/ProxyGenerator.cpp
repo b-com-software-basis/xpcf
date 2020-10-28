@@ -62,7 +62,11 @@ void ProxyGenerator::generateHeader(const ClassDescriptor & c, std::map<Metadata
                 blockMgr.newline();
                 // foreach method
                 for (auto m : c.methods()) {
-                    blockMgr.out() <<  m.getFullDeclaration() + " override;\n";
+                    blockMgr.out() <<  m.getFullDeclaration();
+                    if (m.isConst()) {
+                        blockMgr.out() <<  " const";
+                    }
+                    blockMgr.out() << " override;\n";
                 }
                 blockMgr.newline();
             }
@@ -87,6 +91,38 @@ void ProxyGenerator::generateHeader(const ClassDescriptor & c, std::map<Metadata
     blockMgr.newline();
     blockMgr.includeGuardsEnd();
 }
+
+void ProxyGenerator::bindInput(const ParameterDescriptor & p, CppBlockManager & blockMgr)
+{
+    if (p.type().kind() == type_kind::builtin_t) {
+        if (p.type().needsStaticCast()) {
+            blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) << "(static_cast<" << p.type().getRPCType() << ">(" << p.getName() << "));\n";
+        }
+        else {
+            blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) << "(" << p.getName() << ");\n";
+        }
+
+    }
+    else if ((p.type().kind() == type_kind::user_defined_t) || (p.type().kind() == type_kind::template_t)) {
+        blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) << "(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
+    }
+}
+
+void ProxyGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager & blockMgr)
+{
+    if (p.type().kind() == type_kind::builtin_t) {
+        if (p.type().needsStaticCast()) {
+            blockMgr.out() << p.getName() << " = static_cast<" << p.type().getFullTypeDescription() << ">(respOut." << boost::to_lower_copy(p.getName()) <<"());\n";
+        }
+        else {
+            blockMgr.out() <<p.getName()<<" = respOut."<< boost::to_lower_copy(p.getName()) <<"();\n";
+        }
+    }
+    else if ((p.type().kind() == type_kind::user_defined_t)|| (p.type().kind() == type_kind::template_t)) {
+        blockMgr.out() <<p.getName()<<" = xpcf::deserialize<" << p.type().getFullTypeDescription() << ">(respOut."<<boost::to_lower_copy(p.getName()) <<"());\n";
+    }
+}
+
 
 void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out)
 {
@@ -161,41 +197,25 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
         blockMgr.newline();
 
         for (auto m : c.methods()) {
-            blockMgr.out() << m.getReturnType() + "  "+ m_className + "::" + m.getDeclaration() + "\n";
+            blockMgr.out() << m.getReturnType() + "  "+ m_className + "::" + m.getDeclaration();
+            if (m.isConst()) {
+                blockMgr.out() <<  " const";
+            }
+            blockMgr.out() << "\n";
             {
                 block_guard methodBlk(blockMgr);
                 blockMgr.out() << "::grpc::ClientContext context;\n";
-                if (!m.hasInputs()) {
-                    blockMgr.out() << "::google::protobuf::Empty reqIn;\n";
+                blockMgr.out() << m.m_requestName << " reqIn;\n";
+                blockMgr.out() << m.m_responseName << " respOut;\n";
+                if (m.hasInputs()) {
+                    for (ParameterDescriptor * p: m.m_inParams) {
+                        bindInput(*p, blockMgr);
+                    }
+                    for (ParameterDescriptor * p: m.m_inoutParams) {
+                        bindInput(*p, blockMgr);
+                    }
                 }
-                else {
-                    blockMgr.out() << m.m_requestName << " reqIn;\n";
-                    for (auto p: m.m_inParams) {
-                        //missing serialize/deserialize from method cpp params !
-                        if (p.type().kind() == type_kind::builtin_t) {
-                            blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) <<"("<<p.getName() <<");\n";
-                        }
-                        else if (p.type().kind() == type_kind::user_defined_t) {
-                            blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) <<"(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
-                        }
 
-                    }
-                }
-                if (!m.hasOutputs())  {
-                    blockMgr.out() << "::google::protobuf::Empty respOut;\n";
-                }
-                else {
-                    blockMgr.out() << m.m_responseName << " respOut;\n";
-                    for (auto p: m.m_outParams) {
-                        //missing serialize/deserialize from method cpp params !
-                        if (p.type().kind() == type_kind::builtin_t) {
-                            blockMgr.out() <<p.getName()<<" = respOut."<< boost::to_lower_copy(p.getName()) <<"();\n";
-                        }
-                        else if (p.type().kind() == type_kind::user_defined_t) {
-                            blockMgr.out() <<p.getName()<<" = xpcf::deserialize<" << p.type().getFullTypeDescription() << ">(respOut."<<boost::to_lower_copy(p.getName()) <<"());\n";
-                        }
-                    }
-                }
                 blockMgr.out() << "::grpc::Status status = m_grpcStub->" + m.m_rpcName + "(&context, reqIn, &respOut);\n";
 
                 blockMgr.out() << "if (!status.ok())";
@@ -204,9 +224,22 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
                     blockMgr.out() << "std::cout << \"" + m.m_rpcName + "rpc failed.\" << std::endl;\n";
                     blockMgr.out() << "throw xpcf::RemotingException(\"" << m_grpcClassName <<"\",\""<< m.m_rpcName <<"\",static_cast<uint32_t>(status.error_code()));\n";//TODO : differentiate semantic return type from status return type : provide status type name ?
                 }
+                if (m.hasOutputs())  {
+                    for (ParameterDescriptor * p: m.m_inoutParams) {
+                        bindOutput(*p, blockMgr);
+                    }
+                    for (ParameterDescriptor * p: m.m_outParams) {
+                        bindOutput(*p, blockMgr);
+                    }
+                }
                 if (!m.returnType().isVoid()) {
                     if (m.returnType().kind() == type_kind::builtin_t) {
-                        blockMgr.out() << "return respOut.xpcfgrpcreturnvalue();\n";
+                        if (m.returnType().needsStaticCast()) {
+                            blockMgr.out() << "return static_cast<" << m.returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                        }
+                        else {
+                            blockMgr.out() << "return respOut.xpcfgrpcreturnvalue();\n";
+                        }
                     }
                     else if (m.returnType().kind() == type_kind::user_defined_t) {
                         blockMgr.out() << "return xpcf::deserialize<" << m.getReturnType() << ">(respOut.xpcfgrpcreturnvalue());\n";
@@ -218,7 +251,7 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> ProxyGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> ProxyGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 
 {
     m_nameSpace =  "org::bcom::xpcf::grpc::proxy::" + c.getName();

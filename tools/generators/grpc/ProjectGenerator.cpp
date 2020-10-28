@@ -118,7 +118,7 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
 
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
     m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::PROXY_HEADERFILENAME);
     m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::SERVER_HEADERFILENAME);

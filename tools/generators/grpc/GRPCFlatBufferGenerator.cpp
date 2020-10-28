@@ -134,24 +134,24 @@ void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m, std::
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
-        for (auto & p : m.m_inParams) {
-            if (p.type().kind() != type_kind::enum_t) {
-                typeName = tryConvertType(p.type().getBuiltinType());
-                if (p.type().kind() != type_kind::builtin_t) {
-                    typeName = p.type().getTypename();
+        for (ParameterDescriptor * p : m.m_inParams) {
+            if (p->type().kind() != type_kind::enum_t) {
+                typeName = tryConvertType(p->type().getBuiltinType());
+                if (p->type().kind() != type_kind::builtin_t) {
+                    typeName = p->type().getTypename();
                 }
             }
-            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p->getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
 
-        for (auto & p : m.m_inoutParams) {
-            if (p.type().kind() != type_kind::enum_t) {
-                typeName = tryConvertType(p.type().getBuiltinType());
-                if (p.type().kind() != type_kind::builtin_t) {
-                    typeName = p.type().getTypename();
+        for (ParameterDescriptor * p : m.m_inoutParams) {
+            if (p->type().kind() != type_kind::enum_t) {
+                typeName = tryConvertType(p->type().getBuiltinType());
+                if (p->type().kind() != type_kind::builtin_t) {
+                    typeName = p->type().getTypename();
                 }
             }
-            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p->getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
@@ -160,29 +160,29 @@ void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m, std::
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 0;
         std::string typeName = "int64";
-        for (auto & p : m.m_inoutParams) {
-            if (p.type().kind() != type_kind::enum_t) {
-                typeName = tryConvertType(p.type().getBuiltinType());
-                if (p.type().kind() != type_kind::builtin_t) {
-                    typeName = p.type().getTypename();
+        for (ParameterDescriptor * p : m.m_inoutParams) {
+            if (p->type().kind() != type_kind::enum_t) {
+                typeName = tryConvertType(p->type().getBuiltinType());
+                if (p->type().kind() != type_kind::builtin_t) {
+                    typeName = p->type().getTypename();
                 }
             }
-            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p->getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
-        for (auto & p : m.m_outParams) {
-            if (p.type().kind() != type_kind::enum_t) {
-                typeName = tryConvertType(p.type().getBuiltinType());
-                if (p.type().kind() != type_kind::builtin_t) {
-                    typeName = p.type().getTypename();
+        for (ParameterDescriptor * p : m.m_outParams) {
+            if (p->type().kind() != type_kind::enum_t) {
+                typeName = tryConvertType(p->type().getBuiltinType());
+                if (p->type().kind() != type_kind::builtin_t) {
+                    typeName = p->type().getTypename();
                 }
             }
-            out<<typeName<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            out<<typeName<<" "<<p->getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> GRPCFlatBufferGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> GRPCFlatBufferGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
     m_serviceName = "grpc" + c.getName() + "Service";
     m_grpcServiceFilePath = m_serviceName + ".proto";

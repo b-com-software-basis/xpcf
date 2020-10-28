@@ -163,10 +163,12 @@ public:
         bool m_isEnum;
         bool m_sharedRef = false;
         bool m_isReference = false;
+        bool m_isPointer = false;
         bool m_isContainer = false;
         bool m_void = true;
         bool isLeaf = false; // false for intermediate template
         type_kind m_kind;
+        mutable std::string m_rpcType;
         template_type m_templateType;
         cpp_builtin_type m_builtinType;
         std::vector<std::shared_ptr<TypeDescriptor>> m_tmplArgsVector; // only for template type desc
@@ -178,6 +180,7 @@ public:
     bool isConst() const { return m_descriptorInfo.m_const; }
     bool isSharedRef() const { return m_descriptorInfo.m_sharedRef; }
     bool isReference() const { return m_descriptorInfo.m_isReference; }
+    bool isPointer() const { return m_descriptorInfo.m_isPointer; }
     bool isVoid() const { return m_descriptorInfo.m_void; }
     void addTemplateArgument(const std::string & arg, const std::shared_ptr<TypeDescriptor> & d);
     enum type_kind kind() const { return m_descriptorInfo.m_kind; }
@@ -185,6 +188,9 @@ public:
     enum template_type getTemplateType() const { return m_descriptorInfo.m_templateType; }
     enum cpp_builtin_type getBuiltinType() const { return m_descriptorInfo.m_builtinType; }
     std::string getFullTypeDescription() const;
+    void enableStaticCast(const std::string & rpcType) const { m_descriptorInfo.m_rpcType = rpcType; m_staticCast = true; }
+    bool needsStaticCast() const { return m_staticCast; }
+    const std::string & getRPCType() const { return m_descriptorInfo.m_rpcType; }
 
 private:
     TypeDescriptor::TypeDescriptorInfo parseType(const cppast::cpp_entity_index& index, const cppast::cpp_type & p);
@@ -199,6 +205,8 @@ private:
     //bool isLeaf = false; // false for intermediate template
     std::deque<bool> m_foundConst;
     std::deque<bool> m_foundRef;
+    mutable bool m_staticCast = false;
+
     TypeDescriptorInfo m_descriptorInfo;
 };
 

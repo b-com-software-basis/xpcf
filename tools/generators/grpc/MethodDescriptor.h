@@ -27,6 +27,7 @@
 #include <string>
 #include <cppast/cpp_member_function.hpp>
 #include <ParameterDescriptor.h>
+#include <xpcf/core/refs.h>
 
 // note : deducing a method parameter is [in] means :
 // - plain T with no ref or pointer or shared_ptr
@@ -62,8 +63,8 @@ public:
     MethodDescriptor(const cppast::cpp_member_function& m);
     const std::string & getName() const { return m_baseMethod.name(); }
     const TypeDescriptor & returnType() const { return m_returnDescriptor; }
-    const std::string getFullDeclaration() const { return m_returnType + " " + m_declaration; }
-    const std::string & getDeclaration() const { return m_declaration; }
+    const std::string getFullDeclaration() const { return m_returnType + " " + getDeclaration(); }
+    const std::string getDeclaration() const;
     const std::string & getReturnType() const { return m_returnType; }
     const streaming_type & streamingType() const { return m_rpcStreamingType; }
   /*  void addAttribute();
@@ -71,15 +72,16 @@ public:
     bool isServerStream();
     void addParameter();*/
     bool isPureVirtual() const { return m_pureVirtual; }
+    bool isConst() const {return m_const; }
     bool ignored() const { return m_ignored; }
     bool parse(const cppast::cpp_entity_index& index);
     bool hasInputs() { return ((m_inParams.size() != 0) || (m_inoutParams.size() != 0)); }
     bool hasOutputs() { return ((m_inoutParams.size() != 0) || (m_outParams.size() != 0 ) || !m_returnDescriptor.isVoid() ); }
 
-    std::vector<ParameterDescriptor> m_inParams;
-    std::vector<ParameterDescriptor> m_outParams;
-    std::vector<ParameterDescriptor> m_inoutParams;
-    std::vector<ParameterDescriptor> m_params;
+    std::vector<ParameterDescriptor *> m_inParams;
+    std::vector<ParameterDescriptor *> m_outParams;
+    std::vector<ParameterDescriptor *> m_inoutParams;
+    std::vector<SRef<ParameterDescriptor>> m_params;
     std::string m_requestName = "Empty";
     std::string m_responseName = "Empty";
     std::string m_rpcName;
@@ -91,7 +93,7 @@ private:
     const cppast::cpp_member_function& m_baseMethod;
     bool m_pureVirtual = false;
     bool m_ignored = false;
-    std::string m_declaration;
+    bool m_const = false;
     std::string m_returnType;
 };
 

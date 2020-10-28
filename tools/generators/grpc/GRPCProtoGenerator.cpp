@@ -12,66 +12,78 @@ template<> GRPCProtoGenerator * xpcf::ComponentFactory::createInstance<GRPCProto
 //protoc grpcIPointCloudManagerService.proto --grpc_out=. --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin
 //message generation: generates grpcIPointCloudManagerService.pb.[h/cc]
 // protoc grpcIPointCloudManagerService.proto --cpp_out=./
-const std::map<enum cpp_builtin_type,std::string> builtinType2protobufTypeMap =
+static const std::map<enum cpp_builtin_type,std::pair<std::string,bool>> builtinType2protobufTypeMap =
 {
-{ cpp_void,"Empty"},
+{ cpp_void,{"Empty",false}},
 
-{ cpp_bool,"bool"},
+{ cpp_bool,{"bool",false}},
 
-{ cpp_uchar,"bytes"},
-{ cpp_ushort,"bytes"},
-{ cpp_uint,"uint32"},
-{ cpp_ulong,"uint64"},
-{ cpp_ulonglong,"uint64"},
-{ cpp_uint128,"bytes"},
+{ cpp_uchar,{"uint32",true}},
+{ cpp_ushort,{"uint32",true}},
+{ cpp_uint,{"uint32",false}},
+{ cpp_ulong,{"uint64",false}},
+{ cpp_ulonglong,{"uint64",false}},
+{ cpp_uint128,{"bytes",false}},
 
-{ cpp_schar,"bytes"},
-{ cpp_short,"bytes"},
-{ cpp_int,"sint32"},
-{ cpp_long,"sint64"},
-{ cpp_longlong,"sint64"},
-{ cpp_int128,"bytes"},
+{ cpp_schar,{"sint32",true}},
+{ cpp_short,{"sint32",true}},
+{ cpp_int,{"sint32",false}},
+{ cpp_long,{"sint64",false}},
+{ cpp_longlong,{"sint64",false}},
+{ cpp_int128,{"bytes",false}},
 
-{ cpp_float,"float"},
-{ cpp_double,"double"},
-{ cpp_longdouble,"bytes"},
-{ cpp_float128,"bytes"},
+{ cpp_float,{"float",false}},
+{ cpp_double,{"double",false}},
+{ cpp_longdouble,{"bytes",false}},
+{ cpp_float128,{"bytes",false}},
 
-{ cpp_char,"bytes"},
-{ cpp_wchar,"bytes"},
-{ cpp_char16,"bytes"},
-{ cpp_char32,"bytes"},
-{ cpp_int8_t,"bytes"},
-{ cpp_int16_t,"bytes"},
-{ cpp_int32_t,"sint32"},
-{ cpp_int64_t,"sint64"},
+{ cpp_char,{"sint32",true}},
+{ cpp_wchar,{"sint32",true}},
+{ cpp_char16,{"sint32",true}},
+{ cpp_char32,{"sint32",true}},
+{ cpp_int8_t,{"sint32",true}},
+{ cpp_int16_t,{"sint32",false}},
+{ cpp_int32_t,{"sint32",true}},
+{ cpp_int64_t,{"sint64",false}},
 
-{ cpp_uint8_t,"bytes"},
-{ cpp_uint16_t,"bytes"},
-{ cpp_uint32_t,"uint32"},
-{ cpp_uint64_t,"uint64"},
+{ cpp_uint8_t,{"uint32",true}},
+{ cpp_uint16_t,{"uint32",true}},
+{ cpp_uint32_t,{"uint32",false}},
+{ cpp_uint64_t,{"uint64",false}},
 
-{ cpp_int_least8_t,"bytes"},
-{ cpp_int_least16_t,"bytes"},
-{ cpp_int_least32_t,"sint32"},
-{ cpp_int_least64_t,"sint64"},
+{ cpp_int_least8_t,{"sint32",true}},
+{ cpp_int_least16_t,{"sint32",true}},
+{ cpp_int_least32_t,{"sint32",false}},
+{ cpp_int_least64_t,{"sint64",false}},
 
-{ cpp_uint_least8_t,"bytes"},
-{ cpp_uint_least16_t,"bytes"},
-{ cpp_uint_least32_t,"uint32"},
-{ cpp_uint_least64_t,"uint64"},
+{ cpp_uint_least8_t,{"uint32",true}},
+{ cpp_uint_least16_t,{"uint32",true}},
+{ cpp_uint_least32_t,{"uint32",false}},
+{ cpp_uint_least64_t,{"uint64",false}},
 
-{ cpp_int_fast8_t,""},
-{ cpp_int_fast16_t,""},
-{ cpp_int_fast32_t,"sint32"},
-{ cpp_int_fast64_t,"sint64"},
+{ cpp_int_fast8_t,{"sint32",true}},
+{ cpp_int_fast16_t,{"sint32",true}},
+{ cpp_int_fast32_t,{"sint32",false}},
+{ cpp_int_fast64_t,{"sint64",false}},
 
-{ cpp_uint_fast8_t,""},
-{ cpp_uint_fast16_t,""},
-{ cpp_uint_fast32_t,"uint32"},
-{ cpp_uint_fast64_t,"uint64"},
+{ cpp_uint_fast8_t,{"uint32",true}},
+{ cpp_uint_fast16_t,{"uint32",true}},
+{ cpp_uint_fast32_t,{"uint32",false}},
+{ cpp_uint_fast64_t,{"uint64",false}},
 };
 
+
+static const std::map<std::string,std::string> proto2cppTypeMap = {
+    {"uint32","uint32_t"},
+    {"sint32","int32_t"},
+    {"uint64","uint64_t"},
+    {"sint64","int64_t"},
+    {"bytes","std::string"},
+};
+
+static const std::map<std::string,std::string> protoReservedKeywordsTranscription = {
+    {"descriptor","descriptorParam"},
+};
 
 GRPCProtoGenerator::GRPCProtoGenerator():AbstractGenerator(xpcf::toMap<GRPCProtoGenerator>())
 {
@@ -116,20 +128,37 @@ void GRPCProtoGenerator::generateService(const ClassDescriptor &c, std::ostream&
             streamingServer = "stream ";
         }
         out<<"rpc "<<methodDesc.m_rpcName<<"("<<streamingClient<<methodDesc.m_requestName<<") returns("<<streamingServer<<methodDesc.m_responseName<<") {}"<<std::endl;
+        if (!methodDesc.hasInputs()) {
+            methodDesc.m_requestName = "::google::protobuf::Empty";
+        }
+        if (!methodDesc.hasOutputs()) {
+            methodDesc.m_responseName = "::google::protobuf::Empty";
+        }
     }
     out<<"}"<<std::endl<<std::endl;
+
+
 }
 
-const std::string & GRPCProtoGenerator::tryConvertType(enum cpp_builtin_type type)
+const std::pair<std::string,bool> & GRPCProtoGenerator::tryConvertType(enum cpp_builtin_type type)
 {
-    static const std::string typeStr = "";
+    static const std::pair<std::string,bool> typeStr = {"",false};
     if (builtinType2protobufTypeMap.find(type) != builtinType2protobufTypeMap.end()) {
         return builtinType2protobufTypeMap.at(type);
     }
     return typeStr;
 }
 
-inline std::string getTypeName(const TypeDescriptor & p) {
+const std::string & GRPCProtoGenerator::tryTranscribeName(ParameterDescriptor & desc)
+{
+    if (protoReservedKeywordsTranscription.find(desc.getName()) != protoReservedKeywordsTranscription.end()) {
+        desc.setName(protoReservedKeywordsTranscription.at(desc.getName()));
+    }
+    return desc.getName();
+}
+
+inline std::string getTypeName(const TypeDescriptor & p)
+{
     std::string typeName;
     if (p.kind() == type_kind::std_string_t) {
         typeName = "string";
@@ -139,31 +168,41 @@ inline std::string getTypeName(const TypeDescriptor & p) {
             if (p.isVoid() && p.isReference()) {
                 throw GenerationException("GRPCProtoGenerator: void * serialization is not defined !");
             }
-            typeName = GRPCProtoGenerator::tryConvertType(p.getBuiltinType());
+            //TODO : differentiate between pointers and refs !
+            //pointer means array of elements : need a size to figure out howto handle the parameter !
+            //reference to builtin means builtin not array : must be different while transcribing and generating stubs !
+            const std::pair<std::string,bool> & typeInfo = GRPCProtoGenerator::tryConvertType(p.getBuiltinType());
+            typeName = typeInfo.first;
+            if (typeInfo.second) {
+                p.enableStaticCast(proto2cppTypeMap.at(typeName));
+            }
             if (typeName.size() == 0 && p.kind() != type_kind::builtin_t) {
                 typeName = "bytes";
             }
         }
         else {
             typeName = "sint32";
+            p.enableStaticCast(typeName);
         }
     }
     return typeName;
 }
 
-void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostream& out)
+void GRPCProtoGenerator::generateMessages(MethodDescriptor & m, std::ostream& out)
 {
     if (m.m_requestName != "google.protobuf.Empty") {
         out<<"message "<<m.m_requestName<<std::endl;
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 1;
         std::string typeName = "int64";
-        for (auto & p : m.m_inParams) {
-            out<<getTypeName(p.type())<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        for (ParameterDescriptor * p : m.m_inParams) {
+            auto typeName = getTypeName(p->type());
+            out << typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
 
-        for (auto & p : m.m_inoutParams) {
-            out<<getTypeName(p.type())<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        for (ParameterDescriptor * p : m.m_inoutParams) {
+            auto typeName = getTypeName(p->type());
+            out<< typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
@@ -172,20 +211,25 @@ void GRPCProtoGenerator::generateMessages(const MethodDescriptor & m, std::ostre
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 1;
         std::string typeName = "int64";
-        for (auto & p : m.m_inoutParams) {
-            out<<getTypeName(p.type())<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        for (ParameterDescriptor * p : m.m_inoutParams) {
+            auto typeName = getTypeName(p->type());
+
+            out<< typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
-        for (auto & p : m.m_outParams) {
-            out<<getTypeName(p.type())<<" "<<p.getName()<<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        for (ParameterDescriptor * p : m.m_outParams) {
+            auto typeName = getTypeName(p->type());
+
+            out<< typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         if (!m.returnType().isVoid()) {
-            out<<getTypeName(m.returnType())<<" xpcfGrpcReturnValue = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+            auto typeName = getTypeName(m.returnType());
+            out<< typeName <<" xpcfGrpcReturnValue = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
     m_serviceName = "grpc" + c.getName() + "Service";
     m_grpcServiceFilePath = m_serviceName + ".proto";

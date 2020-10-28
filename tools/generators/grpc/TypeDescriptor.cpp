@@ -333,6 +333,7 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
             }
             m_foundConst.clear();
             info.m_isReference = true;
+            info.m_isPointer = true;
             typeKind += " pointer";
             // cast to cpp_pointer_type
             auto& pointerType = static_cast<const cppast::cpp_pointer_type&>(currentType.get());
@@ -399,7 +400,6 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
             derefTypeKind = "User defined type";
             info.m_typename = userType.entity().name();
             if (userType.entity().no_overloaded().get() > 0) {
-                waitForUserInput();
                 auto ids = userType.entity().id();
                 for (auto & id : ids) {
                     if (index.lookup(id).has_value()) {

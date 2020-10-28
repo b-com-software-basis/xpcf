@@ -40,7 +40,7 @@ public:
     void unloadComponent () override final;
     void setDestinationFolder(const std::string & folder) override;
     void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) override;
-    std::map<MetadataType,std::string> generate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override {
+    std::map<MetadataType,std::string> generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override {
         if (m_nextGenerator) {
             return m_nextGenerator->generate(c,metadata);
         }

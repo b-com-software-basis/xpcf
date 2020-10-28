@@ -39,9 +39,13 @@ public:
     } io_type;
 
     ParameterDescriptor(const cppast::cpp_function_parameter & p);
+    ParameterDescriptor(const ParameterDescriptor & other);
     //void addAttribute();
     const io_type & ioType() const { return m_ioType; }
-    const std::string & getName() const { return baseParam.name(); }
+    const std::string & getName() const { return m_name; }
+    const cppast::cpp_type & getCppastType() const { return m_baseParam.type(); }
+    void setName(const std::string & name) { m_name = name; }
+
     const TypeDescriptor & type() const { return m_typeDescriptor; }
     bool parse(const cppast::cpp_entity_index& index);
     //std::string getInnerType();
@@ -49,10 +53,11 @@ public:
 private:
     void setIOType(const std::string & ioType);
     void parse_parameter(const cppast::cpp_entity_index& index, const cppast::cpp_type & p);
-    const cppast::cpp_function_parameter & baseParam;
+    const cppast::cpp_function_parameter & m_baseParam;
     io_type m_ioType = io_type::none;
-    ParameterDescriptor * child;
+    ParameterDescriptor * m_child;
     TypeDescriptor m_typeDescriptor;
+    std::string m_name;
 };
 
 #endif // PARAMETERDESCRIPTOR_H

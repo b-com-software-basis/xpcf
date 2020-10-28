@@ -8,8 +8,8 @@ VERSION=2.5.0
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
-CONFIG -= shared
-CONFIG += staticlib
+CONFIG += shared
+CONFIG -= staticlib
 macx {
     #CONFIG += use_brew_llvm
     # howto setup conan to use brew llvm ?
@@ -156,6 +156,7 @@ macx {
     QMAKE_CXXFLAGS += -mmacosx-version-min=10.7  -std=c++17 -fPIC#-x objective-c++
     QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
     LIBS += -lstdc++ -lc -lpthread
+    LIBS += -L/usr/local/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 win32 {

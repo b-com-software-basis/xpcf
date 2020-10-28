@@ -65,8 +65,8 @@ void print_error(const std::string& msg)
 // will only print a single line
 void parse_entity(const cppast::cpp_entity_index& idx, std::ostream& out, const cppast::cpp_entity& e)
 {
-    std::vector<ClassDescriptor> interfaces;
-    std::map<std::string,ClassDescriptor> classes;
+    std::vector<SRef<ClassDescriptor>> interfaces;
+    std::map<std::string,SRef<ClassDescriptor>> classes;
     // print name and the kind of the entity
     if (!e.name().empty())
         out << e.name();
@@ -84,15 +84,15 @@ void parse_entity(const cppast::cpp_entity_index& idx, std::ostream& out, const 
 
     if (e.kind() == cppast::cpp_entity_kind::class_t) {
         out << " [" << e.name() << "] is class"<< '\n';
-        ClassDescriptor c(e);
-        c.parse(idx);
-        if (c.isInterface() && !c.ignored()) {
+        SRef<ClassDescriptor> c = xpcf::utils::make_shared<ClassDescriptor>(e);
+        c->parse(idx);
+        if (c->isInterface() && !c->ignored()) {
             interfaces.push_back(c);
         }
         else {
-            if (!xpcf::mapContains(classes, c.getName())) {
-                classes.insert(std::make_pair(c.getName(),c));
-                out << "Found user defined type = "<<c.getName()<<'\n';
+            if (!xpcf::mapContains(classes, c->getName())) {
+                classes.insert(std::make_pair(c->getName(),c));
+                out << "Found user defined type = "<<c->getName()<<'\n';
             }
         }
     }
@@ -179,8 +179,8 @@ void parse_entity(const cppast::cpp_entity_index& idx, std::ostream& out, const 
         // check every typedescriptor in each method of the interface is known in classes map or is a builtin type??
         // Note : we must find a message/serialized buffer for each type in each interface
         auto serviceGenerator = xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>();
-        metadata = serviceGenerator->generate(c, metadata);
-        metadata = serviceGenerator->validate(c,metadata);
+        metadata = serviceGenerator->generate(*c, metadata);
+        metadata = serviceGenerator->validate(*c,metadata);
     }
 }
 
@@ -452,7 +452,7 @@ try
 
 
     // clang-format on
-    waitForUserInput();
+   // waitForUserInput();
     auto options = option_list.parse(argc, argv);
     if (options.count("help"))
         print_help(option_list);
