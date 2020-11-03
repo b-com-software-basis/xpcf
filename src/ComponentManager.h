@@ -64,20 +64,24 @@ public:
     SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID)  override;
     SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const char * name) override;
 
-    void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
-    void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+    void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+              IComponentManager::BindingRange range) override;
+    void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+              IComponentManager::BindingRange range) override;
     void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-              const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
-              IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit) override;
+              const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+              IComponentManager::BindingRange range) override;
     void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-              const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
-              IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit) override;
+              const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+              IComponentManager::BindingRange range) override;
     void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
               const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-              IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+              IComponentManager::Scope scope,
+              IComponentManager::BindingRange range) override;
     void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
               const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-              IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
+              IComponentManager::Scope scope,
+              IComponentManager::BindingRange range) override;
     void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
               const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
               const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
@@ -111,7 +115,6 @@ private:
     template <class T> XPCFErrorCode loadModules(fs::path folderPath);
     XPCFErrorCode loadLibrary(fs::path aPath);
     SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
-    void inject(SRef<IInjectable> component);
 #ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 #endif

@@ -182,7 +182,7 @@ void GRPCFlatBufferGenerator::generateMessages(const MethodDescriptor & m, std::
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> GRPCFlatBufferGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> GRPCFlatBufferGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
     m_serviceName = "grpc" + c.getName() + "Service";
     m_grpcServiceFilePath = m_serviceName + ".proto";

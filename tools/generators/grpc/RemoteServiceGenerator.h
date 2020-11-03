@@ -33,11 +33,11 @@ class RemoteServiceGenerator : public AbstractGenerator
 public:
     RemoteServiceGenerator();
     ~RemoteServiceGenerator() override;
-    std::map<MetadataType,std::string> generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    std::map<MetadataType,std::string> generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
     void setDestinationFolder(const std::string & folder) override;
     void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) override;
-    std::map<MetadataType,std::string> validate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
-    void finalize(std::map<MetadataType,std::string> metadata) override;
+    std::map<MetadataType,std::string> validateImpl(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    void finalizeImpl(std::map<MetadataType,std::string> metadata) override;
 
 private:
     SRef<IRPCGenerator> m_grpcGenerator;

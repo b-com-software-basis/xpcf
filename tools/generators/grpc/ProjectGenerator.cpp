@@ -118,7 +118,7 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
 
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
     m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::PROXY_HEADERFILENAME);
     m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::SERVER_HEADERFILENAME);
@@ -133,7 +133,7 @@ std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generate(Cla
     return metadata;
 }
 
-void ProjectGenerator::finalize(std::map<MetadataType,std::string> metadata)
+void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
     xpcf::uuids::random_generator gen;
     xpcf::uuids::uuid moduleUUID = gen();

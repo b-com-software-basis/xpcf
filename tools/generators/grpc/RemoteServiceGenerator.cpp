@@ -54,13 +54,12 @@ void RemoteServiceGenerator::setGenerateMode(const GenerateMode & mode)
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 
 {
     std::string generationStep;
     // generation chain is ordered : metadata from grpc generator must be forwarded to proxy, server and project generators
     try {
-    AbstractGenerator::generate(c, metadata);
     if (m_grpcGenerator) {
         generationStep = "GRPC proto files";
         metadata = m_grpcGenerator->generate(c, metadata);
@@ -84,9 +83,8 @@ std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::genera
     return metadata;
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::validate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::validateImpl(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
-    AbstractGenerator::validate(c, metadata);
     if (m_grpcGenerator) {
         metadata = m_grpcGenerator->validate(c, metadata);
     }
@@ -102,9 +100,8 @@ std::map<IRPCGenerator::MetadataType,std::string> RemoteServiceGenerator::valida
     return metadata;
 }
 
-void RemoteServiceGenerator::finalize(std::map<MetadataType,std::string> metadata)
+void RemoteServiceGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
-    AbstractGenerator::finalize(metadata);
     if (m_grpcGenerator) {
         m_grpcGenerator->finalize(metadata);
     }

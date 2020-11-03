@@ -35,8 +35,8 @@ class GRPCProtoGenerator : public AbstractGenerator
 public:
     GRPCProtoGenerator();
     ~GRPCProtoGenerator() override;
-    std::map<MetadataType,std::string> generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
-    void finalize(std::map<MetadataType,std::string> metadata) override;
+    std::map<MetadataType,std::string> generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    void finalizeImpl(std::map<MetadataType,std::string> metadata) override;
 
     static const std::pair<std::string,bool> & tryConvertType(enum cpp_builtin_type type);
 

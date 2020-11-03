@@ -251,7 +251,7 @@ void ProxyGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataTy
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> ProxyGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> ProxyGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 
 {
     m_nameSpace =  "org::bcom::xpcf::grpc::proxy::" + c.getName();
@@ -285,7 +285,7 @@ std::map<IRPCGenerator::MetadataType,std::string> ProxyGenerator::generate(Class
     return metadata;
 }
 
-void ProxyGenerator::finalize(std::map<MetadataType,std::string> metadata)
+void ProxyGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
     for (auto [name, uuid] : m_serviceUuidMap) {
         std::cout << "Component " << name << " generated uuid = [[xpcf::clientUUID(" << uuid <<")]]" << std::endl;

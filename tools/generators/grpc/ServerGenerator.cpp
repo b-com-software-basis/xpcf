@@ -235,7 +235,7 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
     m_nameSpace =  "org::bcom::xpcf::grpc::server::" + c.getName();
     m_className = c.getName() + "_grpcServer";
@@ -267,7 +267,7 @@ std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generate(Clas
     return metadata;
 }
 
-void ServerGenerator::finalize(std::map<MetadataType,std::string> metadata)
+void ServerGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
     for (auto [name, uuid] : m_serviceUuidMap) {
         std::cout << "Component " << name << " generated uuid = [[xpcf::serverUUID(" << uuid <<")]]" << std::endl;

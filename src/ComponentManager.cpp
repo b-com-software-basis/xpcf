@@ -258,30 +258,10 @@ SRef<IComponentIntrospect> ComponentManager::create(const uuids::uuid & componen
     return componentRef;
 }
 
-void ComponentManager::inject(SRef<IInjectable> component)
-{
-    for (auto injectable : component->getInjectables()) {
-        if (!injectable->optional() && !m_factory->bindExists(injectable)) {
-            throw InjectableNotFoundException(injectable);
-        }
-        if (m_factory->bindExists(injectable)) {
-            if (!injectable->isMulti()) {
-                SRef<IComponentIntrospect> injectableRef = m_factory->resolve(injectable);
-                injectable->inject(injectableRef);
-            }
-            else {
-                SRef<IEnumerable<SRef<IComponentIntrospect>>> injectableRef = m_factory->resolveAll(injectable);
-                injectable->inject(injectableRef);
-            }
-        }
-    }
-    component->onInjected();
-}
-
 SRef<IComponentIntrospect> ComponentManager::createComponent(const uuids::uuid & componentUUID)
 {
     SRef<IComponentIntrospect> componentRef = create(componentUUID);
-    inject(componentRef->bindTo<IInjectable>());
+    m_factory->inject(componentRef->bindTo<IInjectable>());
 
     fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
     if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
@@ -295,7 +275,7 @@ SRef<IComponentIntrospect> ComponentManager::createComponent(const uuids::uuid &
 SRef<IComponentIntrospect> ComponentManager::createComponent(const char * instanceName, const uuids::uuid & componentUUID)
 {
     SRef<IComponentIntrospect> componentRef = create(componentUUID);
-    inject(componentRef->bindTo<IInjectable>());
+    m_factory->inject(componentRef->bindTo<IInjectable>());
 
     fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
     if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
@@ -307,9 +287,6 @@ SRef<IComponentIntrospect> ComponentManager::createComponent(const char * instan
 
 SRef<IComponentIntrospect> ComponentManager::resolve(const uuids::uuid & interfaceUUID)
 {
-    if (!m_factory->bindExists(interfaceUUID)) {
-        throw InjectableNotFoundException("Unable to resolve component from interface UUID = " + uuids::to_string(interfaceUUID));
-    }
     SRef<IComponentIntrospect> componentRef = m_factory->resolve(interfaceUUID);
     return componentRef;
 }
@@ -317,62 +294,67 @@ SRef<IComponentIntrospect> ComponentManager::resolve(const uuids::uuid & interfa
 
 SRef<IComponentIntrospect> ComponentManager::resolve(const uuids::uuid & interfaceUUID, const char * name)
 {
-    if (!m_factory->bindExists(interfaceUUID)) {
-        throw InjectableNotFoundException("Unable to resolve component from interface UUID = " + uuids::to_string(interfaceUUID));
-    }
     SRef<IComponentIntrospect> componentRef = m_factory->resolve(interfaceUUID, name);
     return componentRef;
 }
 
-void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+                            IComponentManager::BindingRange range)
 {
-    m_factory->bind(interfaceUUID,instanceUUID,scope);
+    m_factory->bind(interfaceUUID,instanceUUID,scope,range);
 }
 
-void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+                            IComponentManager::BindingRange range)
 {
-    m_factory->bind(name, interfaceUUID, instanceUUID, scope);
+    m_factory->bind(name, interfaceUUID, instanceUUID, scope,range);
 }
 
 void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-                  const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+                  const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+                            IComponentManager::BindingRange range)
 
 {
-    m_factory->bind(targetComponentUUID, interfaceUUID, instanceUUID, scope);
+    m_factory->bind(targetComponentUUID, interfaceUUID, instanceUUID, scope, range);
 }
 
 void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-                  const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+                  const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+                            IComponentManager::BindingRange range)
 {
-    m_factory->bind(targetComponentUUID, name, interfaceUUID, instanceUUID, scope);
+    m_factory->bind(targetComponentUUID, name, interfaceUUID, instanceUUID, scope, range);
 }
 
 void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                     const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                    IComponentManager::Scope scope)
+                    IComponentManager::Scope scope,
+                            IComponentManager::BindingRange range)
 {
-    m_factory->bind(interfaceUUID, instanceUUID, factoryFunc, scope);
+    m_factory->bind(interfaceUUID, instanceUUID, factoryFunc, scope,range);
 }
 
 void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                     const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                    IComponentManager::Scope scope)
+                    IComponentManager::Scope scope,
+                            IComponentManager::BindingRange range)
 {
-    m_factory->bind(name, interfaceUUID, instanceUUID, factoryFunc, scope);
+    m_factory->bind(name, interfaceUUID, instanceUUID, factoryFunc, scope,range);
 }
 
 void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-          const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+          const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+                            IComponentManager::BindingRange range)
 {
-    m_factory->bind(targetComponentUUID, interfaceUUID, factoryFunc, instanceUUID, scope);
+    m_factory->bind(targetComponentUUID, interfaceUUID, factoryFunc, instanceUUID, scope, range);
 }
 
 void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-          const uuids::uuid & instanceUUID, IComponentManager::Scope scope)
+          const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
+                            IComponentManager::BindingRange range)
 {
-    m_factory->bind(targetComponentUUID, name, interfaceUUID, factoryFunc, instanceUUID, scope);
+    m_factory->bind(targetComponentUUID, name, interfaceUUID, factoryFunc, instanceUUID, scope, range);
 }
 
 template <class T>

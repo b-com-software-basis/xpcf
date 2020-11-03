@@ -178,7 +178,13 @@ void parse_entity(const cppast::cpp_entity_index& idx, std::ostream& out, const 
     for (auto & c : interfaces) {
         // check every typedescriptor in each method of the interface is known in classes map or is a builtin type??
         // Note : we must find a message/serialized buffer for each type in each interface
+#ifdef XPCF_NAMEDINJECTIONAPPROACH
+        // every injectable is bound : able to resolve the serviceGenerator
         auto serviceGenerator = xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>();
+#else
+        // every injectable is bound : able to resolve the serviceGenerator
+        auto serviceGenerator = xpcf::getComponentManagerInstance()->resolve<IRPCGenerator>("service");
+#endif
         metadata = serviceGenerator->generate(*c, metadata);
         metadata = serviceGenerator->validate(*c,metadata);
     }
@@ -391,7 +397,7 @@ SRef<xpcf::IComponentManager> bindXpcfComponents() {
     cmpMgr->bindLocal<IRPCGenerator, ProjectGenerator>("project");
 #else
     // chained injection through base classe composite approach :
-    cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::IComponentManager::Singleton>("service");
+    cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::IComponentManager::Singleton, xpcf::IComponentManager::BindingRange::Named>("service");
     cmpMgr->bindLocal<GRPCProtoGenerator, IRPCGenerator, ProxyGenerator, xpcf::IComponentManager::Transient, xpcf::IComponentManager::BindingRange::Explicit>();
     cmpMgr->bindLocal<GRPCFlatBufferGenerator, IRPCGenerator, ProxyGenerator, xpcf::IComponentManager::Transient, xpcf::IComponentManager::BindingRange::Explicit>();
     cmpMgr->bindLocal<ProxyGenerator, IRPCGenerator, ServerGenerator, xpcf::IComponentManager::Transient, xpcf::IComponentManager::BindingRange::Explicit>();
@@ -452,7 +458,7 @@ try
 
 
     // clang-format on
-   // waitForUserInput();
+    // waitForUserInput();
     auto options = option_list.parse(argc, argv);
     if (options.count("help"))
         print_help(option_list);
@@ -487,9 +493,13 @@ try
             cmpMgr->bindLocal<RemoteServiceGenerator, IRPCGenerator, GRPCFlatBufferGenerator>();
 #endif
         }
-
+#ifdef XPCF_NAMEDINJECTIONAPPROACH
         // every injectable is bound : able to resolve the serviceGenerator
         auto serviceGenerator = cmpMgr->resolve<IRPCGenerator>();
+#else
+        // every injectable is bound : able to resolve the serviceGenerator
+        auto serviceGenerator = cmpMgr->resolve<IRPCGenerator>("service");
+#endif
         if (options.count("name")) {
             metadata[IRPCGenerator::MetadataType::PROJECT_NAME] = options["name"].as<std::string>();
         }
@@ -553,8 +563,6 @@ try
         }
         serviceGenerator->finalize(metadata);
     }
-
-
 }
 catch (const cppast::libclang_error& ex)
 {

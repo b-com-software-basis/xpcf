@@ -33,8 +33,8 @@ class ProxyGenerator : public AbstractGenerator
 public:
     ProxyGenerator();
     ~ProxyGenerator() override;
-    std::map<MetadataType,std::string> generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
-    void finalize(std::map<MetadataType,std::string> metadata) override;
+    std::map<MetadataType,std::string> generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    void finalizeImpl(std::map<MetadataType,std::string> metadata) override;
 
 protected:
     void generateHeader(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out);

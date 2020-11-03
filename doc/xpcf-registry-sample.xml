@@ -57,11 +57,11 @@
             <inject to="490a887f-1b64-44a1-902e-0180d8c6facd">
                 <!-- optional scope. -->
                 <scope type="">
-                    <bind interface="9e04c615-8ee7-4c52-83a4-8104a209cafc" to="c97ea5ef-93da-46ed-9a1c-af9ac8f5f5a9" />
+                    <bind interface="9e04c615-8ee7-4c52-83a4-8104a209cafc" to="c97ea5ef-93da-46ed-9a1c-af9ac8f5f5a9" range="all"/>
                 </scope>
             </inject>
             <inject to="adapterComponent">
-                <bind name="message" interface="9e04c615-8ee7-4c52-83a4-8104a209cafc" to="helloPeopleComponent" properties="" />
+                <bind name="message" interface="9e04c615-8ee7-4c52-83a4-8104a209cafc" to="helloPeopleComponent" properties="" /> <!-- here range defaults to explicit" -->
             </inject>
         </injects>
     </factory>

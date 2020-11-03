@@ -49,6 +49,15 @@ public:
         Singleton
     } Scope;
 
+
+    typedef enum {
+        Explicit = 1,
+        WithParents = 2,
+        Named = 3,
+        Default = 4,
+        All = 5
+    } BindingRange;
+
     /**
      * Declare a binding from the service identified with @p interfaceUUID to the concrete component identified with @p instanceUUID.
      * @param [in] interfaceUUID : the interface identifier
@@ -57,56 +66,76 @@ public:
      * @note bindings can come from in-code calls to bind, from autobinds or bindings declared in an xml configuration file or from autobinds while introspecting a module
      */
     virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                      IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+                      IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+                      IComponentManager::BindingRange range = IComponentManager::BindingRange::Default) = 0;
 
     virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                      IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+                      IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+                      IComponentManager::BindingRange range = IComponentManager::BindingRange::Named) = 0;
 
     virtual void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+                      IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit) = 0;
 
     virtual void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+                      IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit) = 0;
 
     virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                            const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                           IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+                           IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+                      IComponentManager::BindingRange range = IComponentManager::BindingRange::Default) = 0;
 
     virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                            const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                           IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+                           IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+                      IComponentManager::BindingRange range = IComponentManager::BindingRange::Named) = 0;
 
     virtual void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
                       const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+                      IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit) = 0;
 
     virtual void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
                       const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
+                      const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+                      IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit) = 0;
 
-    template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const uuids::uuid& componentUUID);
+    template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Default > void bind(const uuids::uuid& componentUUID);
 
-    template < typename T, typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const uuids::uuid& componentUUID);
+    template < typename T, typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit> void bind(const uuids::uuid& componentUUID);
 
-    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind();
+    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Default > void bind();
 
-    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind();
+    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit> void bind();
 
-    template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name, const uuids::uuid& componentUUID);
+    template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Named > void bind(const char * name, const uuids::uuid& componentUUID);
 
-    template < typename T, typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name, const uuids::uuid& componentUUID);
+    template < typename T, typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit > void bind(const char * name, const uuids::uuid& componentUUID);
 
-    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name);
+    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Named > void bind(const char * name);
 
-    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name);
+    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit > void bind(const char * name);
 
-    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal();
+    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Default > void bindLocal();
 
-    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal();
+    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit > void bindLocal();
 
-    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal(const char * name);
+    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Named > void bindLocal(const char * name);
 
-    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal(const char * name);
+    template < typename T, typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient,
+               IComponentManager::BindingRange range = IComponentManager::BindingRange::Explicit > void bindLocal(const char * name);
 
     /**
      * Virtual destructor of IComponentManager
@@ -346,63 +375,75 @@ SRef<IComponentIntrospect> IComponentManager::create(const char * instanceName)
     return createComponent(instanceName,toUUID<C>());
 }
 
-template < typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const uuids::uuid & componentUUID)
+template < typename I, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void  IComponentManager::bind(const uuids::uuid & componentUUID)
 {
-    bind(toUUID<I>(),componentUUID,scope);
+    bind(toUUID<I>(),componentUUID,scope,range);
 }
 
-template < typename T, typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const uuids::uuid & componentUUID)
+template < typename T, typename I, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void  IComponentManager::bind(const uuids::uuid & componentUUID)
 {
-    bind(toUUID<T>(), toUUID<I>(), componentUUID, scope);
+    bind(toUUID<T>(), toUUID<I>(), componentUUID, scope,range);
 }
 
-template < typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind()
+template < typename I, typename C, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void  IComponentManager::bind()
 {
 
-    bind<I,scope>(toUUID<C>());
+    bind<I,scope,range>(toUUID<C>());
 }
 
-template < typename T, typename I, typename C, IComponentManager::Scope scope > void IComponentManager::bind()
+template < typename T, typename I, typename C, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range > void IComponentManager::bind()
 {
-    bind(toUUID<T>(), toUUID<I>(), toUUID<C>(), scope);
+    bind<T,I,scope,range>(toUUID<C>());
 }
 
-template < typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
+template < typename I, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
 {
-    bind(name, toUUID<I>(), componentUUID, scope);
+    bind(name, toUUID<I>(), componentUUID, scope, range);
 }
 
-template < typename T, typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
+template < typename T, typename I, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
 {
     bind(toUUID<T>(), name, toUUID<I>(), componentUUID, scope);
 }
 
-template < typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name)
+template < typename I, typename C, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void  IComponentManager::bind(const char * name)
 {
-    bind<I,scope>(name, toUUID<C>());
+    bind<I,scope,range>(name, toUUID<C>());
 }
 
-template < typename T, typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name)
+template < typename T, typename I, typename C, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void  IComponentManager::bind(const char * name)
 {
-    bind<T,I,scope>(name, toUUID<C>());
+    bind<T,I,scope,range>(name, toUUID<C>());
 }
 
-template < typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal()
+template < typename I, typename C, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void IComponentManager::bindLocal()
 {
-    bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope);
+    bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, range);
 }
 
-template < typename T, typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal()
+template < typename T, typename I, typename C, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void IComponentManager::bindLocal()
 {
-    bind(toUUID<T>(), toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope);
+    bind(toUUID<T>(), toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope, range);
 }
 
-template < typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal(const char * name)
+template < typename I, typename C, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void IComponentManager::bindLocal(const char * name)
 {
-    bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope);
+    bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, range);
 }
 
-template < typename T, typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal(const char * name)
+template < typename T, typename I, typename C, IComponentManager::Scope scope,
+           IComponentManager::BindingRange range> void IComponentManager::bindLocal(const char * name)
 {
     bind(toUUID<T>(), name, toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope);
 }

@@ -229,7 +229,7 @@ void GRPCProtoGenerator::generateMessages(MethodDescriptor & m, std::ostream& ou
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
 {
     m_serviceName = "grpc" + c.getName() + "Service";
     m_grpcServiceFilePath = m_serviceName + ".proto";
@@ -269,7 +269,7 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generate(C
     return metadata;
 }
 
-void GRPCProtoGenerator::finalize(std::map<MetadataType,std::string> metadata)
+void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
     fs::path toolPath = bp::search_path("protoc");
     fs::path pluginPath = bp::search_path("grpc_cpp_plugin");
