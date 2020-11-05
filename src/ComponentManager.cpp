@@ -298,63 +298,63 @@ SRef<IComponentIntrospect> ComponentManager::resolve(const uuids::uuid & interfa
     return componentRef;
 }
 
-void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
-                            IComponentManager::BindingRange range)
+void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, BindingScope scope,
+                            uint8_t bindingRangeMask)
 {
-    m_factory->bind(interfaceUUID,instanceUUID,scope,range);
+    m_factory->bind(interfaceUUID,instanceUUID,scope, bindingRangeMask);
 }
 
-void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
-                            IComponentManager::BindingRange range)
+void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, BindingScope scope,
+                            uint8_t bindingRangeMask)
 {
-    m_factory->bind(name, interfaceUUID, instanceUUID, scope,range);
+    m_factory->bind(name, interfaceUUID, instanceUUID, scope, bindingRangeMask);
 }
 
 void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-                  const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
-                            IComponentManager::BindingRange range)
+                  const uuids::uuid & instanceUUID, BindingScope scope,
+                            uint8_t bindingRangeMask)
 
 {
-    m_factory->bind(targetComponentUUID, interfaceUUID, instanceUUID, scope, range);
+    m_factory->bind(targetComponentUUID, interfaceUUID, instanceUUID, scope, bindingRangeMask);
 }
 
 void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-                  const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
-                            IComponentManager::BindingRange range)
+                  const uuids::uuid & instanceUUID, BindingScope scope,
+                            uint8_t bindingRangeMask)
 {
-    m_factory->bind(targetComponentUUID, name, interfaceUUID, instanceUUID, scope, range);
+    m_factory->bind(targetComponentUUID, name, interfaceUUID, instanceUUID, scope, bindingRangeMask);
 }
 
 void ComponentManager::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                     const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                    IComponentManager::Scope scope,
-                            IComponentManager::BindingRange range)
+                    BindingScope scope,
+                            uint8_t bindingRangeMask)
 {
-    m_factory->bind(interfaceUUID, instanceUUID, factoryFunc, scope,range);
+    m_factory->bind(interfaceUUID, instanceUUID, factoryFunc, scope, bindingRangeMask);
 }
 
 void ComponentManager::bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                     const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                    IComponentManager::Scope scope,
-                            IComponentManager::BindingRange range)
+                    BindingScope scope,
+                            uint8_t bindingRangeMask)
 {
-    m_factory->bind(name, interfaceUUID, instanceUUID, factoryFunc, scope,range);
+    m_factory->bind(name, interfaceUUID, instanceUUID, factoryFunc, scope, bindingRangeMask);
 }
 
 void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-          const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
-                            IComponentManager::BindingRange range)
+          const uuids::uuid & instanceUUID, BindingScope scope,
+                            uint8_t bindingRangeMask)
 {
-    m_factory->bind(targetComponentUUID, interfaceUUID, factoryFunc, instanceUUID, scope, range);
+    m_factory->bind(targetComponentUUID, interfaceUUID, factoryFunc, instanceUUID, scope, bindingRangeMask);
 }
 
 void ComponentManager::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-          const uuids::uuid & instanceUUID, IComponentManager::Scope scope,
-                            IComponentManager::BindingRange range)
+          const uuids::uuid & instanceUUID, BindingScope scope,
+                            uint8_t bindingRangeMask)
 {
-    m_factory->bind(targetComponentUUID, name, interfaceUUID, factoryFunc, instanceUUID, scope, range);
+    m_factory->bind(targetComponentUUID, name, interfaceUUID, factoryFunc, instanceUUID, scope, bindingRangeMask);
 }
 
 template <class T>
