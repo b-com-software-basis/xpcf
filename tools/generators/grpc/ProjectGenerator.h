@@ -33,13 +33,13 @@ class ProjectGenerator : public AbstractGenerator
 public:
     ProjectGenerator();
     ~ProjectGenerator() override;
-    std::map<MetadataType,std::string> generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    std::map<MetadataType,std::string> generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) override;
     //stringstream to aggregate all project info, serialized to out upon destruction ? or unload ?
     //howto forward project option generation standalone/embedded ? configurable comp? through metadata ?
     void finalizeImpl(std::map<MetadataType,std::string> metadata) override;
 
 private:
-    void generateModuleMain(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata);
+    void generateModuleMain(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata);
     void generateProjectFile(std::map<MetadataType,std::string> metadata, std::ostream& out);
     std::stringstream m_srcProjectInfos;
     std::stringstream m_headerProjectInfos;

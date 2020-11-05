@@ -43,6 +43,7 @@ DEPENDENCIESCONFIG = static recurse
 include (../../../builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \ \
+    ASTParser.h \
     AbstractGenerator.h \
     ClassDescriptor.h \
     CppHelpers.h \
@@ -56,9 +57,11 @@ HEADERS += \ \
     RemoteServiceGenerator.h \
     ServerGenerator.h \
     TypeDescriptor.h \
-    interfaces/IRPCGenerator.h
+    interfaces/IRPCGenerator.h \
+    interfaces/ITypeParser.h
 
 SOURCES += \
+    ASTParser.cpp \
     AbstractGenerator.cpp \
     ClassDescriptor.cpp \
     GRPCFlatBufferGenerator.cpp \

@@ -35,16 +35,16 @@ class GRPCProtoGenerator : public AbstractGenerator
 public:
     GRPCProtoGenerator();
     ~GRPCProtoGenerator() override;
-    std::map<MetadataType,std::string> generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    std::map<MetadataType,std::string> generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) override;
     void finalizeImpl(std::map<MetadataType,std::string> metadata) override;
 
     static const std::pair<std::string,bool> & tryConvertType(enum cpp_builtin_type type);
 
 private:
     static const std::string & tryTranscribeName(ParameterDescriptor & desc);
-    void prepareMessages(const ClassDescriptor &c);
-    void generateMessages(MethodDescriptor & m, std::ostream& out);
-    void generateService(const ClassDescriptor & c, std::ostream& out);
+    void prepareMessages(const SRef<ClassDescriptor> c);
+    void generateMessages(SRef<MethodDescriptor> m, std::ostream& out);
+    void generateService(const SRef<ClassDescriptor> c, std::ostream& out);
     std::string m_serviceName;
     std::string m_grpcServiceFilePath;
     std::vector<fs::path> m_protoFilesPath;

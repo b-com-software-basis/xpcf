@@ -57,7 +57,7 @@ ProjectGenerator::~ProjectGenerator()
 
 }
 
-void ProjectGenerator::generateModuleMain(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+void ProjectGenerator::generateModuleMain(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
 {
     m_moduleHdrMgr->include(metadata[MetadataType::PROXY_HEADERFILENAME]);
     m_moduleHdrMgr->include(metadata[MetadataType::SERVER_HEADERFILENAME]);
@@ -118,7 +118,7 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
 
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
 {
     m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::PROXY_HEADERFILENAME);
     m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::SERVER_HEADERFILENAME);

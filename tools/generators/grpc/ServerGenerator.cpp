@@ -17,10 +17,10 @@ ServerGenerator::~ServerGenerator()
 
 }
 
-void ServerGenerator::generateHeader(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out)
+void ServerGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata, std::ostream& out)
 {
     //NOTE : server is configurable to set grpc channel etc...
-    xpcf::uuids::uuid serverUUID = c.getServerUUID();
+    xpcf::uuids::uuid serverUUID = c->getServerUUID();
     if (serverUUID.is_nil()) {
         xpcf::uuids::random_generator gen;
         serverUUID = gen();
@@ -31,7 +31,7 @@ void ServerGenerator::generateHeader(const ClassDescriptor & c, std::map<Metadat
     blockMgr.out() << "// GRPC Server Class Header generated with xpcf_grpc_gen\n";
     blockMgr.newline();
     blockMgr.includeGuardsStart(m_className);
-    blockMgr.include(metadata[IRPCGenerator::MetadataType::INTERFACEFILEPATH]); // relative or absolute path?? TODO:  retrieve filepath from metadata
+    blockMgr.include(c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACEFILEPATH)); // relative or absolute path?? TODO:  retrieve filepath from metadata
     blockMgr.include("xpcf/component/ConfigurableBase.h",false);
     blockMgr.include("xpcf/remoting/IGrpcService.h",false);
     blockMgr.include(m_grpcClassName + ".grpc.pb.h");
@@ -62,17 +62,17 @@ void ServerGenerator::generateHeader(const ClassDescriptor & c, std::map<Metadat
                         block_guard<CPP::PUBLIC> innerPublicBlk(blockMgr);
                         blockMgr.out() << m_grpcClassName + "Impl() = default;\n";// missing something to set the ref toward the injected I* component
                         // foreach method
-                        for (auto m : c.methods()) {
-                            std::string request = m.m_requestName;
-                            std::string response = m.m_responseName;
-                            blockMgr.out() << "::grpc::Status " + m.m_rpcName + "(::grpc::ServerContext* context, const " + request + "* request, " + response + "* response) override;\n";
+                        for (auto m : c->methods()) {
+                            std::string request = m->m_requestName;
+                            std::string response = m->m_responseName;
+                            blockMgr.out() << "::grpc::Status " + m->m_rpcName + "(::grpc::ServerContext* context, const " + request + "* request, " + response + "* response) override;\n";
                         }
                         blockMgr.newline();
                         std::string baseInterface;
-                        if (!metadata[IRPCGenerator::MetadataType::INTERFACENAMESPACE].empty()) {
-                            baseInterface = metadata[IRPCGenerator::MetadataType::INTERFACENAMESPACE] + "::";
+                        if (!c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE).empty()) {
+                            baseInterface = c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE) + "::";
                         }
-                        baseInterface += c.getName();
+                        baseInterface += c->getName();
                         blockMgr.out() << "SRef<" + baseInterface + "> m_xpcfComponent;\n";
                     }
                 }
@@ -136,7 +136,7 @@ void ServerGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager 
     }
 }
 
-void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata, std::ostream& out)
+void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata, std::ostream& out)
 {
     CppBlockManager blockMgr(out);
     out << "// GRPC Server Class implementation generated with xpcf_grpc_gen\n";
@@ -163,10 +163,10 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
             block_guard methodBlock(blockMgr);
             blockMgr.out() << "declareInterface<xpcf::IGrpcService>(this);\n";
             std::string baseInterface;
-            if (!metadata[IRPCGenerator::MetadataType::INTERFACENAMESPACE].empty()) {
-                baseInterface = metadata[IRPCGenerator::MetadataType::INTERFACENAMESPACE] + "::";
+            if (!c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE).empty()) {
+                baseInterface = c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE) + "::";
             }
-            baseInterface += c.getName();
+            baseInterface += c->getName();
             blockMgr.out() << "declareInjectable<" + baseInterface + ">(m_grpcService.m_xpcfComponent);\n";
         }
         blockMgr.newline();
@@ -188,21 +188,21 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
             blockMgr.out() << "return &m_grpcService;\n";
         }
 
-        for (auto m : c.methods()) {
-            std::string request = m.m_requestName;
-            std::string response = m.m_responseName;
+        for (auto m : c->methods()) {
+            std::string request = m->m_requestName;
+            std::string response = m->m_responseName;
 
-            out << "::grpc::Status " + m_className +"::"+ m_grpcClassName + "Impl::" + m.m_rpcName + "(::grpc::ServerContext* context, const "+ request + "* request, " + response + "* response)\n";
+            out << "::grpc::Status " + m_className +"::"+ m_grpcClassName + "Impl::" + m->m_rpcName + "(::grpc::ServerContext* context, const "+ request + "* request, " + response + "* response)\n";
             {
                 block_guard methodBlock(blockMgr);
                 std::stringstream methodCall;
-                if (!m.returnType().isVoid()) {
-                    blockMgr.out() << m.getReturnType() << " returnValue;\n";
+                if (!m->returnType().isVoid()) {
+                    blockMgr.out() << m->getReturnType() << " returnValue;\n";
                     methodCall << "returnValue = ";
                 }
-                methodCall << "m_xpcfComponent->" << m.getName() << "(";
+                methodCall << "m_xpcfComponent->" << m->getName() << "(";
                 uint32_t nbTypes = 0;
-                for (SRef<ParameterDescriptor> p : m.m_params) {
+                for (SRef<ParameterDescriptor> p : m->m_params) {
                     if (nbTypes != 0) {
                         methodCall << ", ";
                     }
@@ -211,21 +211,21 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
                     nbTypes++;
                 }
                 blockMgr.out() << methodCall.str() << ");\n";
-                for (SRef<ParameterDescriptor> p : m.m_params) {
+                for (SRef<ParameterDescriptor> p : m->m_params) {
                     bindOutput(*p, blockMgr);
                 }
-                if (!m.returnType().isVoid()) {
+                if (!m->returnType().isVoid()) {
                     // TODO : serialize return type !!!
-                    if (m.returnType().kind() == type_kind::builtin_t) {
-                        if (m.returnType().needsStaticCast()) {
-                            blockMgr.out() << "response->set_xpcfgrpcreturnvalue(static_cast<"<< m.returnType().getRPCType() <<">(returnValue));\n";
+                    if (m->returnType().kind() == type_kind::builtin_t) {
+                        if (m->returnType().needsStaticCast()) {
+                            blockMgr.out() << "response->set_xpcfgrpcreturnvalue(static_cast<"<< m->returnType().getRPCType() <<">(returnValue));\n";
                         }
                         else {
                             blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
                         }
                     }
-                    else if (m.returnType().kind() == type_kind::user_defined_t) {
-                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m.getReturnType() << ">(returnValue));\n";
+                    else if (m->returnType().kind() == type_kind::user_defined_t) {
+                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m->getReturnType() << ">(returnValue));\n";
                     }
 
                 }
@@ -235,10 +235,10 @@ void ServerGenerator::generateBody(const ClassDescriptor & c, std::map<MetadataT
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
 {
-    m_nameSpace =  "org::bcom::xpcf::grpc::server::" + c.getName();
-    m_className = c.getName() + "_grpcServer";
+    m_nameSpace =  "org::bcom::xpcf::grpc::server::" + c->getName();
+    m_className = c->getName() + "_grpcServer";
     m_headerFileName = m_className + ".h";
     m_cppFileName = m_className + ".cpp";
     m_grpcClassName = metadata.at(MetadataType::GRPCSERVICENAME);

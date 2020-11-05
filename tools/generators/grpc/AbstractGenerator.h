@@ -26,6 +26,7 @@
 #include <xpcf/core/Exception.h>
 
 #include "interfaces/IRPCGenerator.h"
+#include "interfaces/ITypeParser.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include "CppHelpers.h"
@@ -41,11 +42,11 @@ public:
     void setDestinationFolder(const std::string & folder) override;
     void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) override;
 
-    virtual std::map<MetadataType,std::string> generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) { return metadata; }
-    virtual std::map<MetadataType,std::string> validateImpl(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) { return metadata; }
+    virtual std::map<MetadataType,std::string> generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) { return metadata; }
+    virtual std::map<MetadataType,std::string> validateImpl(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) { return metadata; }
     virtual void finalizeImpl(std::map<MetadataType,std::string> metadata) {}
 
-    std::map<MetadataType,std::string> generate(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) final {
+    std::map<MetadataType,std::string> generate(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) final {
         metadata = generateImpl(c, metadata);
         if (m_nextGenerator) {
             return m_nextGenerator->generate(c,metadata);
@@ -53,7 +54,7 @@ public:
         return metadata;
     }
 
-    std::map<MetadataType,std::string> validate(const ClassDescriptor & c, std::map<MetadataType,std::string> metadata) final {
+    std::map<MetadataType,std::string> validate(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) final {
         metadata = validateImpl(c, metadata);
         if (m_nextGenerator) {
             return m_nextGenerator->validate(c,metadata);
@@ -72,6 +73,7 @@ protected:
     GenerateMode m_mode;
     fs::path m_folder;
     SRef<IRPCGenerator> m_nextGenerator;
+    SRef<ITypeParser> m_astParser;
 };
 
 class GenerationException : public org::bcom::xpcf::Exception {

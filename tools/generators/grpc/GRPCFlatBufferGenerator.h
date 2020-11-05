@@ -31,14 +31,14 @@ class GRPCFlatBufferGenerator : public AbstractGenerator
 public:
     GRPCFlatBufferGenerator();
     ~GRPCFlatBufferGenerator() override;
-    std::map<MetadataType,std::string> generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata) override;
+    std::map<MetadataType,std::string> generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) override;
     static const std::string & tryConvertType(enum cpp_builtin_type type);
 
 private:
-    void prepareMessages(const ClassDescriptor &c);
-    void generateMessages(const MethodDescriptor & m, std::ostream& out);
+    void prepareMessages(const SRef<ClassDescriptor> c);
+    void generateMessages(SRef<MethodDescriptor> m, std::ostream& out);
 
-    void generateService(const ClassDescriptor & c, std::ostream& out);
+    void generateService(const SRef<ClassDescriptor> c, std::ostream& out);
 
     std::string m_serviceName;
     std::string m_grpcServiceFilePath;

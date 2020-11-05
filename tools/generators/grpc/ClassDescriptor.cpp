@@ -6,8 +6,10 @@
 
 namespace xpcf = org::bcom::xpcf;
 
-ClassDescriptor::ClassDescriptor(const cppast::cpp_entity& c):m_baseClass(static_cast<const cppast::cpp_class&>(c))
+ClassDescriptor::ClassDescriptor(const cppast::cpp_entity& c, const std::string & nameSpace, const std::string & filePath):m_baseClass(static_cast<const cppast::cpp_class&>(c))
 {
+    m_metadata[MetadataType::INTERFACENAMESPACE] = nameSpace;
+    m_metadata[MetadataType::INTERFACEFILEPATH] = filePath;
 }
 
 ClassDescriptor::ClassDescriptor(const cppast::cpp_class& c):m_baseClass(c)
@@ -23,11 +25,11 @@ void ClassDescriptor::generateRpcMapping(const std::map<std::string, std::vector
             std::size_t methodIndex = 0;
             for (auto & index : indexArray) {
                 std::string grpcMethodName = name + "_grpc" + std::to_string(methodIndex++);
-                m_virtualMethods[index].m_rpcName = grpcMethodName;
+                m_virtualMethods[index]->m_rpcName = grpcMethodName;
             }
         }
         else {
-            m_virtualMethods[indexArray[0]].m_rpcName = name;
+            m_virtualMethods[indexArray[0]]->m_rpcName = name;
         }
     }
 }
@@ -74,11 +76,11 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
     for (auto & m : m_baseClass) {
         if (m.kind() == cppast::cpp_entity_kind::member_function_t) {
             // cast to member_function
-            MethodDescriptor desc(m);
-            desc.parse(index);
-            if (desc.isPureVirtual() && !desc.ignored()) {
+            SRef<MethodDescriptor> desc  = xpcf::utils::make_shared<MethodDescriptor>(m);
+            desc->parse(index);
+            if (desc->isPureVirtual() && !desc->ignored()) {
                 m_virtualMethods.push_back(desc);
-                virtualMethodsMap[desc.getName()].push_back(m_virtualMethods.size() - 1);
+                virtualMethodsMap[desc->getName()].push_back(m_virtualMethods.size() - 1);
             }
         }
     }

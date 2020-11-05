@@ -92,8 +92,8 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
 
     for (auto & p : m_baseMethod.parameters()) {
         SRef<ParameterDescriptor> desc  = xpcf::utils::make_shared<ParameterDescriptor>(p);
-        m_params.push_back(desc);
         desc->parse(index);
+        m_params.push_back(desc);
 
         switch (desc->ioType()) {
         case ParameterDescriptor::io_type::in :

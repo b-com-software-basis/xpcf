@@ -95,44 +95,44 @@ GRPCProtoGenerator::~GRPCProtoGenerator()
 
 }
 
-void GRPCProtoGenerator::prepareMessages(const ClassDescriptor &c)
+void GRPCProtoGenerator::prepareMessages(const SRef<ClassDescriptor> c)
 {
-    for (auto & methodDesc : c.methods()) {
+    for (auto & methodDesc : c->methods()) {
         std::string streamingClient, streamingServer;
 
-        if (methodDesc.hasInputs()) {
-            methodDesc.m_requestName = methodDesc.m_rpcName + "Request";
+        if (methodDesc->hasInputs()) {
+            methodDesc->m_requestName = methodDesc->m_rpcName + "Request";
         }
         else {
-            methodDesc.m_requestName = "google.protobuf.Empty";
+            methodDesc->m_requestName = "google.protobuf.Empty";
         }
-        if (methodDesc.hasOutputs()) {
-            methodDesc.m_responseName = methodDesc.m_rpcName + "Response";
+        if (methodDesc->hasOutputs()) {
+            methodDesc->m_responseName = methodDesc->m_rpcName + "Response";
         }
         else {
-            methodDesc.m_responseName = "google.protobuf.Empty";
+            methodDesc->m_responseName = "google.protobuf.Empty";
         }
     }
 }
 
-void GRPCProtoGenerator::generateService(const ClassDescriptor &c, std::ostream& out)
+void GRPCProtoGenerator::generateService(const SRef<ClassDescriptor> c, std::ostream& out)
 {
     out<<"service "<<m_serviceName<<" {"<<std::endl;
-    for (auto & methodDesc : c.methods()) {
+    for (auto & methodDesc : c->methods()) {
         std::string streamingClient, streamingServer;
 
-        if ((methodDesc.streamingType() & MethodDescriptor::streaming_type::client) && methodDesc.m_requestName != "google.protobuf.Empty") {
+        if ((methodDesc->streamingType() & MethodDescriptor::streaming_type::client) && methodDesc->m_requestName != "google.protobuf.Empty") {
             streamingClient = "stream ";
         }
-        if ((methodDesc.streamingType() & MethodDescriptor::streaming_type::server)  && methodDesc.m_responseName != "google.protobuf.Empty"){
+        if ((methodDesc->streamingType() & MethodDescriptor::streaming_type::server)  && methodDesc->m_responseName != "google.protobuf.Empty"){
             streamingServer = "stream ";
         }
-        out<<"rpc "<<methodDesc.m_rpcName<<"("<<streamingClient<<methodDesc.m_requestName<<") returns("<<streamingServer<<methodDesc.m_responseName<<") {}"<<std::endl;
-        if (!methodDesc.hasInputs()) {
-            methodDesc.m_requestName = "::google::protobuf::Empty";
+        out<<"rpc "<<methodDesc->m_rpcName<<"("<<streamingClient<<methodDesc->m_requestName<<") returns("<<streamingServer<<methodDesc->m_responseName<<") {}"<<std::endl;
+        if (!methodDesc->hasInputs()) {
+            methodDesc->m_requestName = "::google::protobuf::Empty";
         }
-        if (!methodDesc.hasOutputs()) {
-            methodDesc.m_responseName = "::google::protobuf::Empty";
+        if (!methodDesc->hasOutputs()) {
+            methodDesc->m_responseName = "::google::protobuf::Empty";
         }
     }
     out<<"}"<<std::endl<<std::endl;
@@ -188,50 +188,50 @@ inline std::string getTypeName(const TypeDescriptor & p)
     return typeName;
 }
 
-void GRPCProtoGenerator::generateMessages(MethodDescriptor & m, std::ostream& out)
+void GRPCProtoGenerator::generateMessages(SRef<MethodDescriptor> m, std::ostream& out)
 {
-    if (m.m_requestName != "google.protobuf.Empty") {
-        out<<"message "<<m.m_requestName<<std::endl;
+    if (m->m_requestName != "google.protobuf.Empty") {
+        out<<"message "<<m->m_requestName<<std::endl;
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 1;
         std::string typeName = "int64";
-        for (ParameterDescriptor * p : m.m_inParams) {
+        for (ParameterDescriptor * p : m->m_inParams) {
             auto typeName = getTypeName(p->type());
             out << typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
 
-        for (ParameterDescriptor * p : m.m_inoutParams) {
+        for (ParameterDescriptor * p : m->m_inoutParams) {
             auto typeName = getTypeName(p->type());
             out<< typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
-    if (m.m_responseName != "google.protobuf.Empty") {
-        out<<"message "<<m.m_responseName<<std::endl;
+    if (m->m_responseName != "google.protobuf.Empty") {
+        out<<"message "<<m->m_responseName<<std::endl;
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 1;
         std::string typeName = "int64";
-        for (ParameterDescriptor * p : m.m_inoutParams) {
+        for (ParameterDescriptor * p : m->m_inoutParams) {
             auto typeName = getTypeName(p->type());
 
             out<< typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
-        for (ParameterDescriptor * p : m.m_outParams) {
+        for (ParameterDescriptor * p : m->m_outParams) {
             auto typeName = getTypeName(p->type());
 
             out<< typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
-        if (!m.returnType().isVoid()) {
-            auto typeName = getTypeName(m.returnType());
+        if (!m->returnType().isVoid()) {
+            auto typeName = getTypeName(m->returnType());
             out<< typeName <<" xpcfGrpcReturnValue = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         out<<"}"<<std::endl<<std::endl;
     }
 }
 
-std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateImpl(ClassDescriptor & c, std::map<MetadataType,std::string> metadata)
+std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
 {
-    m_serviceName = "grpc" + c.getName() + "Service";
+    m_serviceName = "grpc" + c->getName() + "Service";
     m_grpcServiceFilePath = m_serviceName + ".proto";
     metadata[MetadataType::GRPCSERVICENAME] = m_serviceName;
     metadata[MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
@@ -239,7 +239,7 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateIm
 
     try {
         if (m_mode == GenerateMode::STD_COUT) {
-            for (auto & methodDesc : c.methods()) {
+            for (auto & methodDesc : c->methods()) {
                 generateMessages(methodDesc, std::cout);
             }
             generateService(c, std::cout);
@@ -251,7 +251,7 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateIm
             std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
             grpcServiceFile << "syntax = \"proto3\";\n\n";
             grpcServiceFile << "import \"google/protobuf/empty.proto\";\n\n";
-            for (auto & methodDesc : c.methods()) {
+            for (auto & methodDesc : c->methods()) {
                 generateMessages(methodDesc, grpcServiceFile);
             }
             generateService(c, grpcServiceFile);
