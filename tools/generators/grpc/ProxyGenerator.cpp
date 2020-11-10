@@ -51,6 +51,7 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
         blockMgr.newline();
         blockMgr.out() << "class " + m_className + ":  public org::bcom::xpcf::ConfigurableBase, virtual public " + baseInterface + " ";
         {
+            std::map<std::string,std::pair<std::string,bool>> proxyMembersVariables; // name, {type, isConstMethod}
             block_guard<CPP::CLASS> classBlk(blockMgr);
             {
                 block_guard<CPP::PUBLIC> publicBlk(blockMgr);
@@ -67,6 +68,9 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
                         blockMgr.out() <<  " const";
                     }
                     blockMgr.out() << " override;\n";
+                    if (m->returnType().isConst() && m->returnType().isReference()) {
+                        proxyMembersVariables["m_" + m->getName()] = std::make_pair(m->returnType().getFullTypeDescription(),m->isConst());
+                    }
                 }
                 blockMgr.newline();
             }
@@ -76,6 +80,13 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
                 blockMgr.out() << "uint32_t m_channelCredentials;\n";
                 blockMgr.out() << "std::shared_ptr<::grpc::Channel> m_channel;\n";
                 blockMgr.out() << "std::unique_ptr<" + m_grpcClassName + "::Stub> m_grpcStub;\n";
+                for (auto & [name, value ] : proxyMembersVariables) {
+                    auto & [type, isConst] = value;
+                    if (isConst) {
+                        blockMgr.out() << "mutable ";
+                    }
+                    blockMgr.out() << type << " " << name << ";\n";
+                }
             }
         }
     }
@@ -242,7 +253,13 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
                         }
                     }
                     else if (m->returnType().kind() == type_kind::user_defined_t) {
-                        blockMgr.out() << "return xpcf::deserialize<" << m->getReturnType() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                        if (m->returnType().isConst() && m->returnType().isReference()) {
+                            blockMgr.out() << "m_" << m->getName()<<" = xpcf::deserialize<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                            blockMgr.out() << "return m_" << m->getName() << ";\n";
+                        }
+                        else {
+                            blockMgr.out() << "return xpcf::deserialize<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                        }
                     }
                 }
             }

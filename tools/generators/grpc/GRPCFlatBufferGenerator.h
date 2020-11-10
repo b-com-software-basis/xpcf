@@ -35,6 +35,7 @@ public:
     static const std::string & tryConvertType(enum cpp_builtin_type type);
 
 private:
+    std::string getTypeName(const TypeDescriptor & p);
     void prepareMessages(const SRef<ClassDescriptor> c);
     void generateMessages(SRef<MethodDescriptor> m, std::ostream& out);
 

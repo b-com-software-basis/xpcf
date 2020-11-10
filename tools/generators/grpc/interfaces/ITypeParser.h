@@ -11,9 +11,11 @@ class ITypeParser: virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~ITypeParser() override = default;
-    virtual std::vector<SRef<ClassDescriptor>> & getParsedInterfaces() = 0 ;
+    virtual std::map<std::string,SRef<ClassDescriptor>> & getParsedInterfaces() = 0 ;
+    virtual std::map<std::string,SRef<ClassDescriptor>> & getParsedClasses() = 0 ;
     //virtual SRef<ClassDescriptor> getInterfaceInfo(const std::string & name) = 0;
     virtual SRef<ClassDescriptor> getClassInfo(const std::string & name) = 0;
+    virtual SRef<ClassDescriptor> getInterfaceInfo(const std::string & name) = 0;
     virtual std::map<IRPCGenerator::MetadataType,std::string> & metadata() = 0;
     virtual int parse_database(const std::string & databasePath, const cxxopts::ParseResult & options) = 0;
     virtual const cppast::cpp_file* parse_file(const std::string& filename, bool fatal_error) = 0;

@@ -197,8 +197,7 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
                 block_guard methodBlock(blockMgr);
                 std::stringstream methodCall;
                 if (!m->returnType().isVoid()) {
-                    blockMgr.out() << m->getReturnType() << " returnValue;\n";
-                    methodCall << "returnValue = ";
+                    methodCall << m->returnType().getFullTypeDescription()<< " returnValue = ";
                 }
                 methodCall << "m_xpcfComponent->" << m->getName() << "(";
                 uint32_t nbTypes = 0;
@@ -225,7 +224,7 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
                         }
                     }
                     else if (m->returnType().kind() == type_kind::user_defined_t) {
-                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m->getReturnType() << ">(returnValue));\n";
+                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m->returnType().getFullTypeDescription() << ">(returnValue));\n";
                     }
 
                 }

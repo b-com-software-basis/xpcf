@@ -24,10 +24,12 @@
 #define TYPEDESCRIPTOR_H
 #include <cppast/cpp_entity_index.hpp>
 #include <cppast/cpp_type.hpp>
+#include <type_safe/optional.hpp>
 #include <string>
 #include <deque>
 #include <map>
 #include <iostream>
+#include <xpcf/core/refs.h>
 
 // template typename T to_proto/from_proto OR another solution with IGrpcProtoInterface / IRemotingBufferInterface ??
 // Simple backend [proto|flat] buffers
@@ -155,8 +157,10 @@ class TypeDescriptor
 {
 public:
     struct TypeDescriptorInfo {
-        TypeDescriptorInfo() = default;
-        TypeDescriptorInfo(const std::string & typeName, template_type tmplType):m_typename(typeName),m_templateType(tmplType) {}
+        //TypeDescriptorInfo() = default;
+
+        TypeDescriptorInfo(const cppast::cpp_type & cppType):m_cppastType(cppType) {}
+        TypeDescriptorInfo(const std::string & typeName, template_type tmplType, const cppast::cpp_type & cppType):m_typename(typeName),m_templateType(tmplType),m_cppastType(cppType) {}
         std::string m_typename;
         bool m_const = true;
         bool m_isBuiltin;
@@ -172,42 +176,50 @@ public:
         template_type m_templateType;
         cpp_builtin_type m_builtinType;
         std::vector<std::shared_ptr<TypeDescriptor>> m_tmplArgsVector; // only for template type desc
+        mutable std::string m_nameSpace = "";
+        const cppast::cpp_type & m_cppastType;
     };
-    TypeDescriptor();
-    TypeDescriptor(const TypeDescriptorInfo & info);
-    TypeDescriptor(const std::string & typeName, template_type tmplType);
+    TypeDescriptor(const cppast::cpp_type & p);
+    TypeDescriptor(UniqueRef<TypeDescriptorInfo> info);
+    TypeDescriptor(const std::string & typeName, template_type tmplType, const cppast::cpp_type & p);
+    const cppast::cpp_type & getCppastType() const { return m_descriptorInfo->m_cppastType; }
     void parse(const cppast::cpp_entity_index& index, const cppast::cpp_type & p);
-    bool isConst() const { return m_descriptorInfo.m_const; }
-    bool isSharedRef() const { return m_descriptorInfo.m_sharedRef; }
-    bool isReference() const { return m_descriptorInfo.m_isReference; }
-    bool isPointer() const { return m_descriptorInfo.m_isPointer; }
-    bool isVoid() const { return m_descriptorInfo.m_void; }
-    void addTemplateArgument(const std::string & arg, const std::shared_ptr<TypeDescriptor> & d);
-    enum type_kind kind() const { return m_descriptorInfo.m_kind; }
-    const std::string & getTypename() const { return m_descriptorInfo.m_typename; }
-    enum template_type getTemplateType() const { return m_descriptorInfo.m_templateType; }
-    enum cpp_builtin_type getBuiltinType() const { return m_descriptorInfo.m_builtinType; }
+    bool isConst() const { return m_descriptorInfo->m_const; }
+    bool isSharedRef() const { return m_descriptorInfo->m_sharedRef; }
+    bool isReference() const { return m_descriptorInfo->m_isReference; }
+    bool isPointer() const { return m_descriptorInfo->m_isPointer; }
+    bool isVoid() const { return m_descriptorInfo->m_void; }
+
+    enum type_kind kind() const { return m_descriptorInfo->m_kind; }
+    const std::string & getTypename() const { return m_descriptorInfo->m_typename; }
+    enum template_type getTemplateType() const { return m_descriptorInfo->m_templateType; }
+    enum cpp_builtin_type getBuiltinType() const { return m_descriptorInfo->m_builtinType; }
     std::string getFullTypeDescription() const;
-    void enableStaticCast(const std::string & rpcType) const { m_descriptorInfo.m_rpcType = rpcType; m_staticCast = true; }
+    void enableStaticCast(const std::string & rpcType) const { m_descriptorInfo->m_rpcType = rpcType; m_staticCast = true; }
     bool needsStaticCast() const { return m_staticCast; }
-    const std::string & getRPCType() const { return m_descriptorInfo.m_rpcType; }
+    const std::string & getRPCType() const { return m_descriptorInfo->m_rpcType; }
+    const std::string & getNamespace() const { return m_descriptorInfo->m_nameSpace; }
+    void setNamespace(const std::string & nameSpace) const { m_descriptorInfo->m_nameSpace = nameSpace; }
 
 private:
-    TypeDescriptor::TypeDescriptorInfo parseType(const cppast::cpp_entity_index& index, const cppast::cpp_type & p);
-    std::string parseTemplateArguments(const std::string & argStr, uint32_t groupNumber = 0);
-    void parseTemplateInstanciation(const cppast::cpp_entity_index& index, const cppast::cpp_type & p, TypeDescriptorInfo & info);
-    void linkArgumentsType(const std::string & args, const std::map<std::string,std::pair<std::string,std::shared_ptr<TypeDescriptor>>> & templateGroups);
-
+    UniqueRef<TypeDescriptorInfo> parseType(const cppast::cpp_entity_index& index, const cppast::cpp_type & p);
+#ifdef CPPAST_TPLARGS_NOTEXPOSED
     std::shared_ptr<TypeDescriptor> deduceTemplateType(const std::string & leafTemplate);
+    void addTemplateArgument(const std::string & arg, const std::shared_ptr<TypeDescriptor> & d);
+    void linkArgumentsType(const std::string & args, const std::map<std::string,std::pair<std::string,std::shared_ptr<TypeDescriptor>>> & templateGroups);
+    std::string parseTemplateArguments(const std::string & argStr, uint32_t groupNumber = 0);
+#endif
+    void parseTemplateInstanciation(const cppast::cpp_entity_index& index, const cppast::cpp_type & p, TypeDescriptorInfo & info);
+
+
+
     std::map<std::string,std::pair<std::string,std::shared_ptr<TypeDescriptor>>> m_templateGroups;
     std::map<std::string,std::shared_ptr<TypeDescriptor>> m_tmplArgs; // only for template type desc
-    std::string m_typename;
     //bool isLeaf = false; // false for intermediate template
     std::deque<bool> m_foundConst;
     std::deque<bool> m_foundRef;
     mutable bool m_staticCast = false;
-
-    TypeDescriptorInfo m_descriptorInfo;
+    UniqueRef<TypeDescriptorInfo> m_descriptorInfo;
 };
 
 inline void waitForUserInput()

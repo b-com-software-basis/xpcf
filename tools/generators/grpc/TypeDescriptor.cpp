@@ -8,21 +8,23 @@
 #include <regex>
 
 constexpr const char * TMPLGROUPPREFIX="XPCFGRPCGEN_TMPL_GROUP";
+namespace xpcf = org::bcom::xpcf;
 
-TypeDescriptor::TypeDescriptor()
+TypeDescriptor::TypeDescriptor(const cppast::cpp_type & p)
 {
-
+    m_descriptorInfo = xpcf::unixpcf::make_unique<TypeDescriptorInfo>(p);
 }
 
-TypeDescriptor::TypeDescriptor(const TypeDescriptorInfo & info):m_descriptorInfo(info)
+TypeDescriptor::TypeDescriptor(UniqueRef<TypeDescriptorInfo> info)
 {
-
+    m_descriptorInfo = std::move(info);
 }
 
-TypeDescriptor::TypeDescriptor(const std::string & typeName, template_type tmplType):m_descriptorInfo(typeName,tmplType)
+TypeDescriptor::TypeDescriptor(const std::string & typeName, template_type tmplType, const cppast::cpp_type & p)
 {
-    m_descriptorInfo.m_kind = type_kind::template_t;
-    m_descriptorInfo.m_isBuiltin = false;
+    m_descriptorInfo = xpcf::unixpcf::make_unique<TypeDescriptorInfo>(typeName,tmplType,p);
+    m_descriptorInfo->m_kind = type_kind::template_t;
+    m_descriptorInfo->m_isBuiltin = false;
 }
 
 bool isCppFixedWidthType(const cppast::cpp_type & p)
@@ -96,12 +98,74 @@ bool isContainer(const cppast::cpp_template_instantiation_type& p)
     return (containerList.find( p.primary_template().name()) != std::string::npos);
 }
 
+
+std::string TypeDescriptor::getFullTypeDescription() const
+{
+    std::string typeStr = m_descriptorInfo->m_typename;
+
+    std::string nSpace = m_descriptorInfo->m_nameSpace;
+    if (!nSpace.empty() && nSpace.length() > 0) {
+        nSpace += "::";
+        typeStr = nSpace + m_descriptorInfo->m_typename;
+    }
+
+    bool severalArgs = false;
+    if (m_descriptorInfo->m_kind == type_kind::template_t) {
+        typeStr += "<";
+    }
+    if (m_descriptorInfo->m_tmplArgsVector.size() > 0) {
+        for (auto & value : m_descriptorInfo->m_tmplArgsVector) {
+            if (severalArgs) {
+                typeStr += ",";
+            }
+            if (value->kind() == type_kind::template_t) {
+                typeStr += value->getFullTypeDescription();
+            }
+            else {
+                std::string nSpace = value->getNamespace();
+                if (!nSpace.empty() && nSpace.length() > 0) {
+                    nSpace += "::";
+                }
+                typeStr += nSpace + value->getTypename();
+            }
+            severalArgs = true;
+        }
+    }
+#ifdef CPPAST_TPLARGS_NOTEXPOSED
+    else {
+        for (auto & [key,value] : m_tmplArgs) {
+            if (severalArgs) {
+                typeStr += ",";
+            }
+            if (value->kind() == type_kind::template_t) {
+                typeStr += value->getFullTypeDescription();
+            }
+            else {
+                std::string nSpace = value->getNamespace();
+                if (!nSpace.empty() && nSpace.length() > 0) {
+                    nSpace += "::";
+                }
+                typeStr += nSpace + value->getTypename();
+            }
+            severalArgs = true;
+        }
+    }
+#endif
+    if (m_descriptorInfo->m_kind == type_kind::template_t) {
+        typeStr += ">";
+    }
+    return typeStr;
+}
+
+#ifdef CPPAST_TPLARGS_NOTEXPOSED
+
 const std::map<std::string,enum template_type> leafTmplRegexpMap = {
 {"(std::)*vector\s*<\s*([^<> ]*)\s*>", template_type::vector_t},
 {"(std::)*(map|unordered_map)\s*<\s*([^<>\s]*)\s*>",template_type::map_t},
 {"(std::)*(SRef|SPtr|shared_ptr)+\s*<\s*([^<>]*)\s*>",template_type::sharedptr_t},
 {"(std::)*tuple\s*<\s*([^<>\s]*)\s*>",template_type::tuple_t}
 };
+
 
 // Note : SRef<T> or shared_ptr<T> can be flattened to T *, hence remove the SRef template level
 // std::vector<SRef<std::vector<int>>> is equivalent to std::vector<std::vector<int>*>,
@@ -126,11 +190,6 @@ std::shared_ptr<TypeDescriptor> TypeDescriptor::deduceTemplateType(const std::st
 }
 
 
-enum template_type getContainerType(const cppast::cpp_template_instantiation_type& p)
-{
-    return templateToContainerMap.at(p.primary_template().name());
-}
-
 void TypeDescriptor::addTemplateArgument(const std::string & arg, const std::shared_ptr<TypeDescriptor> & d)
 {
     m_tmplArgs[arg]=d;
@@ -149,47 +208,6 @@ void TypeDescriptor::linkArgumentsType(const std::string & args, const std::map<
         argStr = sm.suffix();
         addTemplateArgument(matchStr, templateGroups.at(matchStr).second);
     }
-}
-
-std::string TypeDescriptor::getFullTypeDescription() const
-{
-    std::string typeStr = m_descriptorInfo.m_typename;
-    bool severalArgs = false;
-    if (m_descriptorInfo.m_kind == type_kind::template_t) {
-        typeStr += "<";
-    }
-    if (m_descriptorInfo.m_tmplArgsVector.size() > 0) {
-        for (auto & value : m_descriptorInfo.m_tmplArgsVector) {
-            if (severalArgs) {
-                typeStr += ",";
-            }
-            if (value->kind() == type_kind::template_t) {
-                typeStr += value->getFullTypeDescription();
-            }
-            else {
-                typeStr += value->getTypename();
-            }
-            severalArgs = true;
-        }
-    }
-    else {
-        for (auto & [key,value] : m_tmplArgs) {
-            if (severalArgs) {
-                typeStr += ",";
-            }
-            if (value->kind() == type_kind::template_t) {
-                typeStr += value->getFullTypeDescription();
-            }
-            else {
-                typeStr += value->getTypename();
-            }
-            severalArgs = true;
-        }
-    }
-    if (m_descriptorInfo.m_kind == type_kind::template_t) {
-        typeStr += ">";
-    }
-    return typeStr;
 }
 
 // this method parses template arguments for unexposed arguments from cppast
@@ -242,7 +260,12 @@ std::string TypeDescriptor::parseTemplateArguments(const std::string & argStr, u
     }
     return argumentStr;
 }
+#endif
 
+enum template_type getContainerType(const cppast::cpp_template_instantiation_type& p)
+{
+    return templateToContainerMap.at(p.primary_template().name());
+}
 
 void TypeDescriptor::parseTemplateInstanciation(const cppast::cpp_entity_index& index, const cppast::cpp_type & p, TypeDescriptorInfo & info)
 {
@@ -287,15 +310,17 @@ void TypeDescriptor::parseTemplateInstanciation(const cppast::cpp_entity_index& 
         info.m_templateType = getContainerType(templateInstType);
     }
     if (!exposed) {
+#ifdef CPPAST_TPLARGS_NOTEXPOSED
         const std::string & args = templateInstType.unexposed_arguments();
         std::cout<<args<<std::endl;
         // I wrote a template argument parser to fix current miss in cppast
         std::string tmplArgs = parseTemplateArguments(args);
         linkArgumentsType(tmplArgs, m_templateGroups);
+#endif
     } else {
         std::cout<<" exposed"<<std::endl;
         // NOTE : template arguments were not exposed as of current cppast version, hence the following code can't work for now !
-        // my fork contains template arguments parsing, hence this code works only with the forked version
+        // my cppast fork contains template arguments parsing, hence this code works only with the forked version
         auto tmplArgs =  templateInstType.arguments();
         if (tmplArgs.has_value()) {
             for (auto & argument : tmplArgs.value()) {
@@ -307,33 +332,33 @@ void TypeDescriptor::parseTemplateInstanciation(const cppast::cpp_entity_index& 
     }
 }
 
-TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_entity_index& index, const cppast::cpp_type & p)
+UniqueRef<TypeDescriptor::TypeDescriptorInfo> TypeDescriptor::parseType(const cppast::cpp_entity_index& index, const cppast::cpp_type & p)
 {
     std::string constParam = "not const";
     std::string typeKind;
     std::string derefTypeKind;
     std::reference_wrapper<const cppast::cpp_type> innerType = (p);
     std::reference_wrapper<const cppast::cpp_type> currentType = (p);
-    TypeDescriptorInfo info;
+    UniqueRef<TypeDescriptorInfo> info = xpcf::unixpcf::make_unique<TypeDescriptorInfo>(p);
     bool bIsLeaf = true;
     do {
         if (isCppFixedWidthType(currentType)) {
-            info.m_typename = cppast::to_string(currentType);
-            info.m_builtinType = cppFixedWidthType(currentType);
-            info.m_kind = type_kind::builtin_t;
+            info->m_typename = cppast::to_string(currentType);
+            info->m_builtinType = cppFixedWidthType(currentType);
+            info->m_kind = type_kind::builtin_t;
         }
         if (isStdString(currentType)) {
             bIsLeaf = true;
-            info.m_typename = "std::string";
-            info.m_kind = type_kind::std_string_t;
+            info->m_typename = "std::string";
+            info->m_kind = type_kind::std_string_t;
         }
         if (currentType.get().kind() == cppast::cpp_type_kind::pointer_t) {
             if (m_foundConst.size() == 0) {
-                info.m_const = false;
+                info->m_const = false;
             }
             m_foundConst.clear();
-            info.m_isReference = true;
-            info.m_isPointer = true;
+            info->m_isReference = true;
+            info->m_isPointer = true;
             typeKind += " pointer";
             // cast to cpp_pointer_type
             auto& pointerType = static_cast<const cppast::cpp_pointer_type&>(currentType.get());
@@ -353,7 +378,7 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
             // cast to cpp_reference_type
             auto& refType = static_cast<const cppast::cpp_reference_type&>(currentType.get());
             if (refType.reference_kind() == cppast::cpp_reference::cpp_ref_lvalue) {
-                info.m_isReference = true;
+                info->m_isReference = true;
                 typeKind += "lvalue ref";
                 m_foundRef.push_back(true);
             }
@@ -380,25 +405,25 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
         if (currentType.get().kind() ==  cppast::cpp_type_kind::builtin_t) {
             auto& builtinType = static_cast<const cppast::cpp_builtin_type&>(currentType.get());
             if (builtinType.builtin_type_kind() != cppast::cpp_builtin_type_kind::cpp_void) {
-                info.m_void = false;
+                info->m_void = false;
             }
             derefTypeKind = to_string(builtinType.builtin_type_kind());
-            info.m_typename = cppast::to_string(currentType.get());
-            info.m_builtinType = static_cast<cpp_builtin_type>(builtinType.builtin_type_kind());
-            info.m_kind = type_kind::builtin_t;
+            info->m_typename = cppast::to_string(currentType.get());
+            info->m_builtinType = static_cast<cpp_builtin_type>(builtinType.builtin_type_kind());
+            info->m_kind = type_kind::builtin_t;
             bIsLeaf = true;
         }
         else {
-            info.m_void = false;
+            info->m_void = false;
         }
         if (currentType.get().kind() ==  cppast::cpp_type_kind::user_defined_t &&
                 !isCppFixedWidthType(currentType) &&
                 !isStdString(currentType)) {
             bIsLeaf = true;
-            info.m_kind = type_kind::user_defined_t;
+            info->m_kind = type_kind::user_defined_t;
             auto & userType = static_cast<const cppast::cpp_user_defined_type&>(currentType.get());
             derefTypeKind = "User defined type";
-            info.m_typename = userType.entity().name();
+            info->m_typename = userType.entity().name();
             if (userType.entity().no_overloaded().get() > 0) {
                 auto ids = userType.entity().id();
                 for (auto & id : ids) {
@@ -418,7 +443,7 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
                     cppast::cpp_entity_kind knd = entity.kind();
                     if (entity.kind() == cppast::cpp_entity_kind::enum_t) {
                         derefTypeKind = "Enum type";
-                        info.m_kind = type_kind::enum_t;
+                        info->m_kind = type_kind::enum_t;
                     }
                 }
             }
@@ -427,7 +452,7 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
 
         if (currentType.get().kind() ==  cppast::cpp_type_kind::template_instantiation_t) {
             bIsLeaf = true;
-            parseTemplateInstanciation(index,currentType,info);
+            parseTemplateInstanciation(index,currentType, *info);
         }
         else {
             std::cout<<" => type [ " << cppast::to_string(currentType) << " ]\n";
@@ -442,7 +467,7 @@ TypeDescriptor::TypeDescriptorInfo TypeDescriptor::parseType(const cppast::cpp_e
     while(!bIsLeaf);
     if (m_foundConst.size() < m_foundRef.size()) {
         // found less const than ref : type is not fully const
-        info.m_const = false;
+        info->m_const = false;
     }
     return info;
     /*if (!bIsLeaf) {

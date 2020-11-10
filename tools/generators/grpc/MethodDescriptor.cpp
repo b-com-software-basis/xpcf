@@ -4,11 +4,7 @@
 
 namespace xpcf =  org::bcom::xpcf;
 
-MethodDescriptor::MethodDescriptor(const cppast::cpp_entity& m):m_baseMethod(static_cast<const cppast::cpp_member_function&>(m))
-{
-}
-
-MethodDescriptor::MethodDescriptor(const cppast::cpp_member_function& m):m_baseMethod(m)
+MethodDescriptor::MethodDescriptor(const cppast::cpp_member_function& m):m_baseMethod(m),m_returnDescriptor(m.return_type())
 {
 }
 
@@ -32,6 +28,18 @@ void MethodDescriptor::setStreamingType(const std::string & streamType)
     }
 }
 
+std::string MethodDescriptor::getReturnType() const
+{
+    //TODO : full type must be constructed inside the TypeDescriptor to properly handle template types for instance std::map<T> must become
+    // std::map<namespace::T> which can be done only inside the TypeDescriptor
+    std::string ret = m_returnType;
+    std::string nSpace = m_returnDescriptor.getNamespace();
+    if (!nSpace.empty() && nSpace.length() > 0) {
+        ret = nSpace + "::" + m_returnType;
+    }
+    return ret;
+}
+
 const std::string MethodDescriptor::getDeclaration() const
 {
     std::string methodDeclaration = m_baseMethod.name() + "(";
@@ -40,7 +48,13 @@ const std::string MethodDescriptor::getDeclaration() const
         if (nbTypes != 0) {
             methodDeclaration += ", ";
         }
-        methodDeclaration += cppast::to_string(p->getCppastType()) + " " + p->getName();
+        std::string nSpace = p->getNamespace();
+        if (!nSpace.empty() && nSpace.length() > 0) {
+            nSpace += "::";
+        }
+        //TODO : full type must be constructed inside the TypeDescriptor to properly handle template types for instance std::map<T> must become
+        // std::map<namespace::T> which can be done only inside the TypeDescriptor
+        methodDeclaration += nSpace + cppast::to_string(p->getCppastType()) + " " + p->getName();
         nbTypes++;
     }
     methodDeclaration += ")";
@@ -49,7 +63,6 @@ const std::string MethodDescriptor::getDeclaration() const
 
 bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
 {
-    //m_baseMethod.
     std::cout << " ==> parsing member function "<<m_baseMethod.name()<<" "<<m_baseMethod.signature()<<'\n';
     cppast::cpp_cv cv = m_baseMethod.cv_qualifier();
     m_const = ((cv == cppast::cpp_cv::cpp_cv_const) || (cv == cppast::cpp_cv::cpp_cv_const_volatile));

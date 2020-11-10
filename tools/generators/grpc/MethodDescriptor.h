@@ -59,13 +59,12 @@ public:
         bidir = 0x03
     } streaming_type;
 
-    MethodDescriptor(const cppast::cpp_entity& m);
     MethodDescriptor(const cppast::cpp_member_function& m);
     const std::string & getName() const { return m_baseMethod.name(); }
     const TypeDescriptor & returnType() const { return m_returnDescriptor; }
-    const std::string getFullDeclaration() const { return m_returnType + " " + getDeclaration(); }
+    const std::string getFullDeclaration() const { return getReturnType() + " " + getDeclaration(); }
     const std::string getDeclaration() const;
-    const std::string & getReturnType() const { return m_returnType; }
+    std::string getReturnType() const;
     const streaming_type & streamingType() const { return m_rpcStreamingType; }
   /*  void addAttribute();
     bool isClientStream();

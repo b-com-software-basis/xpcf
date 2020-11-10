@@ -12,10 +12,13 @@ public:
     ASTParser();
     ~ASTParser() override;
     void unloadComponent () override;
-    std::vector<SRef<ClassDescriptor>> & getParsedInterfaces() override { return m_interfaces; }
+    std::map<std::string,SRef<ClassDescriptor>> & getParsedInterfaces() override { return m_interfaces; }
+    std::map<std::string,SRef<ClassDescriptor>> & getParsedClasses() override { return m_classes; }
+
     //SRef<ClassDescriptor> getInterfaceInfo(const std::string & name)  override;
     std::map<IRPCGenerator::MetadataType,std::string> & metadata() override { return m_metadata; }
     SRef<ClassDescriptor> getClassInfo(const std::string & name)  override { if (org::bcom::xpcf::mapContains(m_classes, name)) { return m_classes.at(name); } return nullptr; }
+    SRef<ClassDescriptor> getInterfaceInfo(const std::string & name)  override { if (org::bcom::xpcf::mapContains(m_interfaces, name)) { return m_interfaces.at(name); } return nullptr; }
     void parseAst(std::ostream& out, const cppast::cpp_file& file)  override;
     int initOptions(const cxxopts::ParseResult & options) override;
 
@@ -28,7 +31,8 @@ private:
     void parseEntity(std::ostream& out, const cppast::cpp_entity& e, const std::string & filePath);
     std::string computeNamespace();
     std::map<IRPCGenerator::MetadataType,std::string> m_metadata;
-    std::vector<SRef<ClassDescriptor>> m_interfaces;
+    //std::vector<SRef<ClassDescriptor>> m_interfaces;
+    std::map<std::string,SRef<ClassDescriptor>> m_interfaces;
     std::map<std::string,SRef<ClassDescriptor>> m_classes;
     std::vector<std::string> m_currentNamespace;
     std::string m_currentFileName;

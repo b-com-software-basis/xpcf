@@ -39,12 +39,16 @@ public:
     } io_type;
 
     ParameterDescriptor(const cppast::cpp_function_parameter & p);
-    ParameterDescriptor(const ParameterDescriptor & other);
     //void addAttribute();
     const io_type & ioType() const { return m_ioType; }
+
+    const cppast::cpp_type & getCppastType() const { return m_typeDescriptor.getCppastType(); }
     const std::string & getName() const { return m_name; }
-    const cppast::cpp_type & getCppastType() const { return m_baseParam.type(); }
     void setName(const std::string & name) { m_name = name; }
+    const std::string & getNamespace() const { return m_typeDescriptor.getNamespace(); }
+    void setNamespace(const std::string & nameSpace) { m_typeDescriptor.setNamespace(nameSpace); }
+
+
 
     const TypeDescriptor & type() const { return m_typeDescriptor; }
     bool parse(const cppast::cpp_entity_index& index);

@@ -209,7 +209,39 @@ try
                 return 2;
             astParser->parseAst(std::cout, *file);
         }
-        for (auto & c : astParser->getParsedInterfaces()) {
+        //update types : try to qualify non fqdn types in parameters ... from classes found during parsing
+        for (auto & [name,c] : astParser->getParsedInterfaces()) {
+            for (auto & m: c->methods()) {
+                for (auto & p : m->m_params) {
+                    std::string knownType = cppast::to_string(p->getCppastType());
+                    std::string base = knownType.substr(0,knownType.find_first_of("::"));
+                    auto typeFound = astParser->getClassInfo(base);
+                    if (typeFound) {
+                        p->setNamespace(typeFound->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE));
+                    } else {
+                        typeFound = astParser->getInterfaceInfo(base);
+                        if (typeFound) {
+                            p->setNamespace(typeFound->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE));
+                        }
+                    }
+                }
+                auto & r = m->returnType();
+                std::string knownType = cppast::to_string(r.getCppastType());
+                std::string base = knownType.substr(0,knownType.find_first_of("::"));
+                auto typeFound = astParser->getClassInfo(base);
+                if (typeFound) {
+                    r.setNamespace(typeFound->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE));
+                } else {
+                    typeFound = astParser->getInterfaceInfo(base);
+                    if (typeFound) {
+                        r.setNamespace(typeFound->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE));
+                    }
+                }
+
+
+            }
+        }
+        for (auto & [name,c] : astParser->getParsedInterfaces()) {
             // check every typedescriptor in each method of the interface is known in classes map or is a builtin type??
             // Note : we must find a message/serialized buffer for each type in each interface
             astParser->metadata() = serviceGenerator->generate(c, astParser->metadata());

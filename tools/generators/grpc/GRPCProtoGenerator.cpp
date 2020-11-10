@@ -157,7 +157,7 @@ const std::string & GRPCProtoGenerator::tryTranscribeName(ParameterDescriptor & 
     return desc.getName();
 }
 
-inline std::string getTypeName(const TypeDescriptor & p)
+std::string GRPCProtoGenerator::getTypeName(const TypeDescriptor & p)
 {
     std::string typeName;
     if (p.kind() == type_kind::std_string_t) {
@@ -171,10 +171,12 @@ inline std::string getTypeName(const TypeDescriptor & p)
             //TODO : differentiate between pointers and refs !
             //pointer means array of elements : need a size to figure out howto handle the parameter !
             //reference to builtin means builtin not array : must be different while transcribing and generating stubs !
-            const std::pair<std::string,bool> & typeInfo = GRPCProtoGenerator::tryConvertType(p.getBuiltinType());
-            typeName = typeInfo.first;
-            if (typeInfo.second) {
-                p.enableStaticCast(proto2cppTypeMap.at(typeName));
+            if ( p.kind() == type_kind::builtin_t ) {
+                const std::pair<std::string,bool> & typeInfo = GRPCProtoGenerator::tryConvertType(p.getBuiltinType());
+                typeName = typeInfo.first;
+                if (typeInfo.second) {
+                    p.enableStaticCast(proto2cppTypeMap.at(typeName));
+                }
             }
             if (typeName.size() == 0 && p.kind() != type_kind::builtin_t) {
                 typeName = "bytes";
@@ -289,6 +291,7 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
         protoPath += m_folder.generic_string(utf8).c_str();
         std::string destProto = "--cpp_out=";
         destProto += m_folder.generic_string(utf8).c_str();
+        std::cout<<toolPath.generic_string(utf8).c_str()<<" "<<protoPath<<" "<<protoFile<<" "<<destProto<<std::endl;
         result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destProto.c_str());
 
         std::string destGrpc = "--grpc_out=";

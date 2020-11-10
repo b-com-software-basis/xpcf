@@ -37,11 +37,11 @@ public:
     ~GRPCProtoGenerator() override;
     std::map<MetadataType,std::string> generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) override;
     void finalizeImpl(std::map<MetadataType,std::string> metadata) override;
-
     static const std::pair<std::string,bool> & tryConvertType(enum cpp_builtin_type type);
 
 private:
     static const std::string & tryTranscribeName(ParameterDescriptor & desc);
+    std::string getTypeName(const TypeDescriptor & p);
     void prepareMessages(const SRef<ClassDescriptor> c);
     void generateMessages(SRef<MethodDescriptor> m, std::ostream& out);
     void generateService(const SRef<ClassDescriptor> c, std::ostream& out);

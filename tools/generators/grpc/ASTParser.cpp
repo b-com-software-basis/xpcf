@@ -166,7 +166,7 @@ void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, cons
         SRef<ClassDescriptor> c = xpcf::utils::make_shared<ClassDescriptor>(e, entityNspace, filePath);
         c->parse(m_index);
         if (c->isInterface() && !c->ignored()) {
-            m_interfaces.push_back(c);
+            m_interfaces.insert(std::make_pair(c->getName(),c));
         }
         else {
             if (!xpcf::mapContains(m_classes, c->getName())) {

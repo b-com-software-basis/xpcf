@@ -76,7 +76,7 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
     for (auto & m : m_baseClass) {
         if (m.kind() == cppast::cpp_entity_kind::member_function_t) {
             // cast to member_function
-            SRef<MethodDescriptor> desc  = xpcf::utils::make_shared<MethodDescriptor>(m);
+            SRef<MethodDescriptor> desc  = xpcf::utils::make_shared<MethodDescriptor>(static_cast<const cppast::cpp_member_function&>(m));
             desc->parse(index);
             if (desc->isPureVirtual() && !desc->ignored()) {
                 m_virtualMethods.push_back(desc);

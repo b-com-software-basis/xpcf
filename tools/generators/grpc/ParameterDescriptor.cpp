@@ -10,17 +10,10 @@
 #include <map>
 
 
-ParameterDescriptor::ParameterDescriptor(const cppast::cpp_function_parameter & p):m_baseParam(p)
+ParameterDescriptor::ParameterDescriptor(const cppast::cpp_function_parameter & p):m_baseParam(p),m_typeDescriptor(p.type())
 {
     m_name = m_baseParam.name();
 }
-
- ParameterDescriptor::ParameterDescriptor(const ParameterDescriptor & other):m_baseParam(other.m_baseParam)
- {
-     m_ioType = other.m_ioType;
-     m_child = other.m_child;
-     m_typeDescriptor = other.m_typeDescriptor;
- }
 
 const std::map<std::string,ParameterDescriptor::io_type> str2typeIoMap =
 {

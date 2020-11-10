@@ -91,6 +91,37 @@ const std::string & GRPCFlatBufferGenerator::tryConvertType(enum cpp_builtin_typ
     return typeStr;
 }
 
+std::string GRPCFlatBufferGenerator::getTypeName(const TypeDescriptor & p)
+{
+    std::string typeName;
+    if (p.kind() == type_kind::std_string_t) {
+        typeName = "string";
+    }
+    else {
+        if (p.kind() != type_kind::enum_t) {
+            if (p.isVoid() && p.isReference()) {
+                throw GenerationException("GRPCProtoGenerator: void * serialization is not defined !");
+            }
+            //TODO : differentiate between pointers and refs !
+            //pointer means array of elements : need a size to figure out howto handle the parameter !
+            //reference to builtin means builtin not array : must be different while transcribing and generating stubs !
+        /*    const std::pair<std::string,bool> & typeInfo = GRPCFlatBufferGenerator::tryConvertType(p.getBuiltinType());
+            typeName = typeInfo.first;
+            if (typeInfo.second) {
+                p.enableStaticCast(proto2cppTypeMap.at(typeName));
+            }
+            if (typeName.size() == 0 && p.kind() != type_kind::builtin_t) {
+                typeName = "bytes";
+            }*/
+        }
+        else {
+            typeName = "sint32";
+            p.enableStaticCast(typeName);
+        }
+    }
+    return typeName;
+}
+
 void GRPCFlatBufferGenerator::prepareMessages(const SRef<ClassDescriptor> c)
 {
     for (auto & methodDesc : c->methods()) {
