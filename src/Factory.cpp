@@ -486,11 +486,15 @@ SRef<IComponentIntrospect> Factory::resolveComponent(const FactoryBindInfos & bi
         fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
         if (! configFilePath.empty()) {
             SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
+            XPCFErrorCode confErrCode;
             if (bindInfos.properties.empty()) {
-                iconf->configure(configFilePath.string().c_str());
+                confErrCode = iconf->configure(configFilePath.string().c_str());
             }
             else {
-                iconf->configure(configFilePath.string().c_str(), bindInfos.properties.c_str());
+                confErrCode = iconf->configure(configFilePath.string().c_str(), bindInfos.properties.c_str());
+            }
+            if (confErrCode != XPCFErrorCode::_SUCCESS) {
+                throw Exception(confErrCode);
             }
         }
     }
