@@ -494,7 +494,7 @@ SRef<IComponentIntrospect> Factory::resolveComponent(const FactoryBindInfos & bi
                 confErrCode = iconf->configure(configFilePath.string().c_str(), bindInfos.properties.c_str());
             }
             if (confErrCode != XPCFErrorCode::_SUCCESS) {
-                throw Exception(confErrCode);
+                throw ConfigurationException("Configuration failed for component uuid=" + uuids::to_string(componentUUID), confErrCode);
             }
         }
     }

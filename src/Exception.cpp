@@ -52,6 +52,20 @@ Exception::~Exception()
 {
 }
 
+ConfigurationException::ConfigurationException(XPCFErrorCode errCode):
+    Exception(errCode)
+{
+}
+ConfigurationException::ConfigurationException(const char * what, XPCFErrorCode errCode):
+    Exception(what, errCode)
+{
+}
+
+ConfigurationException::ConfigurationException(const std::string & what, XPCFErrorCode errCode):
+    Exception(what, errCode)
+{
+}
+
 AccessDeniedException::AccessDeniedException():
     Exception(XPCFErrorCode::_ERROR_ACCESS_DENIED)
 {

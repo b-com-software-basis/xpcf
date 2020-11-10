@@ -27,6 +27,14 @@ private:
     XPCFErrorCode m_errCode;
 };
 
+class XPCF_EXPORT_API ConfigurationException : public Exception {
+public:
+    ConfigurationException(XPCFErrorCode errCode);
+    ConfigurationException(const char * what, XPCFErrorCode errCode = XPCFErrorCode::_FAIL);
+    ConfigurationException(const std::string & what, XPCFErrorCode errCode = XPCFErrorCode::_FAIL);
+    virtual ~ConfigurationException() = default;
+};
+
 class XPCF_EXPORT_API AccessDeniedException : public Exception {
 public:
     AccessDeniedException();
