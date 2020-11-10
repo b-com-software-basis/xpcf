@@ -41,9 +41,9 @@ typedef enum {
 typedef enum {
     Explicit = 1,
     WithParents = 2,
-    Named = 3,
-    Default = 4,
-    All = 5
+    Named = 4,
+    Default = 8,
+    All = 16
 } BindingRange;
 
 /**
