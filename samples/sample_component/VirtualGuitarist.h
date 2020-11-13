@@ -58,7 +58,7 @@ public:
     void unloadComponent () override final;
 
     void learn () override;
-    void playMusic () override;
+    void playMusic (const MusicScore & score) override;
     void listen () override;
     void practice () override;
     void party () override;
@@ -66,7 +66,7 @@ public:
     SRef<IGuitar> getGuitar(IGuitar::GuitarType type) override;
     const org::bcom::xpcf::IEnumerable<SRef<IElectricGuitar>> & getGuitarCollection() override;
 
-    void playSolo () override;
+    void playSolo (const MusicScore & score) override;
     void playRhythm () override;
 
     void onInjected() override;

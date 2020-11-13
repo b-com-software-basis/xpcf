@@ -1,5 +1,4 @@
 xpcf|2.5.0|xpcf%TEST_XPCF_BOOST|github|https://github.com/
 xpcf-std|2.5.0|xpcf-std%TEST_XPCF_STD|github|https://github.com/
-boost#stable|1.71.0|boost|conan|conan-center|default|zlib=False#bzip2=False
 
 

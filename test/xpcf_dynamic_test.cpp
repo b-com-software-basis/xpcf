@@ -368,40 +368,45 @@ BOOST_FIXTURE_TEST_CASE( test_component_invocation,XpcfFixture,* boost::unit_tes
     //
     BOOST_TEST_MESSAGE("OK Calling methods of IMusician on component HumanMusician");
     rIMusician->learn();
-    rIMusician->playMusic();
+    MusicScore score;
+    score.add("C",0.5);
+    score.add("C",0.5);
+    score.add("D",0.5);
+    score.add("E",0.5);
+    rIMusician->playMusic(score);
     rIMusician->listen();
     rIMusician->practice();
 
     BOOST_TEST_MESSAGE("Resolve IGuitarist default binding");
     SRef<IGuitarist> rIGuitarist = xpcfComponentManager->resolve<IGuitarist>();
     BOOST_TEST_MESSAGE("Calling methods of IGuitarist on resolved component through IGuitarist SRef");
-    rIGuitarist->playSolo();
+    rIGuitarist->playSolo(score);
     rIGuitarist->playRhythm();
 
     BOOST_TEST_MESSAGE("Resolve IMusician default binding");
     rIMusician = xpcfComponentManager->resolve<IMusician>();
     BOOST_TEST_MESSAGE("Calling methods of IMusician on resolved component through IMusician SRef");
     rIMusician->learn();
-    rIMusician->playMusic();
+    rIMusician->playMusic(score);
     rIMusician->listen();
     rIMusician->practice();
 
     rIMusician = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<IMusician>();
     BOOST_TEST_MESSAGE("OK Calling methods of IMusician on component VirtualGuitarist");
     rIMusician->learn();
-    rIMusician->playMusic();
+    rIMusician->playMusic(score);
     rIMusician->listen();
     rIMusician->practice();
 
     rIGuitarist = rIMusician->bindTo<IGuitarist>();
     BOOST_TEST_MESSAGE("Calling methods of IMusician on component VirtualGuitarist through IGuitarist SRef");
     rIGuitarist->learn();
-    rIGuitarist->playMusic();
+    rIGuitarist->playMusic(score);
     rIGuitarist->listen();
     rIGuitarist->practice();
 
     BOOST_TEST_MESSAGE("OK Calling methods of IGuitarist on component VirtualGuitarist");
-    rIGuitarist->playSolo();
+    rIGuitarist->playSolo(score);
     rIGuitarist->playRhythm();
     BOOST_TEST_MESSAGE( "Guitarist injectables are: ");
     for (auto injectable : rIGuitarist->bindTo<xpcf::IInjectable>()->getInjectables()) {

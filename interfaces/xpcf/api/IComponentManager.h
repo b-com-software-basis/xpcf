@@ -67,7 +67,7 @@ public:
      */
     virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                       BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Default) = 0;
+                      uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All) = 0;
 
     virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                       BindingScope scope = BindingScope::Transient,
@@ -84,7 +84,7 @@ public:
     virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                            const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
                            BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Default) = 0;
+                      uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All) = 0;
 
     virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                            const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
@@ -102,13 +102,13 @@ public:
                       uint8_t bindingRangeMask = BindingRange::Explicit) = 0;
 
     template < typename I, BindingScope scope = BindingScope::Transient,
-               uint8_t bindingRangeMask = BindingRange::Default > void bind(const uuids::uuid& componentUUID);
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bind(const uuids::uuid& componentUUID);
 
     template < typename T, typename I, BindingScope scope = BindingScope::Transient,
                uint8_t bindingRangeMask = BindingRange::Explicit> void bind(const uuids::uuid& componentUUID);
 
     template < typename I, typename C, BindingScope scope = BindingScope::Transient,
-               uint8_t bindingRangeMask = BindingRange::Default > void bind();
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bind();
 
     template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
                uint8_t bindingRangeMask = BindingRange::Explicit> void bind();
@@ -126,7 +126,7 @@ public:
                uint8_t bindingRangeMask = BindingRange::Explicit > void bind(const char * name);
 
     template < typename I, typename C, BindingScope scope = BindingScope::Transient,
-               uint8_t bindingRangeMask = BindingRange::Default > void bindLocal();
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bindLocal();
 
     template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
                uint8_t bindingRangeMask = BindingRange::Explicit > void bindLocal();

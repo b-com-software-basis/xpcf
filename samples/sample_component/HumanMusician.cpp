@@ -95,11 +95,13 @@ void HumanMusician::learn ()
 
 }
 
-void HumanMusician::playMusic ()
+void HumanMusician::playMusic (const MusicScore & score)
 {
 
     std::cout<<m_name<<"::"<<" HumanMusician::playMusic ()  called!"<<std::endl;
-
+    for (auto & [key,duration] : score.m_score) {
+        std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
+    }
 }
 
 void HumanMusician::listen ()

@@ -25,6 +25,7 @@
 #include <xpcf/api/IModuleManager.h>
 #include <xpcf/core/Exception.h>
 #include <xpcf/core/helpers.h>
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
 using placeholders::_1;
@@ -43,6 +44,14 @@ constexpr const char * XMLSCOPENODE = "scope";
 static const map<string,BindingScope> scopeConvertMap = {
     {"Transient",BindingScope::Transient},
     {"Singleton",BindingScope::Singleton},
+};
+
+static const map<string,BindingRange> bindingRangeConvertMap = {
+    {"all",BindingRange::All},
+    {"default",BindingRange::Default},
+    {"explicit",BindingRange::Explicit},
+    {"named",BindingRange::Named},
+    {"withparents",BindingRange::WithParents}
 };
 
 Factory::Factory():ComponentBase(toUUID<Factory>())
@@ -76,7 +85,7 @@ FactoryBindInfos Factory::getComponentBindingInfos(tinyxml2::XMLElement * xmlBin
     FactoryBindInfos infos;
     // Set default scope to Transient
     infos.scope = BindingScope::Transient;
-
+    infos.bindingRangeMask = 0;
     string componentAttrValue =  xmlBindElt->Attribute("to");
     if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
         infos.componentUUID = m_aliasManager->resolveComponentAlias(componentAttrValue);
@@ -92,6 +101,14 @@ FactoryBindInfos Factory::getComponentBindingInfos(tinyxml2::XMLElement * xmlBin
     if (propertiesName != nullptr) {
         infos.properties = propertiesName;
     }
+    const char * rangeAttribute =  xmlBindElt->Attribute("range");
+    if (rangeAttribute != nullptr) {
+        std::vector<std::string> ranges;
+        boost::split(ranges, rangeAttribute, [](char c){return c == '|';});
+        for (auto& range: ranges) {
+            infos.bindingRangeMask = infos.bindingRangeMask | bindingRangeConvertMap.at(range);
+        }
+    }
     return infos;
 }
 
@@ -100,9 +117,11 @@ void Factory::declareSingleBind(const uuids::uuid & interfaceUUID, tinyxml2::XML
     FactoryBindInfos infos = getComponentBindingInfos(xmlBindElt);
 
     if (xmlBindElt->Attribute("name") == nullptr) {
+        infos.bindingRangeMask |= BindingRange::Default;
         bind(interfaceUUID, infos);
     }
     else {
+        infos.bindingRangeMask |= BindingRange::Named;
         string nameAttrValue =  xmlBindElt->Attribute("name");
         bind(nameAttrValue, interfaceUUID, infos);
     }
@@ -114,6 +133,7 @@ void Factory::declareMultiBind(const uuids::uuid & interfaceUUID, tinyxml2::XMLE
     VectorCollection<FactoryBindInfos> & binds = m_multiBindings[interfaceUUID];
     while (element != nullptr) {
         FactoryBindInfos infos = getComponentBindingInfos(element);
+        infos.bindingRangeMask |= BindingRange::Default;
         binds.add(infos);
         element = element->NextSiblingElement("component");
     }
@@ -163,7 +183,7 @@ void Factory::declareSpecificBind(tinyxml2::XMLElement * xmlBindElt, const uuids
     }
 
     FactoryBindInfos infos = getComponentBindingInfos(xmlBindElt);
-
+    infos.bindingRangeMask = BindingRange::Explicit;
     if (xmlBindElt->Attribute("name") == nullptr) {
         bind(targetComponentUUID, interfaceUUID, infos);
     }
@@ -219,7 +239,7 @@ void Factory::autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & in
 {
     if (! mapContains(m_defaultBindings,interfaceUUID)) {
         // no explicit bind already exists : add autobind
-        m_autoBindings[interfaceUUID] = FactoryBindInfos{instanceUUID, BindingScope::Transient, BindingRange::Default, ""};
+        m_autoBindings[interfaceUUID] = FactoryBindInfos{instanceUUID, BindingScope::Transient, BindingRange::All, ""};
     }
 }
 
@@ -372,7 +392,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
                     return bindInfos;
                 }
             }
-            if (contextValue.bindingRangeMask == BindingRange::Explicit) {
+            if (contextValue.bindingRangeMask & BindingRange::Explicit) {
                 // if current context binding range is explicit, do not search forward when explicit bind isn't found
                 throw InjectableNotFoundException("No explicit binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID));
             }
@@ -381,8 +401,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
     }
     // no specific binding found for this interface in contexts : search for a default binding
     if (contextLevels.empty() ||
-            contextLevels.back().second.bindingRangeMask == BindingRange::Default ||
-            contextLevels.back().second.bindingRangeMask == BindingRange::All) {
+            contextLevels.back().second.bindingRangeMask & (BindingRange::Default |BindingRange::All)) {
         if (mapContains(m_defaultBindings, interfaceUUID)) {
             FactoryBindInfos bindInfos = m_defaultBindings.at(interfaceUUID);
             return bindInfos;
@@ -390,7 +409,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
     }
     // no default binding found for this interface : search for an autobinding
     if (contextLevels.empty() ||
-            contextLevels.back().second.bindingRangeMask == BindingRange::All) {
+            contextLevels.back().second.bindingRangeMask & BindingRange::All) {
         if (mapContains(m_autoBindings,interfaceUUID)) {
             return m_autoBindings.at(interfaceUUID);
         }
@@ -411,7 +430,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
                     return bindInfos;
                 }
             }
-            if (contextValue.bindingRangeMask == BindingRange::Explicit) {
+            if (contextValue.bindingRangeMask & BindingRange::Explicit) {
                 // if current context binding range is explicit, do not search forward when explicit bind isn't found
                 throw InjectableNotFoundException("No explicit binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID) + " named " + name);
             }
@@ -420,16 +439,14 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
     }
     // no specific named binding found for this interface in contexts : search for a default named binding
     if (contextLevels.empty() ||
-            contextLevels.back().second.bindingRangeMask == BindingRange::Named ||
-            contextLevels.back().second.bindingRangeMask == BindingRange::Default ||
-            contextLevels.back().second.bindingRangeMask == BindingRange::All) {
+            contextLevels.back().second.bindingRangeMask & (BindingRange::Named |BindingRange::Default|BindingRange::All)) {
         if (mapContains(m_namedBindings,key)) {
             FactoryBindInfos bindInfos = m_namedBindings.at(key);
             return bindInfos;
         }
     }
     if (!contextLevels.empty() &&
-            contextLevels.back().second.bindingRangeMask == BindingRange::Named) {
+            contextLevels.back().second.bindingRangeMask & BindingRange::Named) {
         throw InjectableNotFoundException("No default named binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID) + " named " + name);
     }
     return resolveBind(interfaceUUID, contextLevels);

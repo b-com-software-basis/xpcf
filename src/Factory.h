@@ -53,7 +53,7 @@ enum class ContextType {
 typedef struct  {
     uuids::uuid componentUUID;
     BindingScope scope;
-    uint8_t bindingRangeMask;
+    uint8_t bindingRangeMask = 0;
     std::string properties;
 } FactoryBindInfos;
 
@@ -118,7 +118,7 @@ public:
     template <typename I> SRef<I> resolve();
     template <typename I> SRef<I> resolve(const std::string & name);
     template < typename I, typename C, BindingScope scope = BindingScope::Transient,
-               uint8_t bindingRangeMask = BindingRange::Default  > void bindLocal();
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All  > void bindLocal();
     template < typename I, typename C, BindingScope scope = BindingScope::Transient,
                uint8_t bindingRangeMask = BindingRange::Named  > void bindLocal(const char * name);
     template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
@@ -155,13 +155,13 @@ template < typename I, typename C, BindingScope scope,
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
-           uint8_t bindingRangeMask = BindingRange::Explicit> void bindLocal()
+           uint8_t bindingRangeMask> void bindLocal()
 {
     bind(toUUID<T>(), toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
-           uint8_t bindingRangeMask = BindingRange::Explicit> void bindLocal(const char * name)
+           uint8_t bindingRangeMask> void bindLocal(const char * name)
 {
     bind(toUUID<T>(), name, toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
 }

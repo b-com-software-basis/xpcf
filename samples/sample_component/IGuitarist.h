@@ -40,7 +40,7 @@ class IGuitarist : virtual public IMusician
 {
 public:
     virtual ~IGuitarist() = default;
-    virtual void playSolo () = 0;
+    virtual void playSolo (const MusicScore & score) = 0;
     virtual void playRhythm () = 0;
     virtual SRef<IGuitar> getGuitar() = 0;
     virtual SRef<IGuitar> getGuitar(IGuitar::GuitarType type) = 0;

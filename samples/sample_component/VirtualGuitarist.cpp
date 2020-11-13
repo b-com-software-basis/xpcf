@@ -68,9 +68,12 @@ void VirtualGuitarist::unloadComponent ()
     return;
 }
 
-void VirtualGuitarist::playSolo()
+void VirtualGuitarist::playSolo(const MusicScore & score)
 {
     std::cout<<m_name<<"::"<<" VirtualGuitarist::playSolo ()  called!"<<std::endl;
+    for (auto & [key,duration] : score.m_score) {
+        std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
+    }
 }
 
 void VirtualGuitarist::playRhythm()
@@ -86,11 +89,13 @@ void VirtualGuitarist::learn ()
 
 }
 
-void VirtualGuitarist::playMusic ()
+void VirtualGuitarist::playMusic (const MusicScore & score)
 {
 
     std::cout<<m_name<<"::"<<" VirtualGuitarist::playMusic ()  called!"<<std::endl;
-
+    for (auto & [key,duration] : score.m_score) {
+        std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
+    }
 }
 
 void VirtualGuitarist::listen ()

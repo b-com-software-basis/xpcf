@@ -24,6 +24,32 @@
 #define IMUSICIAN_H 1
 
 #include "xpcf/api/IComponentIntrospect.h"
+
+struct MusicScore {
+    MusicScore() = default;
+    ~MusicScore() = default;
+    void add(std::string key, float duration)
+    {
+        m_score.push_back(std::make_pair(key,duration));
+    }
+    uint32_t m_tempo = 120;
+    std::vector<std::pair<std::string, float>> m_score;
+};
+
+namespace boost { namespace serialization {
+
+template<class Archive>
+inline void serialize(Archive & ar,
+                      MusicScore & score,
+                      const unsigned int version)
+{
+    ar & score.m_score;
+}
+
+
+}} // namespace boost::serialization
+
+
 /**
  *  @ingroup interfaces
  */
@@ -40,7 +66,7 @@ class IMusician : virtual public org::bcom::xpcf::IComponentIntrospect
 public:
     virtual ~IMusician() = default;
     virtual void learn () = 0;
-    virtual void playMusic () = 0;
+    virtual void playMusic (const MusicScore & score) = 0;
     virtual void listen () = 0;
     virtual void practice () = 0;
     virtual void party () = 0;
