@@ -122,13 +122,13 @@ std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl
 {
     m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::PROXY_HEADERFILENAME);
     m_headerProjectInfos << " \\\n" << metadata.at(MetadataType::SERVER_HEADERFILENAME);
-    m_headerProjectInfos << " \\\n" << metadata[MetadataType::GRPCSERVICENAME] << ".pb.h";
-    m_headerProjectInfos << " \\\n" << metadata[MetadataType::GRPCSERVICENAME] << ".grpc.pb.h";
+    m_headerProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".pb.h";
+    m_headerProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".grpc.pb.h";
     m_srcProjectInfos << " \\\n" << metadata.at(MetadataType::PROXY_CPPFILENAME);
     m_srcProjectInfos << " \\\n" << metadata.at(MetadataType::SERVER_CPPFILENAME);
-    m_srcProjectInfos << " \\\n" << metadata[MetadataType::GRPCSERVICENAME] << ".pb.cc";
-    m_srcProjectInfos << " \\\n" << metadata[MetadataType::GRPCSERVICENAME] << ".grpc.pb.cc";
-    m_protoProjectInfos << " \\\n" << metadata.at(MetadataType::GRPCPROTOFILENAME);
+    m_srcProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".pb.cc";
+    m_srcProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".grpc.pb.cc";
+    m_protoProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCPROTOFILENAME];
     generateModuleMain(c,metadata);
     return metadata;
 }

@@ -217,8 +217,8 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCFlatBufferGenerator::gener
 {
     m_serviceName = "grpc" + c->getName() + "Service";
     m_grpcServiceFilePath = m_serviceName + ".proto";
-    metadata[MetadataType::GRPCSERVICENAME] = m_serviceName;
-    metadata[MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
+    (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] = m_serviceName;
+    (*c)[ClassDescriptor::MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
 
     prepareMessages(c);
     if (m_mode == GenerateMode::STD_COUT) {

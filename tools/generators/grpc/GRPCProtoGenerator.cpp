@@ -101,13 +101,17 @@ void GRPCProtoGenerator::prepareMessages(const SRef<ClassDescriptor> c)
         std::string streamingClient, streamingServer;
 
         if (methodDesc->hasInputs()) {
-            methodDesc->m_requestName = methodDesc->m_rpcName + "Request";
+            if (methodDesc->m_requestName.empty()) {
+                methodDesc->m_requestName = methodDesc->m_rpcName + "Request";
+            }
         }
         else {
             methodDesc->m_requestName = "google.protobuf.Empty";
         }
         if (methodDesc->hasOutputs()) {
-            methodDesc->m_responseName = methodDesc->m_rpcName + "Response";
+            if (methodDesc->m_responseName.empty()) {
+                methodDesc->m_responseName = methodDesc->m_rpcName + "Response";
+            }
         }
         else {
             methodDesc->m_responseName = "google.protobuf.Empty";
@@ -131,8 +135,14 @@ void GRPCProtoGenerator::generateService(const SRef<ClassDescriptor> c, std::ost
         if (!methodDesc->hasInputs()) {
             methodDesc->m_requestName = "::google::protobuf::Empty";
         }
+        else {
+            methodDesc->m_requestName = "::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + methodDesc->m_requestName;
+        }
         if (!methodDesc->hasOutputs()) {
             methodDesc->m_responseName = "::google::protobuf::Empty";
+        }
+        else {
+            methodDesc->m_responseName = "::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + methodDesc->m_responseName;
         }
     }
     out<<"}"<<std::endl<<std::endl;
@@ -235,8 +245,8 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateIm
 {
     m_serviceName = "grpc" + c->getName() + "Service";
     m_grpcServiceFilePath = m_serviceName + ".proto";
-    metadata[MetadataType::GRPCSERVICENAME] = m_serviceName;
-    metadata[MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
+    (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] = m_serviceName;
+    (*c)[ClassDescriptor::MetadataType::GRPCPROTOFILENAME] = m_grpcServiceFilePath;
     prepareMessages(c);
 
     try {
@@ -253,13 +263,15 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateIm
             std::ofstream grpcServiceFile(grpcServiceFilePath.generic_string(utf8).c_str(), std::ios::out);
             grpcServiceFile << "syntax = \"proto3\";\n\n";
             grpcServiceFile << "import \"google/protobuf/empty.proto\";\n\n";
+            c->setRemotingNamespace("grpc" + c->getName());
+            grpcServiceFile << "package "<< c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) <<";\n\n";
             for (auto & methodDesc : c->methods()) {
                 generateMessages(methodDesc, grpcServiceFile);
             }
             generateService(c, grpcServiceFile);
             grpcServiceFile.close();
             m_protoFilesPath.push_back(grpcServiceFilePath);
-            m_protoNameFilesPathMap[ metadata[MetadataType::GRPCSERVICENAME] ] = grpcServiceFilePath;
+            m_protoNameFilesPathMap[ (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] ] = grpcServiceFilePath;
         }
     }
     catch (const GenerationException & e) {

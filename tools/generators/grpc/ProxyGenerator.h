@@ -41,6 +41,9 @@ protected:
     void generateBody(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata, std::ostream& out);
 
 private:
+    void processRemoteIncludes(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
+    void processHeaderMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
+    void processBodyMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
     void bindInput(const ParameterDescriptor & p, CppBlockManager & blockMgr);
     void bindOutput(const ParameterDescriptor & p, CppBlockManager & blockMgr);
     std::string m_nameSpace;
@@ -49,6 +52,8 @@ private:
     std::string m_cppFileName;
     std::string m_grpcClassName;
     std::map<std::string,std::string> m_serviceUuidMap;
+    //TODO : replace m_proxyMembersVariables member with method argument forwarding, shouldn't be a member !
+    std::map<std::string,std::pair<std::string,bool>> m_proxyMembersVariables;//works only without simple naming conflict, should be nspaced !
 };
 
 template <> struct org::bcom::xpcf::ComponentTraits<ProxyGenerator>

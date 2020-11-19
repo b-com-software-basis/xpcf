@@ -18,6 +18,38 @@ ProxyGenerator::~ProxyGenerator()
 
 }
 
+void ProxyGenerator::processHeaderMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr)
+{
+    for (auto m : c->methods()) {
+        blockMgr.out() <<  m->getFullDeclaration();
+        if (m->isConst()) {
+            blockMgr.out() <<  " const";
+        }
+        blockMgr.out() << " override;\n";
+        if (m->returnType().isConst() && m->returnType().isReference()) {
+            m_proxyMembersVariables["m_" + m->getName()] = std::make_pair(m->returnType().getFullTypeDescription(),m->isConst());
+        }
+    }
+    blockMgr.newline();
+    for (auto & name: c->getBases()) {
+        auto base = m_astParser->getInterfaceInfo(name);
+        if (base) {
+            processHeaderMethods(base, blockMgr);
+        }
+    }
+}
+
+void ProxyGenerator::processRemoteIncludes(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr)
+{
+    for (auto & name: c->getBases()) {
+        auto base = m_astParser->getInterfaceInfo(name);
+        if (base) {
+            processRemoteIncludes(base, blockMgr);
+        }
+    }
+    blockMgr.include((*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] + ".grpc.pb.h");
+}
+
 void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata, std::ostream& out)
 {
     CppBlockManager blockMgr(out);
@@ -35,7 +67,7 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
     blockMgr.include("xpcf/component/ConfigurableBase.h",false);
     blockMgr.include("memory",false);
     blockMgr.include("string",false);
-    blockMgr.include(m_grpcClassName + ".grpc.pb.h");
+    processRemoteIncludes(c,blockMgr);
     blockMgr.include("grpc/grpc.h",false);
     blockMgr.include("grpc++/channel.h",false);
 
@@ -62,27 +94,17 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
                 blockMgr.out() << "org::bcom::xpcf::XPCFErrorCode onConfigured() override;\n";
                 blockMgr.newline();
                 // foreach method
-                for (auto m : c->methods()) {
-                    blockMgr.out() <<  m->getFullDeclaration();
-                    if (m->isConst()) {
-                        blockMgr.out() <<  " const";
-                    }
-                    blockMgr.out() << " override;\n";
-                    if (m->returnType().isConst() && m->returnType().isReference()) {
-                        proxyMembersVariables["m_" + m->getName()] = std::make_pair(m->returnType().getFullTypeDescription(),m->isConst());
-                    }
-                }
-                blockMgr.newline();
+                processHeaderMethods(c, blockMgr);
             }
             {
                 block_guard<CPP::PRIVATE> privateBlk(blockMgr);
                 blockMgr.out() << "std::string m_channelUrl;\n";
                 blockMgr.out() << "uint32_t m_channelCredentials;\n";
                 blockMgr.out() << "std::shared_ptr<::grpc::Channel> m_channel;\n";
-                blockMgr.out() << "std::unique_ptr<" + m_grpcClassName + "::Stub> m_grpcStub;\n";
-                for (auto & [name, value ] : proxyMembersVariables) {
+                blockMgr.out() << "std::unique_ptr<::" +  c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::Stub> m_grpcStub;\n";
+                for (auto & [name, value ] : m_proxyMembersVariables) {
                     auto & [type, isConst] = value;
-                    if (isConst) {
+                            if (isConst) {
                         blockMgr.out() << "mutable ";
                     }
                     blockMgr.out() << type << " " << name << ";\n";
@@ -91,6 +113,8 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
         }
     }
     blockMgr.newline();
+
+    m_proxyMembersVariables.clear();
 
     blockMgr.out() << "template <> struct org::bcom::xpcf::ComponentTraits<" + m_nameSpace + "::" + m_className +">\n";//xpcf::grpc::proxy::c.name::c.name_grpcProxy>
     {
@@ -134,6 +158,73 @@ void ProxyGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager &
     }
 }
 
+void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr)
+{
+    for (auto m : c->methods()) {
+        blockMgr.out() << m->getReturnType() + "  "+ m_className + "::" + m->getDeclaration();
+        if (m->isConst()) {
+            blockMgr.out() <<  " const";
+        }
+        blockMgr.out() << "\n";
+        {
+            block_guard methodBlk(blockMgr);
+            blockMgr.out() << "::grpc::ClientContext context;\n";
+            blockMgr.out() << m->m_requestName << " reqIn;\n";
+            blockMgr.out() << m->m_responseName << " respOut;\n";
+            if (m->hasInputs()) {
+                for (ParameterDescriptor * p: m->m_inParams) {
+                    bindInput(*p, blockMgr);
+                }
+                for (ParameterDescriptor * p: m->m_inoutParams) {
+                    bindInput(*p, blockMgr);
+                }
+            }
+
+            blockMgr.out() << "::grpc::Status grpcRemoteStatus = m_grpcStub->" + m->m_rpcName + "(&context, reqIn, &respOut);\n";
+
+            blockMgr.out() << "if (!grpcRemoteStatus.ok())";
+            {
+                block_guard condBlk(blockMgr);
+                blockMgr.out() << "std::cout << \"" + m->m_rpcName + "rpc failed.\" << std::endl;\n";
+                blockMgr.out() << "throw xpcf::RemotingException(\"" << m_grpcClassName <<"\",\""<< m->m_rpcName <<"\",static_cast<uint32_t>(grpcRemoteStatus.error_code()));\n";//TODO : differentiate semantic return type from status return type : provide status type name ?
+            }
+            if (m->hasOutputs())  {
+                for (ParameterDescriptor * p: m->m_inoutParams) {
+                    bindOutput(*p, blockMgr);
+                }
+                for (ParameterDescriptor * p: m->m_outParams) {
+                    bindOutput(*p, blockMgr);
+                }
+            }
+            if (!m->returnType().isVoid()) {
+                if (m->returnType().kind() == type_kind::builtin_t) {
+                    if (m->returnType().needsStaticCast()) {
+                        blockMgr.out() << "return static_cast<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                    }
+                    else {
+                        blockMgr.out() << "return respOut.xpcfgrpcreturnvalue();\n";
+                    }
+                }
+                else if (m->returnType().kind() == type_kind::user_defined_t) {
+                    if (m->returnType().isConst() && m->returnType().isReference()) {
+                        blockMgr.out() << "m_" << m->getName()<<" = xpcf::deserialize<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                        blockMgr.out() << "return m_" << m->getName() << ";\n";
+                    }
+                    else {
+                        blockMgr.out() << "return xpcf::deserialize<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                    }
+                }
+            }
+        }
+        blockMgr.newline();
+    }
+    for (auto & name: c->getBases()) {
+        auto base = m_astParser->getInterfaceInfo(name);
+        if (base) {
+            processBodyMethods(base, blockMgr);
+        }
+    }
+}
 
 void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata, std::ostream& out)
 {
@@ -187,7 +278,7 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
         blockMgr.out() << m_className + "::" + m_className + "():xpcf::ConfigurableBase(xpcf::toMap<"+ m_className + ">())\n";
         {
             block_guard methodBlk(blockMgr);
-            blockMgr.out() << "declareInterface<" +  c->getName() + ">(this);\n";
+            blockMgr.out() << "declareInterface<::" + c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE) + "::" +  c->getName() + ">(this);\n";
             blockMgr.out() << "declareProperty(\"channelUrl\",m_channelUrl);\n";
             blockMgr.out() << "declareProperty(\"channelCredentials\",m_channelCredentials);\n";
         }
@@ -203,68 +294,10 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
         {
             block_guard methodBlk(blockMgr);
             blockMgr.out() << "m_channel = ::grpc::CreateChannel(m_channelUrl, getCredentials(static_cast<grpcCredentials>(m_channelCredentials)));\n";
-            blockMgr.out() << "m_grpcStub =" + m_grpcClassName + "::NewStub(m_channel);\n";
+            blockMgr.out() << "m_grpcStub = ::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::NewStub(m_channel);\n";
         }
         blockMgr.newline();
-
-        for (auto m : c->methods()) {
-            blockMgr.out() << m->getReturnType() + "  "+ m_className + "::" + m->getDeclaration();
-            if (m->isConst()) {
-                blockMgr.out() <<  " const";
-            }
-            blockMgr.out() << "\n";
-            {
-                block_guard methodBlk(blockMgr);
-                blockMgr.out() << "::grpc::ClientContext context;\n";
-                blockMgr.out() << m->m_requestName << " reqIn;\n";
-                blockMgr.out() << m->m_responseName << " respOut;\n";
-                if (m->hasInputs()) {
-                    for (ParameterDescriptor * p: m->m_inParams) {
-                        bindInput(*p, blockMgr);
-                    }
-                    for (ParameterDescriptor * p: m->m_inoutParams) {
-                        bindInput(*p, blockMgr);
-                    }
-                }
-
-                blockMgr.out() << "::grpc::Status status = m_grpcStub->" + m->m_rpcName + "(&context, reqIn, &respOut);\n";
-
-                blockMgr.out() << "if (!status.ok())";
-                {
-                    block_guard condBlk(blockMgr);
-                    blockMgr.out() << "std::cout << \"" + m->m_rpcName + "rpc failed.\" << std::endl;\n";
-                    blockMgr.out() << "throw xpcf::RemotingException(\"" << m_grpcClassName <<"\",\""<< m->m_rpcName <<"\",static_cast<uint32_t>(status.error_code()));\n";//TODO : differentiate semantic return type from status return type : provide status type name ?
-                }
-                if (m->hasOutputs())  {
-                    for (ParameterDescriptor * p: m->m_inoutParams) {
-                        bindOutput(*p, blockMgr);
-                    }
-                    for (ParameterDescriptor * p: m->m_outParams) {
-                        bindOutput(*p, blockMgr);
-                    }
-                }
-                if (!m->returnType().isVoid()) {
-                    if (m->returnType().kind() == type_kind::builtin_t) {
-                        if (m->returnType().needsStaticCast()) {
-                            blockMgr.out() << "return static_cast<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
-                        }
-                        else {
-                            blockMgr.out() << "return respOut.xpcfgrpcreturnvalue();\n";
-                        }
-                    }
-                    else if (m->returnType().kind() == type_kind::user_defined_t) {
-                        if (m->returnType().isConst() && m->returnType().isReference()) {
-                            blockMgr.out() << "m_" << m->getName()<<" = xpcf::deserialize<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
-                            blockMgr.out() << "return m_" << m->getName() << ";\n";
-                        }
-                        else {
-                            blockMgr.out() << "return xpcf::deserialize<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
-                        }
-                    }
-                }
-            }
-            blockMgr.newline();
-        }
+        processBodyMethods(c, blockMgr);
     }
 }
 
@@ -275,7 +308,7 @@ std::map<IRPCGenerator::MetadataType,std::string> ProxyGenerator::generateImpl(S
     m_className = c->getName() + "_grpcProxy";
     m_headerFileName = m_className + ".h";
     m_cppFileName = m_className + ".cpp";
-    m_grpcClassName = metadata.at(MetadataType::GRPCSERVICENAME);
+    m_grpcClassName = (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME];
     //m_grpcClassName = ??
     if (m_mode == GenerateMode::STD_COUT) {
         generateHeader(c, metadata, std::cout);

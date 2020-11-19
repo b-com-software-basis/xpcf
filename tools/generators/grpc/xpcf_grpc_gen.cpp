@@ -72,13 +72,13 @@ SRef<xpcf::IComponentManager> bindXpcfComponents() {
     cmpMgr->bindLocal<IRPCGenerator, ProjectGenerator>("project");
 #else
     // chained injection through base classe composite approach :
-    cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::BindingScope::Singleton, xpcf::BindingRange::Named>("service");
-    cmpMgr->bindLocal<GRPCProtoGenerator, IRPCGenerator, ProxyGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit>();
-    cmpMgr->bindLocal<GRPCFlatBufferGenerator, IRPCGenerator, ProxyGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit>();
-    cmpMgr->bindLocal<ProxyGenerator, IRPCGenerator, ServerGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit>();
-    cmpMgr->bindLocal<ServerGenerator, IRPCGenerator, ProjectGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit>();
+    cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::BindingScope::Singleton, xpcf::BindingRange::Named|xpcf::BindingRange::Explicit>("service");
+    cmpMgr->bindLocal<GRPCProtoGenerator, IRPCGenerator, ProxyGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
+    cmpMgr->bindLocal<GRPCFlatBufferGenerator, IRPCGenerator, ProxyGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
+    cmpMgr->bindLocal<ProxyGenerator, IRPCGenerator, ServerGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
+    cmpMgr->bindLocal<ServerGenerator, IRPCGenerator, ProjectGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
 #endif
-    cmpMgr->bindLocal<ITypeParser, ASTParser, xpcf::BindingScope::Singleton>();
+    cmpMgr->bindLocal<ITypeParser, ASTParser, xpcf::BindingScope::Singleton>("astParser");
     return cmpMgr;
 }
 
@@ -153,7 +153,7 @@ try
             // global component holding all sub components approach with named injections:
             cmpMgr->bindLocal<IRPCGenerator, GRPCProtoGenerator>("grpc");
 #else
-            cmpMgr->bindLocal<RemoteServiceGenerator, IRPCGenerator, GRPCProtoGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit>();
+            cmpMgr->bindLocal<RemoteServiceGenerator, IRPCGenerator, GRPCProtoGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
 #endif
         }
         else if (options["generator"].as<std::string>() != "flatbuffers") {
@@ -166,7 +166,7 @@ try
             // global component holding all sub components approach with named injections:
             cmpMgr->bindLocal<IRPCGenerator, GRPCFlatBufferGenerator>("grpc");
 #else
-            cmpMgr->bindLocal<RemoteServiceGenerator, IRPCGenerator, GRPCFlatBufferGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit>();
+            cmpMgr->bindLocal<RemoteServiceGenerator, IRPCGenerator, GRPCFlatBufferGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
 #endif
         }
 
@@ -183,7 +183,7 @@ try
             serviceGenerator->setDestinationFolder(options["output"].as<std::string>());
         }
 
-        auto astParser = cmpMgr->resolve<ITypeParser>();
+        auto astParser = cmpMgr->resolve<ITypeParser>("astParser");
 
         int result = astParser->initOptions(options);
         if (result !=0) {

@@ -18,7 +18,7 @@ AbstractGenerator::AbstractGenerator(std::map<std::string,std::string> component
 #ifndef XPCF_NAMEDINJECTIONAPPROACH
     declareInjectable<IRPCGenerator>(m_nextGenerator, true);
 #endif
-    declareInjectable<ITypeParser>(m_astParser, true);
+    declareInjectable<ITypeParser>(m_astParser,"astParser");
 }
 
 

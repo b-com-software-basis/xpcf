@@ -35,6 +35,9 @@ public:
     typedef enum {
         INTERFACENAMESPACE,
         INTERFACEFILEPATH,
+        REMOTINGNSPACE,
+        GRPCSERVICENAME,
+        GRPCPROTOFILENAME
     } MetadataType;
     ClassDescriptor(const cppast::cpp_entity& c, const std::string & nameSpace, const std::string & filePath);
     ClassDescriptor(const cppast::cpp_class& c);
@@ -42,10 +45,26 @@ public:
     const std::string & getName() const { return m_baseClass.name(); }
     const org::bcom::xpcf::uuids::uuid & getClientUUID() const { return m_clientUUID; }
     const org::bcom::xpcf::uuids::uuid & getServerUUID() const { return m_serverUUID; }
+    const std::vector<std::string> & getBases() { return m_bases; }
     bool isInterface() { return m_isInterface; }
     bool parse(const cppast::cpp_entity_index& index);
     bool ignored() const { return m_ignored; }
     const std::map<ClassDescriptor::MetadataType,std::string> & getMetadata() const { return m_metadata; }
+    void setRemotingNamespace(const std::string & nspace) {
+        m_metadata[MetadataType::REMOTINGNSPACE] = nspace;
+    }
+
+    std::string& operator[](const MetadataType& index)
+    {
+        return m_metadata[index];
+    }
+
+    //I is the index type, normally an int
+    const std::string& operator[](const MetadataType& index) const
+    {
+        return m_metadata.at(index);
+    }
+
     std::vector<SRef<MethodDescriptor>> & methods() const { return  m_virtualMethods; }
 
 private:
@@ -58,6 +77,7 @@ private:
     org::bcom::xpcf::uuids::uuid m_clientUUID = {00000000-0000-0000-0000-000000000000};
     org::bcom::xpcf::uuids::uuid m_serverUUID = {00000000-0000-0000-0000-000000000000};
     std::map<MetadataType,std::string> m_metadata;
+    std::vector<std::string> m_bases;
 
 };
 

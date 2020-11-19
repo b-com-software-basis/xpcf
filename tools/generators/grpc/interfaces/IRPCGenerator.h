@@ -36,8 +36,6 @@ public:
     } GenerateMode;
 
     typedef enum {
-        GRPCSERVICENAME,
-        GRPCPROTOFILENAME,
         GRPCPACKAGE,
         PROXY_HEADERFILENAME,
         PROXY_CPPFILENAME,

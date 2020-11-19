@@ -86,6 +86,12 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
                         if (attrib.arguments().has_value()) {
                             m_responseName = attrib.arguments().value().as_string();
                         }
+
+                    }
+                    else if (attrib.name() == "rpcName") {
+                        if (attrib.arguments().has_value()) {
+                            m_rpcName = attrib.arguments().value().as_string();
+                        }
                     }
                     else {
                         setStreamingType(attrib.name());

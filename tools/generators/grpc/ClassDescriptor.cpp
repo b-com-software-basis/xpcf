@@ -68,6 +68,7 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
 
     for (auto & base: m_baseClass.bases()) {
         std::cout<<"Base name="<<base.name()<<std::endl;
+        m_bases.push_back(base.name());
         if (base.scope_name().has_value()) {
             std::cout<<"Base scope_name="<<base.scope_name().value().name()<<std::endl;
         }

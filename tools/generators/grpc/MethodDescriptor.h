@@ -45,6 +45,7 @@
 // side note : there will be a need to differentiate between grpc protobuf UUIDs vs flatbuffers UUIDs vs another rpc layer UUIDs ?
 // streaming rpc must be indicated with [[grpc::server_streaming]], [[grpc::client_streaming]] or [[grpc::streaming]] at the method level
 // optionally, grpc request and response message name can be set with [[grpc::request("requestMessageName")]] and [[grpc::response("responseMessageName")]]
+// grpc method rpc name can be set with  [[grpc::rpcName("rpcname")]]
 // However, if you set the request and response across several methods, and use the same messages for several methods, you are responsible to ensure that message content are consistent
 // Otherwise, request message content is built from input and input/output parameters
 // response message content is built from output and input/output parameters
@@ -81,8 +82,8 @@ public:
     std::vector<ParameterDescriptor *> m_outParams;
     std::vector<ParameterDescriptor *> m_inoutParams;
     std::vector<SRef<ParameterDescriptor>> m_params;
-    std::string m_requestName = "Empty";
-    std::string m_responseName = "Empty";
+    std::string m_requestName;
+    std::string m_responseName;
     std::string m_rpcName;
 
 private:
