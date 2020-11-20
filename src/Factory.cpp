@@ -383,6 +383,7 @@ void Factory::bind(const uuids::uuid & targetComponentUUID, const std::string & 
 FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::deque<FactoryContext> contextLevels)
 {
     // search for the closest specific declaration of binding for interfaceUUID : the first context is the last one, the latter is the first specific context created in the tree
+    // WARNING : each bindingrange in the loop is replaced with the parent bindingrange : should it be the case ? may be not !
     for (auto [contextType,contextValue] : contextLevels) {
         if (contextType == ContextType::Component) {
             auto componentUUID = contextValue.componentUUID;
@@ -392,9 +393,13 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
                     return bindInfos;
                 }
             }
-            if (contextValue.bindingRangeMask & BindingRange::Explicit) {
-                // if current context binding range is explicit, do not search forward when explicit bind isn't found
-                throw InjectableNotFoundException("No explicit binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID));
+            if (contextValue.bindingRangeMask == BindingRange::Explicit) {
+                // when current context binding range is explicit only, do not search forward when explicit bind isn't found
+                throw InjectableNotFoundException("No explicit binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID)
+                                                  + " to inject to " +  uuids::to_string(componentUUID));
+            }
+            if (!(contextValue.bindingRangeMask & BindingRange::WithParents)) {
+                break;
             }
         }
         //TODO : handle named contexts
@@ -421,6 +426,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
 {
     pair<uuids::uuid, string> key = make_pair(interfaceUUID, name);
     // search for the closest specific declaration of binding for interfaceUUID : the first context is the last one, the latter is the first specific context created in the tree
+    // WARNING : each bindingrange in the loop is replaced with the parent bindingrange : should it be the case ? may be not !
     for (auto [contextType,contextValue] : contextLevels) {
         if (contextType == ContextType::Component) {
             auto componentUUID = contextValue.componentUUID;
@@ -430,9 +436,13 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
                     return bindInfos;
                 }
             }
-            if (contextValue.bindingRangeMask & BindingRange::Explicit) {
-                // if current context binding range is explicit, do not search forward when explicit bind isn't found
-                throw InjectableNotFoundException("No explicit binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID) + " named " + name);
+            if (contextValue.bindingRangeMask == BindingRange::Explicit) {
+                // when current context binding range is explicit only, do not search forward when explicit bind isn't found
+                throw InjectableNotFoundException("No explicit binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID) + " named " + name
+                                                  + " to inject to " +  uuids::to_string(componentUUID));
+            }
+            if (!(contextValue.bindingRangeMask & BindingRange::WithParents)) {
+                break;
             }
         }
         //TODO : handle named contexts
