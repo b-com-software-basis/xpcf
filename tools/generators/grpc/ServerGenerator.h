@@ -42,7 +42,6 @@ protected:
 
 
 private:
-    void processRemoteIncludes(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
     void processHeaderMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
     void processBodyMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
     void bindInput(const ParameterDescriptor & p, CppBlockManager & blockMgr);

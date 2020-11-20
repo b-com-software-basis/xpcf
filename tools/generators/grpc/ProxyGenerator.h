@@ -41,7 +41,6 @@ protected:
     void generateBody(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata, std::ostream& out);
 
 private:
-    void processRemoteIncludes(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
     void processHeaderMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
     void processBodyMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
     void bindInput(const ParameterDescriptor & p, CppBlockManager & blockMgr);

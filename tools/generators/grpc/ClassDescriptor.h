@@ -69,6 +69,7 @@ public:
 
 private:
     void generateRpcMapping(const std::map<std::string, std::vector<std::size_t>> & virtualMethodsMap);
+    void parseMethods(const cppast::cpp_class & c, std::map<std::string, std::vector<std::size_t>> & virtualMethodsMap, const cppast::cpp_entity_index& index);
     mutable std::vector<SRef<MethodDescriptor>> m_virtualMethods;
     //std::multimap<std::string, std::size_t> m_virtualMethodsMap;
     bool m_ignored = false;
@@ -77,6 +78,7 @@ private:
     org::bcom::xpcf::uuids::uuid m_clientUUID = {00000000-0000-0000-0000-000000000000};
     org::bcom::xpcf::uuids::uuid m_serverUUID = {00000000-0000-0000-0000-000000000000};
     std::map<MetadataType,std::string> m_metadata;
+    std::map<std::string,bool> m_classParsed;
     std::vector<std::string> m_bases;
 
 };

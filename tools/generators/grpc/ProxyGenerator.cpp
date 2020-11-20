@@ -31,23 +31,6 @@ void ProxyGenerator::processHeaderMethods(const SRef<ClassDescriptor> c, CppBloc
         }
     }
     blockMgr.newline();
-    for (auto & name: c->getBases()) {
-        auto base = m_astParser->getInterfaceInfo(name);
-        if (base) {
-            processHeaderMethods(base, blockMgr);
-        }
-    }
-}
-
-void ProxyGenerator::processRemoteIncludes(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr)
-{
-    for (auto & name: c->getBases()) {
-        auto base = m_astParser->getInterfaceInfo(name);
-        if (base) {
-            processRemoteIncludes(base, blockMgr);
-        }
-    }
-    blockMgr.include((*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] + ".grpc.pb.h");
 }
 
 void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata, std::ostream& out)
@@ -67,7 +50,7 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
     blockMgr.include("xpcf/component/ConfigurableBase.h",false);
     blockMgr.include("memory",false);
     blockMgr.include("string",false);
-    processRemoteIncludes(c,blockMgr);
+    blockMgr.include((*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] + ".grpc.pb.h");
     blockMgr.include("grpc/grpc.h",false);
     blockMgr.include("grpc++/channel.h",false);
 
@@ -217,12 +200,6 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
             }
         }
         blockMgr.newline();
-    }
-    for (auto & name: c->getBases()) {
-        auto base = m_astParser->getInterfaceInfo(name);
-        if (base) {
-            processBodyMethods(base, blockMgr);
-        }
     }
 }
 

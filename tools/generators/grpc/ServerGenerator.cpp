@@ -25,25 +25,8 @@ void ServerGenerator::processHeaderMethods(const SRef<ClassDescriptor> c, CppBlo
         blockMgr.out() << "::grpc::Status " + m->m_rpcName + "(::grpc::ServerContext* context, const " + request + "* request, " + response + "* response) override;\n";
     }
     blockMgr.newline();
-    for (auto & name: c->getBases()) {
-        auto base = m_astParser->getInterfaceInfo(name);
-        if (base) {
-            processHeaderMethods(base, blockMgr);
-        }
-    }
 }
 
-
-void ServerGenerator::processRemoteIncludes(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr)
-{
-    for (auto & name: c->getBases()) {
-        auto base = m_astParser->getInterfaceInfo(name);
-        if (base) {
-            processRemoteIncludes(base, blockMgr);
-        }
-    }
-    blockMgr.include((*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] + ".grpc.pb.h");
-}
 
 void ServerGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata, std::ostream& out)
 {
@@ -62,7 +45,7 @@ void ServerGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Met
     blockMgr.include(c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACEFILEPATH)); // relative or absolute path?? TODO:  retrieve filepath from metadata
     blockMgr.include("xpcf/component/ConfigurableBase.h",false);
     blockMgr.include("xpcf/remoting/IGrpcService.h",false);
-    processRemoteIncludes(c,blockMgr);
+    blockMgr.include((*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] + ".grpc.pb.h");
     blockMgr.include("grpc/grpc.h",false);
     blockMgr.newline();
 
@@ -204,12 +187,6 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
             blockMgr.out() << "return ::grpc::Status::OK;\n";
         }
         blockMgr.newline();
-    }
-    for (auto & name: c->getBases()) {
-        auto base = m_astParser->getInterfaceInfo(name);
-        if (base) {
-            processBodyMethods(base, blockMgr);
-        }
     }
 }
 
