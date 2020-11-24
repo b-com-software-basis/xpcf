@@ -258,7 +258,7 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
 
 std::map<IRPCGenerator::MetadataType,std::string> ServerGenerator::generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
 {
-    m_nameSpace =  "org::bcom::xpcf::grpc::server::" + c->getName();
+    m_nameSpace =  "org::bcom::xpcf::grpc::server" + c->getName();
     m_className = c->getName() + "_grpcServer";
     m_headerFileName = m_className + ".h";
     m_cppFileName = m_className + ".cpp";

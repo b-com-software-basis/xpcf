@@ -39,6 +39,10 @@ void ClassDescriptor::parseMethods(const cppast::cpp_class & c, std::map<std::st
 {
     for (auto & base: c.bases()) {
          std::cout<<"parseMethods::Base name="<<base.name()<<std::endl;
+        if (base.name() == "org::bcom::xpcf::ComponentBase" ||
+            base.name() == "org::bcom::xpcf::ConfigurableBase") {
+            m_isXpcfComponent = true;
+        }
         auto  baseClassRef = cppast::get_class(index,base);
         if (baseClassRef.has_value()) {
             auto & baseClass = baseClassRef.value();
@@ -105,7 +109,7 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
 
     parseMethods(m_baseClass,virtualMethodsMap,index);
 
-    m_isInterface = (m_virtualMethods.size() > 0);// && ICompIns is ancestor direct or indirect
+    m_isInterface = !m_isXpcfComponent && (m_virtualMethods.size() > 0);// && ICompIns is ancestor direct or indirect
     if (isInterface()) {
         generateRpcMapping(virtualMethodsMap);
     }

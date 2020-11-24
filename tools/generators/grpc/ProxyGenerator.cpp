@@ -267,7 +267,12 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
         blockMgr.out() << m_className + "::" + m_className + "():xpcf::ConfigurableBase(xpcf::toMap<"+ m_className + ">())\n";
         {
             block_guard methodBlk(blockMgr);
-            blockMgr.out() << "declareInterface<::" + c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE) + "::" +  c->getName() + ">(this);\n";
+            std::string baseInterface;
+            if (!c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE).empty()) {
+                baseInterface = c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE) + "::";
+            }
+            baseInterface += c->getName();
+            blockMgr.out() << "declareInterface<" + baseInterface + ">(this);\n";
             blockMgr.out() << "declareProperty(\"channelUrl\",m_channelUrl);\n";
             blockMgr.out() << "declareProperty(\"channelCredentials\",m_channelCredentials);\n";
         }
@@ -293,7 +298,7 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
 std::map<IRPCGenerator::MetadataType,std::string> ProxyGenerator::generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
 
 {
-    m_nameSpace =  "org::bcom::xpcf::grpc::proxy::" + c->getName();
+    m_nameSpace =  "org::bcom::xpcf::grpc::proxy" + c->getName();
     m_className = c->getName() + "_grpcProxy";
     m_headerFileName = m_className + ".h";
     m_cppFileName = m_className + ".cpp";

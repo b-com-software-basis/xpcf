@@ -43,6 +43,7 @@ inline void serialize(Archive & ar,
                       MusicScore & score,
                       const unsigned int version)
 {
+    ar & score.m_tempo;
     ar & score.m_score;
 }
 
