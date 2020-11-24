@@ -112,7 +112,9 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
 
 void ProxyGenerator::bindInput(const ParameterDescriptor & p, CppBlockManager & blockMgr)
 {
-    if (p.type().kind() == type_kind::builtin_t) {
+    if (p.type().kind() == type_kind::builtin_t
+            || p.type().kind() == type_kind::enum_t
+            || p.type().kind() == type_kind::std_string_t) {
         if (p.type().needsStaticCast()) {
             blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) << "(static_cast<" << p.type().getRPCType() << ">(" << p.getName() << "));\n";
         }
@@ -128,7 +130,9 @@ void ProxyGenerator::bindInput(const ParameterDescriptor & p, CppBlockManager & 
 
 void ProxyGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager & blockMgr)
 {
-    if (p.type().kind() == type_kind::builtin_t) {
+    if (p.type().kind() == type_kind::builtin_t
+            || p.type().kind() == type_kind::enum_t
+            || p.type().kind() == type_kind::std_string_t) {
         if (p.type().needsStaticCast()) {
             blockMgr.out() << p.getName() << " = static_cast<" << p.type().getFullTypeDescription() << ">(respOut." << boost::to_lower_copy(p.getName()) <<"());\n";
         }
@@ -195,6 +199,14 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
                     }
                     else {
                         blockMgr.out() << "return xpcf::deserialize<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                    }
+                }
+                else if (m->returnType().kind() == type_kind::enum_t) {
+                    if (m->returnType().needsStaticCast()) {
+                        blockMgr.out() << "return static_cast<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
+                    }
+                    else {
+                        blockMgr.out() << "return respOut.xpcfgrpcreturnvalue();\n";
                     }
                 }
             }

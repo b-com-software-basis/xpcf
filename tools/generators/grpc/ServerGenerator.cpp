@@ -106,7 +106,9 @@ void ServerGenerator::bindInput(const ParameterDescriptor & p, CppBlockManager &
 {
     std::stringstream requestParamTranscription;
     if (p.ioType() == ParameterDescriptor::io_type::in || p.ioType() == ParameterDescriptor::io_type::inout) {
-        if (p.type().kind() == type_kind::builtin_t || p.type().kind() == type_kind::enum_t) {
+        if (p.type().kind() == type_kind::builtin_t
+                || p.type().kind() == type_kind::enum_t
+                || p.type().kind() == type_kind::std_string_t) {
             if (p.type().needsStaticCast()) {
                 requestParamTranscription << " = static_cast<" << p.type().getFullTypeDescription() << ">(request->" << boost::to_lower_copy(p.getName()) << "());\n";
             }
@@ -128,7 +130,9 @@ void ServerGenerator::bindInput(const ParameterDescriptor & p, CppBlockManager &
 void ServerGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager & blockMgr)
 {
     if (p.ioType() == ParameterDescriptor::io_type::inout || p.ioType() == ParameterDescriptor::io_type::out) {
-        if (p.type().kind() == type_kind::builtin_t) {
+        if (p.type().kind() == type_kind::builtin_t
+                || p.type().kind() == type_kind::enum_t
+                || p.type().kind() == type_kind::std_string_t) {
             if (p.type().needsStaticCast()) {
                 blockMgr.out() << "response->set_"<< boost::to_lower_copy(p.getName()) <<"(static_cast<"<< p.type().getRPCType() <<">("<<p.getName() <<"));\n";
             }
@@ -182,7 +186,14 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
                 else if (m->returnType().kind() == type_kind::user_defined_t) {
                     blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m->returnType().getFullTypeDescription() << ">(returnValue));\n";
                 }
-
+                else if (m->returnType().kind() == type_kind::enum_t) {
+                    if (m->returnType().needsStaticCast()) {
+                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(static_cast<"<< m->returnType().getRPCType() <<">(returnValue));\n";
+                    }
+                    else {
+                        blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
+                    }
+                }
             }
             blockMgr.out() << "return ::grpc::Status::OK;\n";
         }

@@ -194,7 +194,7 @@ std::string GRPCProtoGenerator::getTypeName(const TypeDescriptor & p)
         }
         else {
             typeName = "sint32";
-            p.enableStaticCast(typeName);
+            p.enableStaticCast(proto2cppTypeMap.at(typeName));
         }
     }
     return typeName;
