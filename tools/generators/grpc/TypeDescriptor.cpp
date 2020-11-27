@@ -346,6 +346,7 @@ UniqueRef<TypeDescriptor::TypeDescriptorInfo> TypeDescriptor::parseType(const cp
             info->m_typename = cppast::to_string(currentType);
             info->m_builtinType = cppFixedWidthType(currentType);
             info->m_kind = type_kind::builtin_t;
+            info->m_isBuiltin = true;
         }
         if (isStdString(currentType)) {
             bIsLeaf = true;
@@ -411,6 +412,7 @@ UniqueRef<TypeDescriptor::TypeDescriptorInfo> TypeDescriptor::parseType(const cp
             info->m_typename = cppast::to_string(currentType.get());
             info->m_builtinType = static_cast<cpp_builtin_type>(builtinType.builtin_type_kind());
             info->m_kind = type_kind::builtin_t;
+            info->m_isBuiltin = true;
             bIsLeaf = true;
         }
         else {
@@ -468,6 +470,13 @@ UniqueRef<TypeDescriptor::TypeDescriptorInfo> TypeDescriptor::parseType(const cp
     if (m_foundConst.size() < m_foundRef.size()) {
         // found less const than ref : type is not fully const
         info->m_const = false;
+    }
+    else {
+        info->m_const = true;
+    }
+    if (info->m_isBuiltin && info->m_const && info->m_isPointer && info->m_builtinType == cpp_char) {
+        info->m_isBuiltin = false;
+        info->m_kind = type_kind::c_string_t;
     }
     return info;
     /*if (!bIsLeaf) {

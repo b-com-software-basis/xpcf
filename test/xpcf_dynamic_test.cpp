@@ -528,10 +528,8 @@ BOOST_FIXTURE_TEST_CASE( test_component_multibind,XpcfFixture,* boost::unit_test
     BOOST_TEST_MESSAGE("Resolve IGuitarist default binding");
     SRef<IGuitarist> rIGuitarist = xpcfComponentManager->resolve<IGuitarist>();
     BOOST_TEST_MESSAGE("Multibind guitars:");
-    for (auto electricGuitar: rIGuitarist->getGuitarCollection()) {
-        SRef<IGuitar> guitar = electricGuitar->bindTo<IGuitar>();
-        BOOST_TEST_MESSAGE("guitar brand:" << guitar->getGuitarBrand());
-        BOOST_TEST_MESSAGE("guitar nb strings:" << guitar->getNbStrings());
+    for (auto guitarBrand: rIGuitarist->getGuitarCollection()) {
+        BOOST_TEST_MESSAGE("guitar brand:" << guitarBrand);
     }
     xpcfComponentManager->clear();
 }

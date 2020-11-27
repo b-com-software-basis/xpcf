@@ -157,7 +157,12 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
             block_guard methodBlock(blockMgr);
             std::stringstream methodCall;
             if (!m->returnType().isVoid()) {
-                methodCall << m->returnType().getFullTypeDescription()<< " returnValue = ";
+                if (m->returnType().kind() == type_kind::c_string_t) {
+                    methodCall << "std::string" << " returnValue = ";
+                }
+                else {
+                    methodCall << m->returnType().getFullTypeDescription()<< " returnValue = ";
+                }
             }
             methodCall << "m_xpcfComponent->" << m->getName() << "(";
             uint32_t nbTypes = 0;
@@ -193,6 +198,9 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
                     else {
                         blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
                     }
+                }
+                else if (m->returnType().kind() == type_kind::c_string_t ) {
+                    blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
                 }
             }
             blockMgr.out() << "return ::grpc::Status::OK;\n";

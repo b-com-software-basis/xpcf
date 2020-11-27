@@ -26,7 +26,10 @@ void ProxyGenerator::processHeaderMethods(const SRef<ClassDescriptor> c, CppBloc
             blockMgr.out() <<  " const";
         }
         blockMgr.out() << " override;\n";
-        if (m->returnType().isConst() && m->returnType().isReference()) {
+        if (m->returnType().kind() == type_kind::c_string_t) {
+            m_proxyMembersVariables["m_" + m->getName()] = std::make_pair("std::string", false);
+        }
+        else if (m->returnType().isConst() && m->returnType().isReference()) {
             m_proxyMembersVariables["m_" + m->getName()] = std::make_pair(m->returnType().getFullTypeDescription(),m->isConst());
         }
     }
@@ -114,7 +117,8 @@ void ProxyGenerator::bindInput(const ParameterDescriptor & p, CppBlockManager & 
 {
     if (p.type().kind() == type_kind::builtin_t
             || p.type().kind() == type_kind::enum_t
-            || p.type().kind() == type_kind::std_string_t) {
+            || p.type().kind() == type_kind::std_string_t
+            || p.type().kind() == type_kind::c_string_t) {
         if (p.type().needsStaticCast()) {
             blockMgr.out() << "reqIn.set_"<< boost::to_lower_copy(p.getName()) << "(static_cast<" << p.type().getRPCType() << ">(" << p.getName() << "));\n";
         }
@@ -208,6 +212,10 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
                     else {
                         blockMgr.out() << "return respOut.xpcfgrpcreturnvalue();\n";
                     }
+                }
+                else if (m->returnType().kind() == type_kind::c_string_t ) {
+                    blockMgr.out() << "m_" << m->getName()<<" = respOut.xpcfgrpcreturnvalue();\n";
+                    blockMgr.out() << "return m_" << m->getName() << ".c_str();\n";
                 }
             }
         }

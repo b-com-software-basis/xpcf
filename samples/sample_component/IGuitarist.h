@@ -44,7 +44,7 @@ public:
     virtual void playRhythm () = 0;
     virtual SRef<IGuitar> getGuitar() = 0;
     virtual SRef<IGuitar> getGuitar(IGuitar::GuitarType type) = 0;
-    virtual const org::bcom::xpcf::IEnumerable<SRef<IElectricGuitar>> & getGuitarCollection() = 0;
+    virtual std::vector<std::string> getGuitarCollection() = 0;
 };
 
 template <> struct org::bcom::xpcf::InterfaceTraits<IGuitarist>

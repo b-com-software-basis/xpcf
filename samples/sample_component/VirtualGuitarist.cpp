@@ -135,9 +135,13 @@ SRef<IGuitar> VirtualGuitarist::getGuitar(IGuitar::GuitarType type)
     return m_guitar;
 }
 
-const org::bcom::xpcf::IEnumerable<SRef<IElectricGuitar>> & VirtualGuitarist::getGuitarCollection()
+std::vector<std::string>  VirtualGuitarist::getGuitarCollection()
 {
-    return *m_guitars;
+    std::vector<std::string> guitars;
+    for (auto g : *m_guitars) {
+        guitars.push_back(g->bindTo<IGuitar>()->getGuitarBrand());
+    }
+    return guitars;
 }
 
 }

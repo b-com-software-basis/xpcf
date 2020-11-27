@@ -169,33 +169,35 @@ const std::string & GRPCProtoGenerator::tryTranscribeName(ParameterDescriptor & 
 
 std::string GRPCProtoGenerator::getTypeName(const TypeDescriptor & p)
 {
-    std::string typeName;
     if (p.kind() == type_kind::std_string_t) {
-        typeName = "string";
+        return "string";
     }
-    else {
-        if (p.kind() != type_kind::enum_t) {
-            if (p.isVoid() && p.isReference()) {
-                throw GenerationException("GRPCProtoGenerator: void * serialization is not defined !");
-            }
-            //TODO : differentiate between pointers and refs !
-            //pointer means array of elements : need a size to figure out howto handle the parameter !
-            //reference to builtin means builtin not array : must be different while transcribing and generating stubs !
-            if ( p.kind() == type_kind::builtin_t ) {
-                const std::pair<std::string,bool> & typeInfo = GRPCProtoGenerator::tryConvertType(p.getBuiltinType());
-                typeName = typeInfo.first;
-                if (typeInfo.second) {
-                    p.enableStaticCast(proto2cppTypeMap.at(typeName));
-                }
-            }
-            if (typeName.size() == 0 && p.kind() != type_kind::builtin_t) {
-                typeName = "bytes";
-            }
-        }
-        else {
-            typeName = "sint32";
+    if (p.kind() == type_kind::c_string_t) {
+        return "string";
+    }
+
+    std::string typeName;
+    if (p.kind() == type_kind::enum_t) {
+        typeName = "sint32";
+        p.enableStaticCast(proto2cppTypeMap.at(typeName));
+        return typeName;
+    }
+
+    if (p.isVoid() && p.isReference()) {
+        throw GenerationException("GRPCProtoGenerator: void * serialization is not defined !");
+    }
+    //TODO : differentiate between pointers and refs !
+    //pointer means array of elements : need a size to figure out howto handle the parameter !
+    //reference to builtin means builtin not array : must be different while transcribing and generating stubs !
+    if ( p.kind() == type_kind::builtin_t ) {
+        const std::pair<std::string,bool> & typeInfo = GRPCProtoGenerator::tryConvertType(p.getBuiltinType());
+        typeName = typeInfo.first;
+        if (typeInfo.second) {
             p.enableStaticCast(proto2cppTypeMap.at(typeName));
         }
+    }
+    if (typeName.size() == 0 && p.kind() != type_kind::builtin_t) {
+        typeName = "bytes";
     }
     return typeName;
 }

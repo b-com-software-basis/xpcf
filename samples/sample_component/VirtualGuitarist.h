@@ -64,7 +64,7 @@ public:
     void party () override;
     SRef<IGuitar> getGuitar() override { return m_guitar; }
     SRef<IGuitar> getGuitar(IGuitar::GuitarType type) override;
-    const org::bcom::xpcf::IEnumerable<SRef<IElectricGuitar>> & getGuitarCollection() override;
+    std::vector<std::string> getGuitarCollection() override;
 
     void playSolo (const MusicScore & score) override;
     void playRhythm () override;

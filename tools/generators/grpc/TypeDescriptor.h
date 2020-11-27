@@ -138,6 +138,7 @@ enum cpp_builtin_type {
 
 enum type_kind {
     builtin_t,
+    c_string_t,
     std_string_t,
     user_defined_t,
     array_t,
