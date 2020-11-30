@@ -17,7 +17,19 @@ ClassDescriptor::ClassDescriptor(const cppast::cpp_class& c):m_baseClass(c)
 {
 }
 
+const org::bcom::xpcf::uuids::uuid & ClassDescriptor::createClientUUID()
+{
+    xpcf::uuids::random_generator gen;
+    m_clientUUID = gen();
+    return m_clientUUID;
+}
 
+const org::bcom::xpcf::uuids::uuid & ClassDescriptor::createServerUUID()
+{
+    xpcf::uuids::random_generator gen;
+    m_serverUUID = gen();
+    return m_serverUUID;
+}
 
 void ClassDescriptor::generateRpcMapping(const std::map<std::string, std::vector<std::size_t>> & virtualMethodsMap)
 {

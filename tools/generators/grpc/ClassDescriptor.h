@@ -44,6 +44,8 @@ public:
     ClassDescriptor(const ClassDescriptor&  other) = delete;
     const std::string & getName() const { return m_baseClass.name(); }
     const org::bcom::xpcf::uuids::uuid & getClientUUID() const { return m_clientUUID; }
+    const org::bcom::xpcf::uuids::uuid & createClientUUID();
+    const org::bcom::xpcf::uuids::uuid & createServerUUID();
     const org::bcom::xpcf::uuids::uuid & getServerUUID() const { return m_serverUUID; }
     const std::vector<std::string> & getBases() { return m_bases; }
     bool isInterface() { return m_isInterface; }

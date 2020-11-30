@@ -44,6 +44,9 @@ private:
     std::stringstream m_srcProjectInfos;
     std::stringstream m_headerProjectInfos;
     std::stringstream m_protoProjectInfos;
+    std::stringstream m_xmlModuleInfos;
+    std::stringstream m_xmlModuleComponentsInfos;
+    std::stringstream m_xmlFactoryInfos;
     std::stringstream m_moduleMainInfosHeader;
     std::stringstream m_moduleMainInfosSource;
     std::stringstream m_moduleMainDeclareComponents;
@@ -51,6 +54,9 @@ private:
     std::unique_ptr<CppBlockManager> m_moduleHdrMgr;
     std::unique_ptr<CppBlockManager> m_moduleSrcMgr;
     std::unique_ptr<CppBlockManager> m_moduleDeclareMgr;
+    std::string m_moduleUUID;
+    std::string m_moduleName;
+    std::string m_moduleDescription;
 
 };
 

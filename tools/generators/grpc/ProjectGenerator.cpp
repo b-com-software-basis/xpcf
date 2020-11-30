@@ -28,9 +28,18 @@ std::string pkgdepsStr = "grpc|1.32.0|grpc++|brew@system|\n"
 
 ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenerator>())
 {
+    xpcf::uuids::random_generator gen;
+    xpcf::uuids::uuid moduleUUID = gen();
+    m_moduleUUID = xpcf::uuids::to_string(moduleUUID);
     m_headerProjectInfos << "\nHEADERS +=";
     m_srcProjectInfos << "\nSOURCES +=";
     m_protoProjectInfos << "\nPROTO =";
+    m_xmlModuleInfos << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
+    m_xmlModuleInfos << "<xpcf-registry autoAlias=\"true\">\n";
+    m_xmlFactoryInfos << "<factory>\n";
+    m_xmlFactoryInfos << "  <bindings>\n";
+    m_xmlFactoryInfos << "    <bind interface=\"org::bcom::xpcf::IGrpcService\">\n";
+
     m_moduleHdrMgr = std::make_unique<CppBlockManager>(m_moduleMainInfosHeader);
     m_moduleSrcMgr = std::make_unique<CppBlockManager>(m_moduleMainInfosSource);
     m_moduleDeclareMgr = std::make_unique<CppBlockManager>(m_moduleMainDeclareModule);
@@ -114,6 +123,7 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
     out << "    QMAKE_CXXFLAGS += -wd4250 -wd4251 -wd4244 -wd4275 /Od\n}\n\n";
     out << "android {\n    QMAKE_LFLAGS += -nostdlib++\n}\n\n";
     out << "OTHER_FILES += \\n    packagedependencies.txt\n\n";
+    out << "OTHER_FILES += \\n    xpcfGrpcRemoting" << metadata[MetadataType::PROJECT_NAME] <<".xml\n\n";
     out << "#NOTE : Must be placed at the end of the .pro\ninclude ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)\n";
 
 }
@@ -129,15 +139,25 @@ std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl
     m_srcProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".pb.cc";
     m_srcProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".grpc.pb.cc";
     m_protoProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCPROTOFILENAME];
+    m_xmlModuleComponentsInfos << "<component uuid=\"" << c->getClientUUID()<<"\" name=\""<< metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME] <<"\" description=\""<< metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME] <<" grpc client proxy component\">\n";
+    m_xmlModuleComponentsInfos << "  <interface uuid=\"125f2007-1bf9-421d-9367-fbdc1210d006\" name=\"XPCF::IComponentIntrospect\" description=\"Component introspection interface.\"/>\n";
+    //m_xmlModuleComponentsInfos << "<interface uuid=\""<< c->getUUID() <<" name=\"" << c->getName() << " description=\""<< c->getDescription() <<"\"/>\n";
+    m_xmlModuleComponentsInfos << "</component>\n";
+    m_xmlModuleComponentsInfos << "<component uuid=\"" << c->getServerUUID()<<"\" name=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<"\" description=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<" grpc server component\">\n";
+    m_xmlModuleComponentsInfos << "  <interface uuid=\"125f2007-1bf9-421d-9367-fbdc1210d006\" name=\"XPCF::IComponentIntrospect\" description=\"Component introspection interface.\"/>\n";
+    m_xmlModuleComponentsInfos << "  <interface uuid=\"63571f14-f1df-4928-8fc5-42785b87ed81\" name=\"org::bcom::xpcf::IGrpcService\" description=\"xpcf GrpcService interface\"/>\n";
+    m_xmlModuleComponentsInfos << "</component>\n";
+    m_xmlFactoryInfos<< "      <component to=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<"\"/>\n";
     generateModuleMain(c,metadata);
     return metadata;
 }
 
 void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
-    xpcf::uuids::random_generator gen;
-    xpcf::uuids::uuid moduleUUID = gen();
-    m_moduleDeclareMgr->out() << "XPCF_DECLARE_MODULE(\""<< xpcf::uuids::to_string(moduleUUID) <<"\", \"xpcfGrpcModule\",\"xpcfGrpcModule for project "<< metadata[MetadataType::PROJECT_NAME] <<"\");\n";
+    m_moduleName = "xpcfGrpcModule" +  metadata[MetadataType::PROJECT_NAME];
+    m_moduleDescription = "xpcf remoting module for project " + metadata[MetadataType::PROJECT_NAME];
+    m_moduleDeclareMgr->out() << "XPCF_DECLARE_MODULE(\""<< m_moduleUUID <<"\", \"" << m_moduleName << "\",\"" << m_moduleDescription << "\");\n";
+    m_xmlModuleInfos << "<module uuid=\"{" << m_moduleUUID <<"}\" name=\""<< m_moduleName <<"\" description=\""<< m_moduleDescription <<"\" path=\"$REMAKENROOT/modules\">\n";
     m_moduleHdrMgr->includeGuardsEnd();
     m_moduleSrcMgr->out()<<"return errCode;\n";
     m_moduleSrcMgr->leave();
@@ -146,6 +166,9 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
     m_moduleSrcMgr->out() << m_moduleMainDeclareComponents.str();
     m_headerProjectInfos << " \\\n" << "xpcfGrpcModuleMain.h" << "\n";
     m_srcProjectInfos << " \\\n" << "xpcfGrpcModuleMain.cpp" << "\n";
+    m_xmlFactoryInfos<< "    </bind>\n";
+    m_xmlFactoryInfos<< "  </bindings>\n";
+    m_xmlFactoryInfos<< "</factory>\n";
 
     if (m_mode == GenerateMode::STD_COUT) {
         generateProjectFile(metadata,std::cout);
@@ -162,6 +185,15 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
         std::ofstream projectFile(projectFilePath.generic_string(utf8).c_str(), std::ios::out);
         generateProjectFile(metadata,projectFile);
         projectFile.close();
+        fs::path xmlFilePath("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".xml",utf8);
+        xmlFilePath = m_folder/xmlFilePath;
+        std::ofstream xmlFile(xmlFilePath.generic_string(utf8).c_str(), std::ios::out);
+        xmlFile << m_xmlModuleInfos.str();
+        xmlFile << m_xmlModuleComponentsInfos.str();
+        xmlFile << "</module>\n";
+        xmlFile << m_xmlFactoryInfos.str();
+        xmlFile << "</xpcf-registry>\n";
+        xmlFile.close();
         fs::path moduleHeaderFilePath("xpcfGrpcModuleMain.h",utf8);
         moduleHeaderFilePath = m_folder/moduleHeaderFilePath;
         std::ofstream moduleHeaderFile(moduleHeaderFilePath.generic_string(utf8).c_str(), std::ios::out);

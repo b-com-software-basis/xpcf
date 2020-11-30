@@ -176,6 +176,10 @@ void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, cons
         }
     }
 
+    if (e.kind() == cppast::cpp_entity_kind::class_template_specialization_t) {
+        out << "Found class_template_specialization_t defined type = "<< e.name()<<'\n';
+    }
+
     if (e.kind() == cppast::cpp_entity_kind::language_linkage_t)
         // no need to print additional information for language linkages
         out << '\n';

@@ -33,9 +33,7 @@ void ServerGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Met
     //NOTE : server is configurable to set grpc channel etc...
     xpcf::uuids::uuid serverUUID = c->getServerUUID();
     if (serverUUID.is_nil()) {
-        xpcf::uuids::random_generator gen;
-        serverUUID = gen();
-        m_serviceUuidMap[m_className] = xpcf::uuids::to_string(serverUUID);
+        m_serviceUuidMap[m_className] = xpcf::uuids::to_string(c->createServerUUID());
     }
 
     CppBlockManager blockMgr(out);
