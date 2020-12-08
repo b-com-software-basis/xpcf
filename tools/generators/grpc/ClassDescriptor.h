@@ -44,8 +44,8 @@ public:
     ClassDescriptor(const ClassDescriptor&  other) = delete;
     const std::string & getName() const { return m_baseClass.name(); }
     const org::bcom::xpcf::uuids::uuid & getClientUUID() const { return m_clientUUID; }
-    const org::bcom::xpcf::uuids::uuid & createClientUUID();
-    const org::bcom::xpcf::uuids::uuid & createServerUUID();
+    const org::bcom::xpcf::uuids::uuid & createClientUUID() const;
+    const org::bcom::xpcf::uuids::uuid & createServerUUID() const;
     const org::bcom::xpcf::uuids::uuid & getServerUUID() const { return m_serverUUID; }
     const std::vector<std::string> & getBases() { return m_bases; }
     bool isInterface() { return m_isInterface; }
@@ -78,8 +78,8 @@ private:
     const cppast::cpp_class& m_baseClass;
     bool m_isInterface = false;
     bool m_isXpcfComponent = false;
-    org::bcom::xpcf::uuids::uuid m_clientUUID = {00000000-0000-0000-0000-000000000000};
-    org::bcom::xpcf::uuids::uuid m_serverUUID = {00000000-0000-0000-0000-000000000000};
+    mutable org::bcom::xpcf::uuids::uuid m_clientUUID = {00000000-0000-0000-0000-000000000000};
+    mutable org::bcom::xpcf::uuids::uuid m_serverUUID = {00000000-0000-0000-0000-000000000000};
     std::map<MetadataType,std::string> m_metadata;
     std::map<std::string,bool> m_classParsed;
     std::vector<std::string> m_bases;

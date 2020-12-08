@@ -41,15 +41,13 @@ public:
     virtual void runServer() = 0;
 };
 
+}}}
 
-
-template <> struct org::bcom::xpcf::InterfaceTraits<IGrpcServerManager>
+template <> struct org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IGrpcServerManager>
 {
     static constexpr const char * UUID = "{8f0952bb-c064-4bcc-9030-51236b9126d5}";
     static constexpr const char * NAME = "IGrpcServerManager";
     static constexpr const char * DESCRIPTION = "IGrpcServerManager interface description";
 };
-
-}}}
 
 #endif // IGRPCSERVERMANAGER_H

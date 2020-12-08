@@ -1,4 +1,5 @@
 #include "GrpcServerManager.h"
+#include <xpcf/remoting/GrpcHelper.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -6,6 +7,7 @@ GrpcServerManager::GrpcServerManager():ConfigurableBase(toMap<GrpcServerManager>
 {
     declareInterface<IGrpcServerManager>(this);
     declareProperty("server_address",m_serverAddress);
+    declareProperty("serverCredentials",m_serverCredentials);
     declareInjectable<IGrpcService>(m_services);
 }
 
@@ -43,7 +45,7 @@ void GrpcServerManager::registerService(const grpc::string & host, SRef<IGrpcSer
 
 void GrpcServerManager::runServer()
 {
-    builder.AddListeningPort(m_serverAddress, grpc::InsecureServerCredentials());
+    builder.AddListeningPort(m_serverAddress, GrpcHelper::getServerCredentials(static_cast<grpcCredentials>(m_serverCredentials)));
     for (auto service: *m_services) {
         registerService(service);
     }

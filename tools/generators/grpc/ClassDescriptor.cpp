@@ -17,14 +17,14 @@ ClassDescriptor::ClassDescriptor(const cppast::cpp_class& c):m_baseClass(c)
 {
 }
 
-const org::bcom::xpcf::uuids::uuid & ClassDescriptor::createClientUUID()
+const org::bcom::xpcf::uuids::uuid & ClassDescriptor::createClientUUID() const
 {
     xpcf::uuids::random_generator gen;
     m_clientUUID = gen();
     return m_clientUUID;
 }
 
-const org::bcom::xpcf::uuids::uuid & ClassDescriptor::createServerUUID()
+const org::bcom::xpcf::uuids::uuid & ClassDescriptor::createServerUUID() const
 {
     xpcf::uuids::random_generator gen;
     m_serverUUID = gen();

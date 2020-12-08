@@ -251,7 +251,7 @@ XPCFErrorCode configureProperty(tinyxml2::XMLElement *propertyElt, SRef<IPropert
     }
 
     string propertyType = propertyElt->Attribute("type");
-    if ( propertyName.empty() ) {
+    if ( propertyType.empty() ) {
         return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
     }
 
@@ -289,11 +289,12 @@ XPCFErrorCode configureElement(tinyxml2::XMLElement *element, SRef<IPropertyMap>
         return XPCFErrorCode::_ERROR_NULL_POINTER;
     }
     tinyxml2::XMLElement *propertyElt = element->FirstChildElement("property");
-    while (propertyElt != nullptr) {
-        configureProperty(propertyElt,nodeElement);
+    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
+    while (propertyElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
+        result = configureProperty(propertyElt,nodeElement);
         propertyElt = propertyElt->NextSiblingElement("property");
     }
-    return XPCFErrorCode::_SUCCESS;
+    return result;
 }
 
 XPCFErrorCode PropertyManager::configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredicate, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath)

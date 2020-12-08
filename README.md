@@ -272,8 +272,7 @@ The supported xml structure is (in each xml node, **"..."** symbolizes attribute
 |bind | inject |**interface** = interface **alias** or **uuid**<br>**to** = component **alias** or **uuid**<br>[optional] **name** = name of the binding| declares a specific (scope bind) bind between an interface and a component for the specific component class declared in **&lt;inject&gt;**|
 |||||
 |properties | xpcf-registry| | declares the components properties section. This section defines component parameters values for configurable components.|
-|configure | properties | [optional] **uuid** = the component uuid or <br>  **component** = a component alias name| declares the configuration for a specific component
- |
+|configure | properties | [optional] **uuid** = the component uuid or <br>  **component** = a component alias name| declares the configuration for a specific component |
 |property | configure | **name** = property name <br>**type** = [int, uint, long, ulong, string, wstring, float, double, structure] <br>**value** = property value (must be a valid value for the type chosen) <br> **value** can also be declared as sub-nodes for vector properties | declares a component property|
 |value | property | | declares a component property value|
 

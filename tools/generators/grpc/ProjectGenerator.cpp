@@ -79,6 +79,7 @@ void ProjectGenerator::generateModuleMain(const SRef<ClassDescriptor> c, std::ma
         m_moduleSrcMgr->newline();
         m_moduleSrcMgr->out()<<"errCode = xpcf::tryCreateComponent<" + fullComponentName + ">(componentUUID,interfaceRef);\n";
     }
+    m_moduleMainDeclareComponents<<"XPCF_ADD_COMPONENT(" <<fullComponentName <<")\n";
 
     fullComponentName = metadata[MetadataType::SERVER_XPCFGRPCNAMESPACE] + "::" + metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME];
 
@@ -139,10 +140,10 @@ std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl
     m_srcProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".pb.cc";
     m_srcProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".grpc.pb.cc";
     m_protoProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCPROTOFILENAME];
-    m_xmlModuleComponentsInfos << "<component uuid=\"" << c->getClientUUID()<<"\" name=\""<< metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME] <<"\" description=\""<< metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME] <<" grpc client proxy component\">\n";
-    m_xmlModuleComponentsInfos << "  <interface uuid=\"125f2007-1bf9-421d-9367-fbdc1210d006\" name=\"XPCF::IComponentIntrospect\" description=\"Component introspection interface.\"/>\n";
+    //m_xmlModuleComponentsInfos << "<component uuid=\"" << c->getClientUUID()<<"\" name=\""<< metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME] <<"\" description=\""<< metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME] <<" grpc client proxy component\">\n";
+    //m_xmlModuleComponentsInfos << "  <interface uuid=\"125f2007-1bf9-421d-9367-fbdc1210d006\" name=\"XPCF::IComponentIntrospect\" description=\"Component introspection interface.\"/>\n";
     //m_xmlModuleComponentsInfos << "<interface uuid=\""<< c->getUUID() <<" name=\"" << c->getName() << " description=\""<< c->getDescription() <<"\"/>\n";
-    m_xmlModuleComponentsInfos << "</component>\n";
+    //m_xmlModuleComponentsInfos << "</component>\n";
     m_xmlModuleComponentsInfos << "<component uuid=\"" << c->getServerUUID()<<"\" name=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<"\" description=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<" grpc server component\">\n";
     m_xmlModuleComponentsInfos << "  <interface uuid=\"125f2007-1bf9-421d-9367-fbdc1210d006\" name=\"XPCF::IComponentIntrospect\" description=\"Component introspection interface.\"/>\n";
     m_xmlModuleComponentsInfos << "  <interface uuid=\"63571f14-f1df-4928-8fc5-42785b87ed81\" name=\"org::bcom::xpcf::IGrpcService\" description=\"xpcf GrpcService interface\"/>\n";
@@ -154,7 +155,7 @@ std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl
 
 void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
-    m_moduleName = "xpcfGrpcModule" +  metadata[MetadataType::PROJECT_NAME];
+    m_moduleName = "xpcfGrpcRemoting" +  metadata[MetadataType::PROJECT_NAME];
     m_moduleDescription = "xpcf remoting module for project " + metadata[MetadataType::PROJECT_NAME];
     m_moduleDeclareMgr->out() << "XPCF_DECLARE_MODULE(\""<< m_moduleUUID <<"\", \"" << m_moduleName << "\",\"" << m_moduleDescription << "\");\n";
     m_xmlModuleInfos << "<module uuid=\"{" << m_moduleUUID <<"}\" name=\""<< m_moduleName <<"\" description=\""<< m_moduleDescription <<"\" path=\"$REMAKENROOT/modules\">\n";

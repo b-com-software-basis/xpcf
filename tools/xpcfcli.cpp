@@ -16,8 +16,9 @@
  * @date 2015-09-18
  */
 
-#include "xpcf/xpcf.h"
-#include "xpcf/api/IModuleManager.h"
+#include <xpcf/xpcf.h>
+#include <xpcf/api/IModuleManager.h>
+#include <xpcf/core/refs.h>
 #include <boost/log/core.hpp>
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -31,6 +32,7 @@ namespace xpcf  = org::bcom::xpcf;
 static void usage(const char * appName)
 {
     cout<<"Usage :"<<appName<<" -help : displays this help"<<endl;
+    cout<<"\t-v : display version"<<endl;
     cout<<"\t-name [moduleName] : the module name to introspect"<<endl;
     cout<<"\t-path [modulePath]  : the module folder path      => "<<endl;
     cout<<"\t-o [xmlfilepath] : the output xml filename"<<endl;
@@ -81,6 +83,7 @@ void displayParameter(SRef<xpcf::IProperty> p)
     }
 }
 
+
 int main(int argc, char **argv) {
     int optionIndex = argc-2;
     map<string,string> options;
@@ -92,6 +95,11 @@ int main(int argc, char **argv) {
     while (optionIndex >= 1) {
         if (strcmp(argv[optionIndex],"-help")==0) {
             usage(argv[0]);
+            return 0;
+        }
+        if (strcmp(argv[optionIndex],"-v")==0) {
+            std::string version = MYVERSIONSTRING;
+            cout<<version<<endl;
             return 0;
         }
         if (options.find(argv[optionIndex]) == options.end()) {
@@ -106,6 +114,11 @@ int main(int argc, char **argv) {
     if (optionIndex == 0) {
         if (strcmp(argv[1],"-help")==0) {
             usage(argv[0]);
+            return 0;
+        }
+        if (strcmp(argv[1],"-v")==0) {
+            std::string version = MYVERSIONSTRING;
+            cout<<version<<endl;
             return 0;
         }
         if (options.find(argv[1]) != options.end()) {
@@ -168,6 +181,10 @@ int main(int argc, char **argv) {
                         displayParameter(property);
                     }
                 }
+            }
+            SRef<xpcf::IInjectable> rInject = rIComponentIntrospect->bindTo<xpcf::IInjectable>();
+            for (auto inj : rInject->getInjectables()) {
+
             }
         }
         catch (std::invalid_argument & e) {

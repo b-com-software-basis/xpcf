@@ -2,6 +2,7 @@
 #include <cppast/visitor.hpp>
 #include <cppast/cpp_file.hpp>
 #include <cppast/cpp_namespace.hpp>
+#include <cppast/cpp_class_template.hpp>
 #include <xpcf/api/IComponentManager.h>
 
 
@@ -177,7 +178,34 @@ void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, cons
     }
 
     if (e.kind() == cppast::cpp_entity_kind::class_template_specialization_t) {
+        const cppast::cpp_class_template_specialization & c = static_cast<const cppast::cpp_class_template_specialization&>(e);
         out << "Found class_template_specialization_t defined type = "<< e.name()<<'\n';
+        if (c.name() == "InterfaceTraits") {
+            // There is only one argument for this template class, and it's the interface typename
+            std::string interfaceTypeName = c.unexposed_arguments().as_string();
+        }
+        for (auto & param : c.parameters() ) {
+            out<< "Found param " << param.name()<<'\n';
+        }
+        if (c.arguments_exposed()) {
+            for (auto & arg : c.arguments() ) {
+                if (arg.type().has_value())
+                out<< "Found argument " << cppast::to_string(arg.type().value())<<'\n';
+            }
+        }
+        else {
+            out<< "Found arguments " << c.unexposed_arguments().as_string()<<'\n';
+        }
+        for (auto & attr : c.attributes() ) {
+            out<< "Found attribute " << attr.name()<<'\n';
+        }
+        const cppast::cpp_class & cppastClass = c.class_();
+        out << "Class specialized = "<< cppastClass.name()<<'\n';
+        for (const cppast::cpp_entity & ec: c) {
+            if (ec.kind() == cppast::cpp_entity_kind::member_variable_t) {
+                 out<< "Found member " << ec.name()<<'\n';
+            }
+        }
     }
 
     if (e.kind() == cppast::cpp_entity_kind::language_linkage_t)

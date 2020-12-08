@@ -43,6 +43,7 @@ public:
 private:
     grpc::ServerBuilder builder;
     std::string m_serverAddress;
+    uint32_t m_serverCredentials;
     SRef<org::bcom::xpcf::ICollection<SRef<IGrpcService> >> m_services;
 
 };

@@ -35,14 +35,12 @@ public:
     virtual ::grpc::Service * getService() = 0;
 };
 
+}}}
 
-template <> struct org::bcom::xpcf::InterfaceTraits<IGrpcService>
+template <> struct org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IGrpcService>
 {
     static constexpr const char * UUID = "{baab5e42-2c24-48de-953b-07237af419e4}";
     static constexpr const char * NAME = "IGrpcService";
     static constexpr const char * DESCRIPTION = "IGrpcService interface description";
 };
-
-}}}
-
 #endif // IGRPCSERVICE_H

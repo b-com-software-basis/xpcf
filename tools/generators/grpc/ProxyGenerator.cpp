@@ -42,7 +42,8 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
     //NOTE : proxy is configurable to set grpc channel etc...
     xpcf::uuids::uuid proxyUUID = c->getClientUUID();
     if (proxyUUID.is_nil()) {
-        m_serviceUuidMap[m_className] = xpcf::uuids::to_string(c->createClientUUID());
+        proxyUUID = c->createClientUUID();
+        m_serviceUuidMap[m_className] = xpcf::uuids::to_string(proxyUUID);
     }
     blockMgr.out() << "// GRPC Proxy Class Header generated with xpcf_grpc_gen\n\n";
     blockMgr.newline();
