@@ -456,7 +456,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
         }
     }
     if (!contextLevels.empty() &&
-            contextLevels.back().second.bindingRangeMask & BindingRange::Named) {
+           !(contextLevels.back().second.bindingRangeMask & (BindingRange::Default|BindingRange::All))) {
         throw InjectableNotFoundException("No default named binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID) + " named " + name);
     }
     return resolveBind(interfaceUUID, contextLevels);
