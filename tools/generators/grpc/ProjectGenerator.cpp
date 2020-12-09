@@ -146,7 +146,7 @@ std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl
     //m_xmlModuleComponentsInfos << "</component>\n";
     m_xmlModuleComponentsInfos << "<component uuid=\"" << c->getServerUUID()<<"\" name=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<"\" description=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<" grpc server component\">\n";
     m_xmlModuleComponentsInfos << "  <interface uuid=\"125f2007-1bf9-421d-9367-fbdc1210d006\" name=\"XPCF::IComponentIntrospect\" description=\"Component introspection interface.\"/>\n";
-    m_xmlModuleComponentsInfos << "  <interface uuid=\"63571f14-f1df-4928-8fc5-42785b87ed81\" name=\"org::bcom::xpcf::IGrpcService\" description=\"xpcf GrpcService interface\"/>\n";
+    m_xmlModuleComponentsInfos << "  <interface uuid=\"baab5e42-2c24-48de-953b-07237af419e4\" name=\"org::bcom::xpcf::IGrpcService\" description=\"xpcf GrpcService interface\"/>\n";
     m_xmlModuleComponentsInfos << "</component>\n";
     m_xmlFactoryInfos<< "      <component to=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<"\"/>\n";
     generateModuleMain(c,metadata);

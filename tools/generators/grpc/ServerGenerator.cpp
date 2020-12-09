@@ -252,6 +252,7 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
         blockMgr.out() << "XPCFErrorCode " + m_className +"::onConfigured()\n";
         {
             block_guard methodBlock(blockMgr);
+            blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
         }
         blockMgr.newline();
         blockMgr.out() << "::grpc::Service * " + m_className +"::getService()\n";

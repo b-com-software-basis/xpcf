@@ -1,4 +1,4 @@
-TARGET = xpcf_grpc_server
+TARGET = xpcf_grpc_client
 VERSION = 2.5.0
 
 CONFIG += c++1z
@@ -24,13 +24,8 @@ DEPENDENCIESCONFIG = static recurse
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (../../builddefs/qmake/templateappconfig.pri)
 
-HEADERS += \
-    GrpcServerManager.h
-
-
 SOURCES += \
-    GrpcServerManager.cpp\
-    xpcf_grpc_server.cpp
+    xpcf_grpc_client.cpp
 
 
 linux {
@@ -47,6 +42,7 @@ macx {
     INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
     LIBS += -lstdc++ -lc -lpthread
     LIBS += -L/usr/local/lib
+    INCLUDEPATH += $${REMAKENDEPSFOLDER}/$${BCOM_TARGET_PLATFORM}/xpcfSampleComponent/$$VERSION/interfaces
 }
 
 win32 {
@@ -62,9 +58,11 @@ win32 {
 DISTFILES += \
     grpc_server_sample.xml \
     packagedependencies.txt \
-    xpcfGrpcSampleComponentServer.xml
+    xpcfGrpcSampleComponentClient.xml
 
 xml_files.path = $${TARGETDEPLOYDIR}
-xml_files.files =  xpcfGrpcSampleComponentServer.xml
+xml_files.files =  xpcfGrpcSampleComponentClient.xml
 
 INSTALLS += xml_files
+
+

@@ -230,6 +230,7 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
     blockMgr.include("cstddef",false);
     blockMgr.include("xpcf/core/Exception.h",false);
     blockMgr.include("xpcf/remoting/ISerializable.h",false);
+    blockMgr.include("xpcf/remoting/GrpcHelper.h",false);
     blockMgr.include("grpcpp/client_context.h",false);
     blockMgr.include("grpcpp/create_channel.h",false);
     blockMgr.include("grpcpp/security/credentials.h",false);
@@ -246,31 +247,7 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
     {
         block_guard<CPP::NSPACE> nspaceBlk(blockMgr);
         blockMgr.newline();
-        blockMgr.out() << "typedef enum ";
-        {
-            block_guard enumBlk(blockMgr);
-            blockMgr.out() << "GoogleDefaultCredentials = 0,\n";
-            blockMgr.out() << "SslCredentials = 1,\n";
-            blockMgr.out() << "InsecureChannelCredentials = 2\n";
-        }
-        blockMgr.out() << " grpcCredentials;\n";
 
-        blockMgr.out() << "inline std::shared_ptr< ::grpc::ChannelCredentials > getCredentials(grpcCredentials channelCredentials)\n";
-        {
-            block_guard methodBlk(blockMgr);
-            blockMgr.out() << "switch (channelCredentials) {\n";
-            blockMgr.out() << "case GoogleDefaultCredentials:\n";
-            blockMgr.out() << "return ::grpc::GoogleDefaultCredentials();\n";
-            blockMgr.out() << "case SslCredentials:\n";
-            blockMgr.out() << "return ::grpc::SslCredentials(::grpc::SslCredentialsOptions());\n";
-            blockMgr.out() << "case InsecureChannelCredentials:       \n";
-            blockMgr.out() << "return ::grpc::InsecureChannelCredentials();\n";
-            blockMgr.out() << "default:   \n";
-            blockMgr.out() << "return nullptr;\n";
-            blockMgr.out() << "}\n";
-            blockMgr.out() << "return nullptr;\n";
-        }
-        blockMgr.newline();
         blockMgr.out() << m_className + "::" + m_className + "():xpcf::ConfigurableBase(xpcf::toMap<"+ m_className + ">())\n";
         {
             block_guard methodBlk(blockMgr);
@@ -294,8 +271,9 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
         blockMgr.out() << "XPCFErrorCode " + m_className +"::onConfigured()\n";
         {
             block_guard methodBlk(blockMgr);
-            blockMgr.out() << "m_channel = ::grpc::CreateChannel(m_channelUrl, getCredentials(static_cast<grpcCredentials>(m_channelCredentials)));\n";
+            blockMgr.out() << "m_channel = ::grpc::CreateChannel(m_channelUrl, xpcf::GrpcHelper::getCredentials(static_cast<xpcf::grpcCredentials>(m_channelCredentials)));\n";
             blockMgr.out() << "m_grpcStub = ::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::NewStub(m_channel);\n";
+            blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
         }
         blockMgr.newline();
         processBodyMethods(c, blockMgr);

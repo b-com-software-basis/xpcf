@@ -62,7 +62,10 @@ inline void serialize(Archive & ar,
    * @note The InterfaceTraits<IMusician> template struct defines the IMusician UUID and description.
    * It allows IMusician users to use directly the I0 type instead of its UUID to bind the component to this interface.
    */
-class IMusician : virtual public org::bcom::xpcf::IComponentIntrospect
+
+
+class [[xpcf::clientUUID(98626b20-3f78-42e0-9891-221be79902cf)]] [[xpcf::serverUUID(eda6836a-6568-4135-b241-5f245574bee9)]] IMusician :
+    virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~IMusician() = default;
