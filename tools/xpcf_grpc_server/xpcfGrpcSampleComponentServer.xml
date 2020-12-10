@@ -57,6 +57,11 @@
     <interface uuid="1FC313B3-FAE3-4BCA-B4BE-222EFD24E607" name="ITuner" description="provides ITuner specific methods"/>
 </component>
 </module>
+<aliases>
+        <alias name="JacksonDinky6ElectricGuitar" type="component" uuid="7cc64f89-9a81-4fc8-9695-fde123fae225"/>
+        <alias name="TakamineFolkGuitar" type="component" uuid="04E2254F-3349-4DC1-8EED-86835315FB6B"/>
+        <alias name="VirtualGuitarist" type="component" uuid="63ff193d-93e6-4ede-9947-22f864ac843f"/>
+</aliases>
 <factory>
   <bindings>
     <bind interface="org::bcom::xpcf::IGrpcService">
@@ -68,11 +73,34 @@
       <component to="ITuner_grpcServer"/>
     </bind>
   </bindings>
+  <injects>
+      <inject to="JacksonDinky6ElectricGuitar">
+              <bind interface="ITuner" to="Tuner" properties="nashville"/>
+      </inject>
+      <inject to="VirtualGuitarist">
+              <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" />
+      </inject>
+      <inject to="TakamineFolkGuitar">
+              <bind interface="ITuner" to="Tuner" properties="DADGAD"/>
+      </inject>
+  </injects>
 </factory>
 <properties>
         <configure component="7FD1E545-F2F5-44A0-B30E-51B477455077">
             <property name="server_address" access="rw" type="string" value="0.0.0.0:34123"/>
             <property name="serverCredentials" access="rw" type="uint" value="0"/>
+        </configure>
+        <configure component="Tuner">
+            <property name="TuneType" type="ulong" value="0"/>
+        </configure>
+        <configure component="Tuner" name="DADGAD">
+            <property name="TuneType" type="ulong" value="4"/>
+        </configure>
+        <configure component="Tuner" name="nashville">
+            <property name="TuneType" type="ulong" value="1"/>
+        </configure>
+        <configure component="Tuner" name="halftunelower">
+            <property name="TuneType" type="ulong" value="2"/>
         </configure>
     </properties>
 </xpcf-registry>

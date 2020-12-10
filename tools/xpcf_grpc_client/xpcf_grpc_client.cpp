@@ -59,17 +59,16 @@ int main(int argc, char* argv[])
     std::string file = options["file"].as<std::string>();
     cmpMgr->load(file.c_str());
     auto guitarist = cmpMgr->resolve<IGuitarist>();
-   /* auto guitar = cmpMgr->resolve<IGuitar>();
+    auto guitar = cmpMgr->resolve<IGuitar>();
     auto electricGuitar = cmpMgr->resolve<IElectricGuitar>();
     auto human = cmpMgr->resolve<IHuman>();
-    auto musician = cmpMgr->resolve<IMusician>();*/
+    auto musician = cmpMgr->resolve<IMusician>();
     guitarist->playSolo(m);
-  /*  human->sleep();
+    human->sleep();
     musician->playMusic(m);
     std::cout<<"Guitar brand "<<guitar->getGuitarBrand()<<std::endl;
     std::cout<<"Guitar nb strings "<<guitar->getNbStrings()<<std::endl;
-    std::cout<<"ElectricGuitar brand "<<electricGuitar->bindTo<IGuitar>()->getGuitarBrand()<<std::endl;
-    std::cout<<"ElectricGuitar nb strings "<<electricGuitar->bindTo<IGuitar>()->getNbStrings()<<std::endl;*/
+     std::cout<<"Guitar tune type "<<guitar->getTuneType()<<std::endl;
 
     return 0;
 }
