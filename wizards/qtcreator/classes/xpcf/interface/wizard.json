@@ -12,7 +12,7 @@
     "options":
     [
         { "key": "TargetPath", "value": "%{Path}" },
-        { "key": "HdrPath", "value": "%{Path}/interfaces/%{HdrFileName}" },
+        { "key": "HdrPath", "value": "%{Path}/%{HdrFileName}" },
         { "key": "CN", "value": "%{JS: Cpp.className('%{Class}')}" },
         { "key": "Base", "value": "%{JS: ( '%{BaseCB}' === '' ) ? '%{BaseEdit}' : '%{BaseCB}'}" },
         { "key": "isQObject", "value": "%{JS: [ 'QObject', 'QWidget', 'QMainWindow', 'QDeclarativeItem', 'QQuickItem'].indexOf('%{Base}') >= 0 }" },

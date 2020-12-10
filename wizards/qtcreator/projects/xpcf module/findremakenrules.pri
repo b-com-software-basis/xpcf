@@ -32,7 +32,7 @@ else {
         QMAKE_REMAKEN_RULES_ROOT = $$clean_path($$(REMAKEN_RULES_ROOT)/qmake)
     }
     else {
-        QMAKE_REMAKEN_RULES_ROOT=$${USERHOMEFOLDER}/.remaken/rules/qmake
+        QMAKE_REMAKEN_RULES_ROOT = $${USERHOMEFOLDER}/.remaken/rules/qmake
     }
 }
 

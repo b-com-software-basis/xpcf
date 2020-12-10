@@ -75,6 +75,6 @@ OTHER_FILES += \
     @if '%{remakenRules}' === 'local'
 include (builddefs/qmake/remaken_install_target.pri)
     @else
-include ($${REMAKEN_RULES_ROOT}/remaken_install_target.pri)
+include ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)
     @endif
 @endif
