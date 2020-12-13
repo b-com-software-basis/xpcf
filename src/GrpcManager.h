@@ -27,14 +27,12 @@ private:
     grpc::ServerBuilder m_serverBuilder;
 };
 
+}}}
 
-template <> struct org::bcom::xpcf::ComponentTraits<GrpcManager>
+template <> struct org::bcom::xpcf::ComponentTraits<org::bcom::xpcf::GrpcManager>
 {
     static constexpr const char * UUID = "{cda197f0-db7a-4922-b280-ebf53f4fe790}";
     static constexpr const char * NAME = "GrpcManager";
     static constexpr const char * DESCRIPTION = "GrpcManager implements None interface";
 };
-
-}}}
-
 #endif // GRPCMANAGER_H

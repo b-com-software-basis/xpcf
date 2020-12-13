@@ -180,6 +180,52 @@ Note: Autobinding ignores ```IComponentIntrospect```, ```IConfigurable``` and ``
 Upon creation of the concrete instance injection of the component injectables is made when needed through "resolve" methods, and each injectable is configured.
 Finally the concrete instance is configured and returned to the caller.
 
+## Xpcf remoting architecture
+A new feature in xpcf 2.5.0 version is the ability to get remote versions of components almost "out of the box".
+
+The remoting functionality works for any xpcf interface that :
+
+- uses datastructures that declare one of the serialization methods exposed through xpcf specifications (one of the methods provided in xpcf/remoting/ISerializable.h) - in 2.5.0 only boost serialization is handled, upcoming minor releases of xpcf will provide support for the other methods
+- uses base c++ types only
+
+Note : pointers are not handled as they can handle arrays ... hence a pointer will need a size, but no presumptions to detect such cases can be done.
+Anyway, interfaces represent contracts between a user and a service, hence interfaces should be self explanatory. In this context, relying on pointersd doesn't explicit the expected behavior, hence interfaces should rely on structured types either std ones (string, vectors ...) or user defined ones (struct, classes).
+
+### xpcf remoting DSL
+xpcf provides a Domain specific language through the use of c++ user defined attributes to ease the generation, those attributes can be used on interfaces or on methods of an interface, depending on the attribute.
+
+#### DSL description
+
+| Attribute | Argument type | Apply to | Semantic|
+|---|---|---|---|
+|[[xpcf::ignore]] | none | class or method level | specify that the corresponding class/method must be ignored while generating remoting code|
+|[[xpcf::clientUUID(uuid_string)]]| string | class level | specify the xpcf remoting client UUID |
+| [[xpcf::serverUUID(uuid_string)]]| string | class level | specify the xpcf remoting server UUID |
+| [[grpc::server\_streaming]], [[grpc::client\_streaming]] or [[grpc::streaming]] | none | method level| |
+| [[grpc::request("requestMessageName")]] | string | method level | optionally set grpc request message name |
+| [[grpc::response("responseMessageName")]] | string | method level | optionally set grpc response message name |
+| [[grpc::rpcName("rpcname")]] | string | method level | optionally set grpc method rpc name |
+
+
+### Xpcf remoting tools
+
+xpcf provides several tools to ease the remoting of components :
+
+1. xpcf\_grpc\_gen  : parses the IF and generates the needed remoting code for each inteface in a project.
+    - From an interface, the tool creates : 
+        - grpc request and response messages with each input/output type translated to grpc types
+        - a grpc service containing rpc : one for each method of the interface
+        - a proxy component that inherits from the interface. This component transforms the interface input/output types to grpc request/response and calls the grpc service and rpc method corresponding with the method interface. This component is configured with a channel url (address and port of the server hosting the concrete code) and a grpc credential.
+        - a server component inheriting from IGrpcService. It also implements the grpc::service class, and the concrete xpcf component is injected to this component. Each rpc method of the grpc::service class is implemented and translates grpc request/response to the xpcf component input/output data types, and calls the xpcf component corresponding method
+    - From the project the tool creates :
+        - a Qt creator development  project to compile all the generated code in an xpcf module
+        - a client and a server xpcf xml configuration file
+
+2. xpcf\_grpc\_server : it is a xpcf application that hosts any IGrpcService enabled component.
+
+To come:
+xpcf\_grpc\_linter : this tool will be used at compilation time to validate the xpcf remoting DSL.
+
  
 ## XPCF Qt Creator wizards
 
@@ -266,7 +312,7 @@ The supported xml structure is (in each xml node, **"..."** symbolizes attribute
 |alias | aliases | **name** = name of the alias <br> **type**=[component, interface]<br> **uuid** = the uuid of the component/interface targeted by the **alias**| declares an alias. Alias can be ...|
 |factory | xpcf-registry | | declares the factory section |
 |bindings | factory | | declares the bindings section - this section is needed only to overload autobinds made while parsing the **&lt;module&gt;** node|
-|bind | bindings | **interface** = interface **alias** or **uuid**<br>**to** = component **alias** or **uuid**<br>[optional] **name** = name of the binding| declares a default or named bind between an interface and a component|
+|bind | bindings | **interface** = interface **alias** or **uuid**<br>**to** = component **alias** or **uuid**<br>[optional] **name** = name of the binding <br>[optional] **range** = [all, default, named, withparents, explicit] the binding range| declares a default or named bind between an interface and a component|
 |injects | factory | | declares the injects section - used for structured (also called planned) injection for specific component class|
 |inject | injects | **to** = component **alias** or **uuid**| declares an injection pattern for a specific component class|
 |bind | inject |**interface** = interface **alias** or **uuid**<br>**to** = component **alias** or **uuid**<br>[optional] **name** = name of the binding| declares a specific (scope bind) bind between an interface and a component for the specific component class declared in **&lt;inject&gt;**|
