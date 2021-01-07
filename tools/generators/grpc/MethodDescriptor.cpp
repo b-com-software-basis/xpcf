@@ -1,6 +1,7 @@
 #include "MethodDescriptor.h"
 #include <iostream>
 #include <map>
+#include <boost/algorithm/string.hpp>
 
 namespace xpcf =  org::bcom::xpcf;
 
@@ -80,17 +81,20 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
                     if (attrib.name() == "request") {
                         if (attrib.arguments().has_value()) {
                             m_requestName = attrib.arguments().value().as_string();
+                            boost::algorithm::erase_all(m_requestName,"\"");
                         }
                     }
                     else if (attrib.name() == "response") {
                         if (attrib.arguments().has_value()) {
                             m_responseName = attrib.arguments().value().as_string();
+                            boost::algorithm::erase_all(m_responseName,"\"");
                         }
 
                     }
                     else if (attrib.name() == "rpcName") {
                         if (attrib.arguments().has_value()) {
                             m_rpcName = attrib.arguments().value().as_string();
+                            boost::algorithm::erase_all(m_rpcName,"\"");
                         }
                     }
                     else {

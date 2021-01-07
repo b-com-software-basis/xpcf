@@ -64,7 +64,7 @@ inline void serialize(Archive & ar,
    */
 
 
-class [[xpcf::clientUUID(98626b20-3f78-42e0-9891-221be79902cf)]] [[xpcf::serverUUID(eda6836a-6568-4135-b241-5f245574bee9)]] IMusician :
+class [[xpcf::clientUUID("98626b20-3f78-42e0-9891-221be79902cf")]] [[xpcf::serverUUID("eda6836a-6568-4135-b241-5f245574bee9")]] IMusician :
     virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:

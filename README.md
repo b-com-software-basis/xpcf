@@ -199,8 +199,8 @@ xpcf provides a Domain specific language through the use of c++ user defined att
 | Attribute | Argument type | Apply to | Semantic|
 |---|---|---|---|
 |[[xpcf::ignore]] | none | class or method level | specify that the corresponding class/method must be ignored while generating remoting code|
-|[[xpcf::clientUUID(uuid_string)]]| string | class level | specify the xpcf remoting client UUID |
-| [[xpcf::serverUUID(uuid_string)]]| string | class level | specify the xpcf remoting server UUID |
+|[[xpcf::clientUUID("uuid_string")]]| string | class level | specify the xpcf remoting client UUID |
+| [[xpcf::serverUUID("uuid_string")]]| string | class level | specify the xpcf remoting server UUID |
 | [[grpc::server\_streaming]], [[grpc::client\_streaming]] or [[grpc::streaming]] | none | method level| |
 | [[grpc::request("requestMessageName")]] | string | method level | optionally set grpc request message name |
 | [[grpc::response("responseMessageName")]] | string | method level | optionally set grpc response message name |

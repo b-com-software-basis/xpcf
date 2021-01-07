@@ -3,6 +3,7 @@
 #include "MethodDescriptor.h"
 #include <cppast/cpp_entity_kind.hpp>
 #include <xpcf/core/helpers.h>
+#include <boost/algorithm/string.hpp>
 
 
 namespace xpcf = org::bcom::xpcf;
@@ -94,12 +95,16 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
                     }
                     if (attrib.name() == "clientUUID") {
                         if (attrib.arguments().has_value()) {
-                            m_clientUUID = xpcf::toUUID(attrib.arguments().value().as_string());
+                            std::string clientUUIDStr =  attrib.arguments().value().as_string();
+                            boost::algorithm::erase_all(clientUUIDStr,"\"");
+                            m_clientUUID = xpcf::toUUID(clientUUIDStr);
                         }
                     }
                     if (attrib.name() == "serverUUID") {
                         if (attrib.arguments().has_value()) {
-                            m_serverUUID = xpcf::toUUID(attrib.arguments().value().as_string());
+                            std::string serverUUIDStr =  attrib.arguments().value().as_string();
+                            boost::algorithm::erase_all(serverUUIDStr,"\"");
+                            m_serverUUID = xpcf::toUUID(serverUUIDStr);
                         }
                     }
                 }

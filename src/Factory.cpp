@@ -183,7 +183,7 @@ void Factory::declareSpecificBind(tinyxml2::XMLElement * xmlBindElt, const uuids
     }
 
     FactoryBindInfos infos = getComponentBindingInfos(xmlBindElt);
-    infos.bindingRangeMask = BindingRange::Explicit;
+    infos.bindingRangeMask |= BindingRange::Explicit;
     if (xmlBindElt->Attribute("name") == nullptr) {
         bind(targetComponentUUID, interfaceUUID, infos);
     }

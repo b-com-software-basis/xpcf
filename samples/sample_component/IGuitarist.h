@@ -38,7 +38,7 @@
    */
 
 
-class [[xpcf::clientUUID(824b6642-ad39-476a-80c1-8ee16614f9fc)]] [[xpcf::serverUUID(acacf288-ee43-494b-a4a0-c30737bc150f)]] IGuitarist :
+class [[xpcf::clientUUID("824b6642-ad39-476a-80c1-8ee16614f9fc")]] [[xpcf::serverUUID("acacf288-ee43-494b-a4a0-c30737bc150f")]] IGuitarist :
     virtual public IMusician
 {
 public:

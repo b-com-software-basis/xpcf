@@ -39,7 +39,7 @@
  *  @ingroup interfaces
  */
 
-class [[xpcf::clientUUID(fe931815-479c-4659-96c3-09074747796d)]] [[xpcf::serverUUID(2ee889a4-bb14-46a0-b6e9-a391f61e4ad0)]] ITuner :
+class [[xpcf::clientUUID("fe931815-479c-4659-96c3-09074747796d")]] [[xpcf::serverUUID("2ee889a4-bb14-46a0-b6e9-a391f61e4ad0")]] ITuner :
     virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
@@ -58,7 +58,7 @@ public:
 };
 
 
-class [[xpcf::clientUUID(734ee845-fa91-49b3-8a9b-37338f8a40cf)]] [[xpcf::serverUUID(3e6ff511-ced5-440e-b101-880862726a30)]] IGuitar :
+class [[xpcf::clientUUID("734ee845-fa91-49b3-8a9b-37338f8a40cf")]] [[xpcf::serverUUID("3e6ff511-ced5-440e-b101-880862726a30")]] IGuitar :
     virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
@@ -74,7 +74,7 @@ public:
     virtual ITuner::TuneType getTuneType () = 0;
 };
 
-class [[xpcf::clientUUID(b433029e-a2cb-4ef1-8c06-e4aff4b24bd3)]] [[xpcf::serverUUID(b2ff5795-69ba-42e2-b3bf-417ad6fd023f)]] IElectricGuitar : virtual public org::bcom::xpcf::IComponentIntrospect
+class [[xpcf::clientUUID("b433029e-a2cb-4ef1-8c06-e4aff4b24bd3")]] [[xpcf::serverUUID("b2ff5795-69ba-42e2-b3bf-417ad6fd023f")]] IElectricGuitar : virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~IElectricGuitar() = default;

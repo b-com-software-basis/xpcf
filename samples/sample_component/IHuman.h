@@ -37,7 +37,7 @@
    */
 
 
-class [[xpcf::clientUUID(2fff72e8-b192-477d-83d7-7dad07564c46)]] [[xpcf::serverUUID(c21d04f4-6f3e-4a79-b541-b094bb64cb95)]] IHuman :
+class [[xpcf::clientUUID("2fff72e8-b192-477d-83d7-7dad07564c46")]] [[xpcf::serverUUID("c21d04f4-6f3e-4a79-b541-b094bb64cb95")]] IHuman :
     virtual public org::bcom::xpcf::IComponentIntrospect
 {
 

@@ -197,4 +197,7 @@ contains(DEFINES, "WITHREMOTING") {
 
 DISTFILES += \
     Makefile \
-    doc/xpcf-registry-sample.xml
+    doc/xpcf-registry-sample.xml \
+    packagedependencies-linux.txt \
+    packagedependencies-mac.txt \
+    packagedependencies.txt
