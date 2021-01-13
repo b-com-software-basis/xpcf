@@ -9,6 +9,7 @@
 #include <xpcf/api/IComponentManager.h>
 #include <xpcf/core/helpers.h>
 #include "GrpcServerManager.h"
+#include <cstdlib>
 
 namespace xpcf = org::bcom::xpcf;
 
@@ -56,7 +57,10 @@ int main(int argc, char* argv[])
     cmpMgr->load(file.c_str());
     auto serverMgr = cmpMgr->resolve<xpcf::IGrpcServerManager>();
     serverMgr->bindTo<xpcf::IConfigurable>()->configure(file.c_str());
-    //serverMgr->bindTo<xpcf::IConfigurable>()->getProperty("server_address")->setStringValue("0.0.0.0");
+    char * serverURL = getenv("XPCF_GRPC_SERVER_URL");
+    if (serverURL != nullptr) {
+        serverMgr->bindTo<xpcf::IConfigurable>()->getProperty("server_address")->setStringValue(serverURL);
+    }
     serverMgr->runServer();
     return 0;
 }

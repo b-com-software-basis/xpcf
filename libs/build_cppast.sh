@@ -14,7 +14,7 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
 	exit 1
     fi
     echo "installing llvm"
-    brew install llvm
+#    brew install llvm
     # ...
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     # Mac OSX
@@ -52,7 +52,7 @@ build_cppast() {
         mkdir -p ${BUILDPATH}
         echo "Building  cppast in ${BUILDTYPE} mode"
 	 
-        pushd ${BUILDPATH} && cmake -DCMAKE_BUILD_TYPE=${BUILDTYPE} ${CPPASTCMAKEFLAGS} -DLLVM_CONFIG_BINARY=${LLVMBREWPATH}/opt/llvm/bin/llvm-config ../../cppast/ && make && popd
+        pushd ${BUILDPATH} && cmake -DCMAKE_BUILD_TYPE=${BUILDTYPE} ${CPPASTCMAKECOMPILER} -DLLVM_CONFIG_BINARY=${LLVMBREWPATH}/opt/llvm/bin/llvm-config ../../cppast/ && make && popd
     fi
 }
 

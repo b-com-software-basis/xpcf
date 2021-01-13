@@ -21,6 +21,15 @@ CONFIG(release,debug|release) {
     CPPAST_ROOT_BUILD=$${_PRO_FILE_PWD_}/../../../libs/build-cppast-Release
 }
 
+
+linux {
+    CPPAST_ROOT_BUILD=$${CPPAST_ROOT_BUILD}/linux-gcc
+}
+
+macx {
+    CPPAST_ROOT_BUILD=$${CPPAST_ROOT_BUILD}/mac-clang
+}
+
 exists($${CPPAST_ROOT_BUILD}) {
 #note : after llvm upgrade from brew, execution of the xpcf_grpc_gen can show errors such as
 # [libclang] [error] /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/include/xmmintrin.h:1934: use of undeclared identifier '__builtin_ia32_storehps'
