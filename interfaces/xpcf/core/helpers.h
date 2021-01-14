@@ -30,7 +30,7 @@ private:
 
 #ifndef SWIG
     #define ATTRIBUTE(X) [[X]]
-    #define ATTRIBUTE(X, ARG) [[X(ARG)]]
+    #define ATTRIB_1ARG(X, ARG) [[X(ARG)]]
     #define XPCF_IGNORE [[xpcf::ignore]]
     #define XPCF_IN [[xpcf::in]]
     #define XPCF_OUT [[xpcf::out]]
@@ -45,7 +45,7 @@ private:
     #define XPCF_GRPC_SERVER_STREAMING [[grpc::server_streaming]]
 #else
     #define ATTRIBUTE(X)
-    #define ATTRIBUTE(X, ARG)
+    #define ATTRIB_1ARG(X, ARG)
     #define XPCF_IGNORE
     #define XPCF_IN
     #define XPCF_OUT
