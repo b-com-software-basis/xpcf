@@ -30,32 +30,34 @@ private:
 
 #ifndef SWIG
     #define ATTRIBUTE(X) [[X]]
-    #define DSL_XPCF_IGNORE [[xpcf::ignore]]
-    #define DSL_XPCF_IN [[xpcf::in]]
-    #define DSL_XPCF_OUT [[xpcf::out]]
-    #define DSL_XPCF_INOUT [[xpcf::inout]]
-    #define DSL_XPCF_CLIENTUUID(uuid_string) [[xpcf::clientUUID(uuid_string)]]
-    #define DSL_XPCF_SERVERUUID(uuid_string) [[xpcf::serverUUID(uuid_string)]]
-    #define DSL_GRPC_RPCNAME(rpcNameString) [[grpc::rpcName(rpcNameString)]]
-    #define DSL_GRPC_REQUEST(requestNameString) [[grpc::request(requestNameString)]]
-    #define DSL_GRPC_RESPONSE(responseNameString) [[grpc::response(responseNameString)]]
-    #define DSL_GRPC_STREAMING [[grpc::streaming]]
-    #define DSL_GRPC_CLIENT_STREAMING [[grpc::client_streaming]]
-    #define DSL_GRPC_SERVER_STREAMING [[grpc::server_streaming]]
+    #define ATTRIBUTE(X, ARG) [[X(ARG)]]
+    #define XPCF_IGNORE [[xpcf::ignore]]
+    #define XPCF_IN [[xpcf::in]]
+    #define XPCF_OUT [[xpcf::out]]
+    #define XPCF_INOUT [[xpcf::inout]]
+    #define XPCF_CLIENTUUID(uuid_string) [[xpcf::clientUUID(uuid_string)]]
+    #define XPCF_SERVERUUID(uuid_string) [[xpcf::serverUUID(uuid_string)]]
+    #define XPCF_GRPC_RPCNAME(rpcNameString) [[grpc::rpcName(rpcNameString)]]
+    #define XPCF_GRPC_REQUEST(requestNameString) [[grpc::request(requestNameString)]]
+    #define XPCF_GRPC_RESPONSE(responseNameString) [[grpc::response(responseNameString)]]
+    #define XPCF_GRPC_STREAMING [[grpc::streaming]]
+    #define XPCF_GRPC_CLIENT_STREAMING [[grpc::client_streaming]]
+    #define XPCF_GRPC_SERVER_STREAMING [[grpc::server_streaming]]
 #else
     #define ATTRIBUTE(X)
-    #define DSL_XPCF_IGNORE
-    #define DSL_XPCF_IN
-    #define DSL_XPCF_OUT
-    #define DSL_XPCF_INOUT
-    #define DSL_XPCF_CLIENTUUID(uuid_string)
-    #define DSL_XPCF_SERVERUUID(uuid_string)
-    #define DSL_GRPC_RPCNAME(rpcNameString)
-    #define DSL_GRPC_REQUEST(requestNameString)
-    #define DSL_GRPC_RESPONSE(responseNameString)
-    #define DSL_GRPC_STREAMING
-    #define DSL_GRPC_CLIENT_STREAMING
-    #define DSL_GRPC_SERVER_STREAMING
+    #define ATTRIBUTE(X, ARG)
+    #define XPCF_IGNORE
+    #define XPCF_IN
+    #define XPCF_OUT
+    #define XPCF_INOUT
+    #define XPCF_CLIENTUUID(uuid_string)
+    #define XPCF_SERVERUUID(uuid_string)
+    #define XPCF_GRPC_RPCNAME(rpcNameString)
+    #define XPCF_GRPC_REQUEST(requestNameString)
+    #define XPCF_GRPC_RESPONSE(responseNameString)
+    #define XPCF_GRPC_STREAMING
+    #define XPCF_GRPC_CLIENT_STREAMING
+    #define XPCF_GRPC_SERVER_STREAMING
 #endif
 
 #endif // HELPERS_H
