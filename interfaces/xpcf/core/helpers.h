@@ -2,6 +2,7 @@
 #define HELPERS_H
 
 #include <map>
+#include <functional>
 
 #ifndef SWIG
 namespace org { namespace bcom { namespace xpcf {
@@ -21,6 +22,7 @@ public:
     ~ScopeExit () {
         m_func();
     }
+    
 private:
     const std::function<void(void)> & m_func;
 };
