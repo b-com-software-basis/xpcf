@@ -87,6 +87,15 @@ SOURCES += \
 
 linux {
     LIBS += -ldl
+    QMAKE_CXXFLAGS += -fPIC
+    LLVM_BINARIES = /home/linuxbrew/.linuxbrew/opt/llvm/bin
+    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config --libdir)
+    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config --includedir)
+    LIBS += -L$${LLVM_LIBDIR} -lclang
+    LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
+    LIBS += $${LLVM_CLANG_LIBS}
+    QMAKE_LFLAGS += -L$${LLVM_LIBDIR}
+    QMAKE_CXXFLAGS += -std=c++17 -I$${LLVM_INCDIR}
 }
 
 macx {

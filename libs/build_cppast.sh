@@ -52,7 +52,7 @@ build_cppast() {
         mkdir -p ${BUILDPATH}
         echo "Building  cppast in ${BUILDTYPE} mode"
 	 
-        pushd ${BUILDPATH} && cmake -DCMAKE_BUILD_TYPE=${BUILDTYPE} ${CPPASTCMAKECOMPILER} -DLLVM_CONFIG_BINARY=${LLVMBREWPATH}/opt/llvm/bin/llvm-config ../../cppast/ && make && popd
+        pushd ${BUILDPATH} && cmake -DCMAKE_BUILD_TYPE=${BUILDTYPE} ${CPPASTCMAKECOMPILER} -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DLLVM_CONFIG_BINARY=${LLVMBREWPATH}/opt/llvm/bin/llvm-config ../../cppast/ && make && popd
     fi
 }
 
