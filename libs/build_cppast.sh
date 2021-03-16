@@ -2,13 +2,14 @@
 
 BUILDFOLDER=build-cppast
 
-#!/bin/bash
 LLVMBREWPATH=/usr/local
 TARGETPLATFORM=mac-clang
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    sudo apt-get install -y llvm-10 clang-10 libclang-10-dev
     LLVMBREWPATH=/home/linuxbrew/.linuxbrew
+    LLVMCONFIGPATH=/usr/bin/llvm-config-10
     TARGETPLATFORM=linux-gcc
-    CPPASTCMAKECOMPILER="-DCMAKE_CXX_COMPILER=clang++"
+    CPPASTCMAKECOMPILER="-DCMAKE_CXX_COMPILER=clang++-10"
     if test ! $(which brew); then
 	echo "brew is not installed, first install brew then relaunch this script\n";
 	exit 1
@@ -24,6 +25,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
     fi
     echo "installing llvm"
     brew install llvm
+    LLVMCONFIGPATH=${LLVMBREWPATH}/opt/llvm/bin/llvm-config
     #next line is mandatory for configure to find the include and libraries files from the command line
     #NOTE : once compilation is done, you should unlink with brew unlink openssl to avoid conflict in macosX
     echo "Before compilation, do \nbrew link --force openssl\nOnce compilation is finalized do\nbrew unlink openssl\n to avoid conflict with mac OS X openssl version\n"
@@ -52,7 +54,7 @@ build_cppast() {
         mkdir -p ${BUILDPATH}
         echo "Building  cppast in ${BUILDTYPE} mode"
 	 
-        pushd ${BUILDPATH} && cmake -DCMAKE_BUILD_TYPE=${BUILDTYPE} ${CPPASTCMAKECOMPILER} -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DLLVM_CONFIG_BINARY=${LLVMBREWPATH}/opt/llvm/bin/llvm-config ../../cppast/ && make && popd
+        pushd ${BUILDPATH} && cmake -DCMAKE_BUILD_TYPE=${BUILDTYPE} ${CPPASTCMAKECOMPILER} -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DLLVM_CONFIG_BINARY=${LLVMCONFIGPATH} ../../cppast/ && make && popd
     fi
 }
 
