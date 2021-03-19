@@ -71,7 +71,7 @@ SRef<xpcf::IComponentManager> bindXpcfComponents() {
     cmpMgr->bindLocal<IRPCGenerator, ServerGenerator>("server");
     cmpMgr->bindLocal<IRPCGenerator, ProjectGenerator>("project");
 #else
-    // chained injection through base classe composite approach :
+    // chained injection through base class composite approach :
     cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::BindingScope::Singleton, xpcf::BindingRange::Named|xpcf::BindingRange::Explicit>("service");
     cmpMgr->bindLocal<GRPCProtoGenerator, IRPCGenerator, ProxyGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
     cmpMgr->bindLocal<GRPCFlatBufferGenerator, IRPCGenerator, ProxyGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();

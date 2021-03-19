@@ -440,7 +440,7 @@ UniqueRef<TypeDescriptor::TypeDescriptorInfo> TypeDescriptor::parseType(const cp
                 auto vec =  userType.entity().get(index);
                 if (vec.size() >0) {
                     auto&  indexedEntity = userType.entity().get(index)[0u];
-                    indexedEntity->kind();
+                    //indexedEntity->kind();
                     const cppast::cpp_entity&  entity = userType.entity().get(index)[0u].get();
                     cppast::cpp_entity_kind knd = entity.kind();
                     if (entity.kind() == cppast::cpp_entity_kind::enum_t) {
