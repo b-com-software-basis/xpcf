@@ -76,6 +76,7 @@ private:
     //std::multimap<std::string, std::size_t> m_virtualMethodsMap;
     bool m_ignored = false;
     const cppast::cpp_class& m_baseClass;
+    bool m_isXpcfInterface = false;
     bool m_isInterface = false;
     bool m_isXpcfComponent = false;
     mutable org::bcom::xpcf::uuids::uuid m_clientUUID = {00000000-0000-0000-0000-000000000000};

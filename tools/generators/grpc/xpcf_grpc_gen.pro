@@ -87,6 +87,7 @@ SOURCES += \
 
 linux {
     LIBS += -ldl
+    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
     QMAKE_CXXFLAGS += -fPIC
 #    LLVM_BINARIES = /home/linuxbrew/.linuxbrew/opt/llvm/bin
     LLVM_BINARIES = /usr/bin

@@ -20,11 +20,7 @@ std::string findRemakenRulesStr = "# Author(s) : Loic Touraine, Stephane Leduc\n
 "}\n\nmessage(\"Remaken qmake build rules used : \" $$QMAKE_REMAKEN_RULES_ROOT)\n";
 
 // TODO : package information should depend upon the generator used ! and grpc/protobuf version should be added from metadata !
-std::string pkgdepsStr = "grpc|1.32.0|grpc++|brew@system|\n"
-"grpc|1.32.0|grpc++|apt-get@system|\n"
-"protobuf|3.13.0|protobuf|brew@system|\n"
-"protobuf|3.13.0|protobuf|apt-get@system|\n"
-"xpcf|2.5.0|xpcf|@github|https://github.com/SolarFramework/binaries/releases/download\n";
+std::string pkgdepsStr = "xpcf|2.5.0|xpcf|@github|https://github.com/SolarFramework/binaries/releases/download\n";
 
 ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenerator>())
 {
@@ -170,6 +166,9 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
     m_xmlFactoryInfos<< "    </bind>\n";
     m_xmlFactoryInfos<< "  </bindings>\n";
     m_xmlFactoryInfos<< "</factory>\n";
+    //to put version in pkgDepsFile for protobuf
+    //pkg-config --modversion protobuf
+    // protobuf|3.15.6|protobuf|brew@system
 
     if (m_mode == GenerateMode::STD_COUT) {
         generateProjectFile(metadata,std::cout);
