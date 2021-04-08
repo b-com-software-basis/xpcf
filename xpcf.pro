@@ -9,6 +9,7 @@ DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
 CONFIG += shared
+#CONFIG += verbose
 CONFIG -= staticlib
 macx {
     #CONFIG += use_brew_llvm
@@ -148,6 +149,7 @@ HEADERS += \
 
 linux {
     QMAKE_LFLAGS += -ldl
+    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 macx {
@@ -166,7 +168,7 @@ win32 {
  }
 
 INCLUDEPATH += $${PWD} $${PWD}/interfaces
-#include(builddefs/qmake/bcom_code_scanner.prf)
+#include(builddefs/qmake/code_analysis/bcom_code_scanner.prf)
 
 h_api_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/api
 h_api_files.files = $$files($${PWD}/interfaces/xpcf/api/*)
