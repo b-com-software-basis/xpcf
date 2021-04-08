@@ -87,10 +87,12 @@ SOURCES += \
 
 linux {
     LIBS += -ldl
+    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
     QMAKE_CXXFLAGS += -fPIC
-    LLVM_BINARIES = /home/linuxbrew/.linuxbrew/opt/llvm/bin
-    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config --libdir)
-    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config --includedir)
+#    LLVM_BINARIES = /home/linuxbrew/.linuxbrew/opt/llvm/bin
+    LLVM_BINARIES = /usr/bin
+    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-10 --libdir)
+    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-10 --includedir)
     LIBS += -L$${LLVM_LIBDIR} -lclang
     LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
     LIBS += $${LLVM_CLANG_LIBS}
