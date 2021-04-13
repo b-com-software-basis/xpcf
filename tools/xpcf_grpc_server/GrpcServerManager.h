@@ -25,6 +25,7 @@
 #include <xpcf/component/ConfigurableBase.h>
 #include <xpcf/remoting/IGrpcServerManager.h>
 #include <xpcf/collection/ICollection.h>
+#include <xpcf/remoting/GrpcHelper.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -43,9 +44,8 @@ public:
 private:
     grpc::ServerBuilder builder;
     std::string m_serverAddress = "0.0.0.0:50051";
-    uint32_t m_serverCredentials;
+    uint32_t m_serverCredentials = grpcCredentials::InsecureChannelCredentials;
     SRef<org::bcom::xpcf::ICollection<SRef<IGrpcService> >> m_services;
-
 };
 
 

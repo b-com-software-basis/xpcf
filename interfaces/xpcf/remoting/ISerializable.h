@@ -16,6 +16,8 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <chrono>
+
 // template typename T to_proto/from_proto OR another solution with IGrpcProtoInterface / IRemotingBufferInterface ??
 // Simple backend [proto|flat] buffers
 // Data class C either :
@@ -35,7 +37,7 @@
 
 //Service :
 //1 -> type agnostic in/out service for serialisation generation/interface
-//2 -> proto/flat based service for proto/flat defined datastructure
+//2 -> proto/flat based service for proto/flat defined SolAR::datastructure
 
 //serialisation generation/interface :
 //-> pros :
@@ -98,6 +100,12 @@ template <> struct InterfaceTraits<ISerializable>
 
 }}}
 
+
+
+
+// outside of any namespace
+BOOST_SERIALIZATION_SPLIT_FREE(std::chrono::system_clock::time_point)
+
 namespace boost {
 namespace serialization {
 
@@ -128,6 +136,27 @@ template<class Archive, typename... Args>
 void serialize(Archive & ar, std::tuple<Args...> & t, const unsigned int version)
 {
     Serialize<sizeof...(Args)>::serialize(ar, t, version);
+}
+
+template<class Archive, typename... Args>
+void save(Archive & ar, const std::chrono::system_clock::time_point & t, const unsigned int version)
+{
+    // duration for std::chrono is in microsecond on MacOS, nanoseconds on linux and nanoseconds on win
+    // keep nanoseconds resolution
+    std::chrono::duration nsDuration = std::chrono::duration_cast<std::chrono::nanoseconds> (t.time_since_epoch());
+    int64_t nanoSeconds = nsDuration.count();
+    ar & nanoSeconds;
+}
+
+
+template<class Archive, typename... Args>
+void load(Archive & ar, std::chrono::system_clock::time_point & t, const unsigned int version)
+{
+    int64_t nanoSeconds;
+    ar & nanoSeconds;
+    std::chrono::nanoseconds nsDuration (nanoSeconds);
+    std::chrono::system_clock::time_point n(nsDuration);
+    t = n;
 }
 
 }

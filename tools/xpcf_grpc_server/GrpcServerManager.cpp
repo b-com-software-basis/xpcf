@@ -1,5 +1,4 @@
 #include "GrpcServerManager.h"
-#include <xpcf/remoting/GrpcHelper.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
