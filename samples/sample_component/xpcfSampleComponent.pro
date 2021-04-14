@@ -49,6 +49,11 @@ HEADERS += \
 unix {
 }
 
+linux {
+    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
+}
+
+
 macx {
     contains(DEFINES,USE_XPCF_STD) {
         QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.14

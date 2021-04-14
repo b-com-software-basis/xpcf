@@ -30,6 +30,9 @@ SOURCES += \
 
 linux {
     LIBS += -ldl
+    INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
+    INCLUDEPATH += $${REMAKENDEPSFOLDER}/$${BCOM_TARGET_PLATFORM}/xpcfSampleComponent/$$VERSION/interfaces
+    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 
