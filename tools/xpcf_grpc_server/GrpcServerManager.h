@@ -48,16 +48,13 @@ private:
     SRef<org::bcom::xpcf::ICollection<SRef<IGrpcService> >> m_services;
 };
 
+}}}
 
-
-
-template <> struct org::bcom::xpcf::ComponentTraits<GrpcServerManager>
+template <> struct org::bcom::xpcf::ComponentTraits<org::bcom::xpcf::GrpcServerManager>
 {
     static constexpr const char * UUID = "{7FD1E545-F2F5-44A0-B30E-51B477455077}";
     static constexpr const char * NAME = "GrpcServerManager";
     static constexpr const char * DESCRIPTION = "GrpcServerManager implements IGrpcServerManager interface";
 };
-
-}}}
 
 #endif // GRPCPROTOGENERATOR_H

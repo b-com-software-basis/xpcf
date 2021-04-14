@@ -35,6 +35,7 @@ SOURCES += \
 
 linux {
     LIBS += -ldl
+    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
     INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
 }
 
