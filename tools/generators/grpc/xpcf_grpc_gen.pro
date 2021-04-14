@@ -59,6 +59,7 @@ HEADERS += \ \
     GRPCFlatBufferGenerator.h \
     GRPCMessage.h \
     MethodDescriptor.h \
+    MockGenerator.h \
     ParameterDescriptor.h \
     GRPCProtoGenerator.h \
     ProjectGenerator.h \
@@ -78,6 +79,7 @@ SOURCES += \
     MethodDescriptor.cpp \
     ParameterDescriptor.cpp \
     GRPCProtoGenerator.cpp \
+    MockGenerator.cpp \
     ProjectGenerator.cpp \
     ProxyGenerator.cpp \
     RemoteServiceGenerator.cpp \
