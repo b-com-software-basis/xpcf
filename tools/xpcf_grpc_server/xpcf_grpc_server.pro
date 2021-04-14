@@ -35,6 +35,7 @@ SOURCES += \
 
 linux {
     LIBS += -ldl
+    INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
 }
 
 
