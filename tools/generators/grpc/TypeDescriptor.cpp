@@ -179,7 +179,7 @@ std::shared_ptr<TypeDescriptor> TypeDescriptor::deduceTemplateType(const std::st
     std::smatch sm;
     for (auto & [regexStr, tmplType] : leafTmplRegexpMap) {
         std::regex tmplRegex(regexStr, std::regex_constants::extended);
-        if (std::regex_search(leafTemplate, sm, tmplRegex, std::regex_constants::match_flag_type::match_any)) {
+        if (std::regex_search(leafTemplate, sm, tmplRegex, std::regex_constants::match_any)) {
             std::string matchStr = sm.str(0);
             std::string tmplTypeName = matchStr.substr(0,matchStr.find_first_of('<'));
             std::cout<<"Found "<< tmplTypeName<<" template "<<matchStr<<std::endl;
@@ -202,7 +202,7 @@ void TypeDescriptor::linkArgumentsType(const std::string & args, const std::map<
     std::regex tmplRegex(argStrRegex, std::regex_constants::extended);
     std::smatch sm;
     std::string argStr = args;
-    while (std::regex_search(argStr, sm, tmplRegex, std::regex_constants::match_flag_type::match_any)) {
+    while (std::regex_search(argStr, sm, tmplRegex, std::regex_constants::match_any)) {
         std::string matchStr = sm.str(0);
         std::cout<<"Add template argument to "<<matchStr<<std::endl;
         argStr = sm.suffix();
@@ -224,7 +224,7 @@ std::string TypeDescriptor::parseTemplateArguments(const std::string & argStr, u
     std::smatch sm;
     // parsing finds first leaf template instanciation, replace leaf templates with groups identifiers then search for "new"(up level) leaf templates
     // until there is no more leaf
-    while (std::regex_search(regexArgumentStr, sm, tmplRegex, std::regex_constants::match_flag_type::match_any)) {
+    while (std::regex_search(regexArgumentStr, sm, tmplRegex, std::regex_constants::match_any)) {
         std::string matchStr = sm.str(0);
         std::cout<<"Found leaf template "<<matchStr<<std::endl;
         regexArgumentStr = sm.suffix();

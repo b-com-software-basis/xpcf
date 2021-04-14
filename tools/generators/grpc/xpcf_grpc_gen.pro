@@ -42,7 +42,7 @@ exists($${CPPAST_ROOT_BUILD}) {
     LIBS += -L$${CPPAST_ROOT_BUILD}/src -lcppast
     LIBS += -L$${CPPAST_ROOT_BUILD} -l_cppast_tiny_process
 } else {
-    error("cppast root build folder doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd " $${_PRO_FILE_PWD_} "/../../../libs/cppast/$$escape_expand(\\n)./build_cppast.sh" )
+    error("cppast root build folder doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd " $${_PRO_FILE_PWD_} "/../../../libs/$$escape_expand(\\n)./build_cppast.sh" )
 }
 win32:CONFIG -= static
 win32:CONFIG += shared
@@ -118,7 +118,7 @@ macx {
     LIBS += -L$${LLVM_LIBDIR} -lclang
     LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
     LIBS += $${LLVM_CLANG_LIBS}
-    QMAKE_LFLAGS += -L$${LLVM_LIBDIR}
+    QMAKE_LFLAGS += -L$${LLVM_LIBDIR} -L/usr/local/lib
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17 -I$${LLVM_INCDIR}
     #QMAKE_CXXFLAGS += --coverage
     #QMAKE_LFLAGS += --coverage
