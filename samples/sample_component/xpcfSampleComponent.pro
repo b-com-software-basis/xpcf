@@ -10,10 +10,10 @@ CONFIG += c++17
 CONFIG += shared
 #DEFINES += USE_XPCF_STD
 
-DEPENDENCIESCONFIG = staticlib
+DEPENDENCIESCONFIG = shared
 !contains(DEFINES,USE_XPCF_STD) {
    DEFINES += USE_XPCF_BOOST
-   DEPENDENCIESCONFIG += recurse
+   DEPENDENCIESCONFIG += install_recurse
 }
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (../../builddefs/qmake/templatelibconfig.pri)

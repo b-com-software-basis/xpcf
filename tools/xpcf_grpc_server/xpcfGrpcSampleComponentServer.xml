@@ -78,7 +78,7 @@
               <bind interface="ITuner" to="Tuner" properties="nashville"/>
       </inject>
       <inject to="VirtualGuitarist">
-              <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" />
+              <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" range="all"/>
       </inject>
       <inject to="TakamineFolkGuitar">
               <bind interface="ITuner" to="Tuner" properties="DADGAD"/>
