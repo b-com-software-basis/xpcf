@@ -1,5 +1,7 @@
 #include "ProjectGenerator.h"
+#include <boost/process.hpp>
 
+namespace bp = boost::process;
 namespace xpcf = org::bcom::xpcf;
 
 template<> ProjectGenerator * xpcf::ComponentFactory::createInstance<ProjectGenerator>();
@@ -20,7 +22,8 @@ std::string findRemakenRulesStr = "# Author(s) : Loic Touraine, Stephane Leduc\n
 "}\n\nmessage(\"Remaken qmake build rules used : \" $$QMAKE_REMAKEN_RULES_ROOT)\n";
 
 // TODO : package information should depend upon the generator used ! and grpc/protobuf version should be added from metadata !
-std::string pkgdepsStr = "xpcf|2.5.0|xpcf|@github|https://github.com/SolarFramework/binaries/releases/download\n";
+std::string pkgdepsStr = "protobuf|3.15.6|protobuf|brew@system\n"
+        "xpcf|2.5.0|xpcf|@github|https://github.com/SolarFramework/binaries/releases/download\n";
 
 ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenerator>())
 {
@@ -39,7 +42,7 @@ ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenera
     m_moduleHdrMgr = std::make_unique<CppBlockManager>(m_moduleMainInfosHeader);
     m_moduleSrcMgr = std::make_unique<CppBlockManager>(m_moduleMainInfosSource);
     m_moduleDeclareMgr = std::make_unique<CppBlockManager>(m_moduleMainDeclareModule);
-    m_moduleHdrMgr->out() << "// GRPC Proxy Class Header generated with xpcf_grpc_gen\n\n";
+    m_moduleHdrMgr->out() << "// Class Header generated with xpcf_grpc_gen\n\n";
     m_moduleHdrMgr->newline();
     m_moduleHdrMgr->includeGuardsStart("xpcfGrpcModuleMain");
     m_moduleDeclareMgr->include("xpcfGrpcModuleMain.h");
@@ -108,8 +111,10 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
     out << "include ($${QMAKE_REMAKEN_RULES_ROOT}/templatelibconfig.pri)\n\n";
     out << m_headerProjectInfos.str();
     out << m_srcProjectInfos.str();
-   // out << "include (xpcfGrpcRemoting" << metadata[MetadataType::PROJECT_NAME] << ".pri\n\n";
+    std::string priFileName = "xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".pri";
+    out << "include (" << priFileName << ")\n\n";
     out << "\nunix:!android {\n    QMAKE_CXXFLAGS += -Wignored-qualifiers\n#    QMAKE_LINK=clang++\n#    QMAKE_CXX = clang++\n}\n\n";
+    out << "\nlinux:!android {\n    LIBS += -ldl\n    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc\n}\n\n";
     out << "macx {\n    DEFINES += _MACOS_TARGET_\n    QMAKE_MAC_SDK= macosx\n";
     out << "    QMAKE_CFLAGS += -mmacosx-version-min=10.7 -std=c11 #-x objective-c++\n";
     out << "    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c11 -std=c++11 -O3 -fPIC#-x objective-c++\n";
@@ -219,6 +224,20 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
         }
         pkgDepsFile.close();
     }
+    bp::ipstream stream;
+    boost::filesystem::path p = bp::search_path("protoc");
+    if (!p.empty()) {
+        //bp::child c(command, args, bp::std_out > stream);
+  //      bp::system(p,"--version | sed 's/[a-zA-Z ]*//'", bp::std_out > stream);
+
+        std::string line;
+        getline(stream, line);
+        if (   !line.empty()) {
+
+        }
+    }
+
+
 }
 
 
