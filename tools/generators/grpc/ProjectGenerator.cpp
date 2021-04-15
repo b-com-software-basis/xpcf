@@ -92,42 +92,52 @@ void ProjectGenerator::generateModuleMain(const SRef<ClassDescriptor> c, std::ma
 
 }
 
-void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> metadata, std::ostream& out)
+void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> metadata)
 {
-    out << "## remove Qt dependencies\nQT       -= core gui\nCONFIG -= qt\n";
-
-    out << "\n## global definitions : target lib name, version\n";
-    out << "TARGET = xpcfGrpcRemoting"<< metadata[MetadataType::PROJECT_NAME] << "\n";
-    out << "FRAMEWORK = $$TARGET\n";
-    out << "VERSION="<< metadata[MetadataType::PROJECT_VERSION] << "\n";
-    out << "\nDEFINES += MYVERSION=$${VERSION}\nDEFINES += TEMPLATE_LIBRARY\nCONFIG += c++1z\n\n";
-    out << "include(findremakenrules.pri)\n\n";
-    out << "CONFIG(debug,debug|release) {\n    DEFINES += _DEBUG=1\n    DEFINES += DEBUG=1\n}\n";
-    out << "CONFIG(release,debug|release) {\n    DEFINES += _NDEBUG=1\n    DEFINES += NDEBUG=1\n}\n\n";
-    out << "DEPENDENCIESCONFIG = shared recursive install_recurse\n\n";
-    out << "## Configuration for Visual Studio to install binaries and dependencies. Work also for QT Creator by replacing QMAKE_INSTALL\n";
-    out << "PROJECTCONFIG = QTVS\n\n";
-    out << "#NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion\n";
-    out << "include ($${QMAKE_REMAKEN_RULES_ROOT}/templatelibconfig.pri)\n\n";
-    out << m_headerProjectInfos.str();
-    out << m_srcProjectInfos.str();
+    fs::detail::utf8_codecvt_facet utf8;
     std::string priFileName = "xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".pri";
-    out << "include (" << priFileName << ")\n\n";
-    out << "\nunix:!android {\n    QMAKE_CXXFLAGS += -Wignored-qualifiers\n#    QMAKE_LINK=clang++\n#    QMAKE_CXX = clang++\n}\n\n";
-    out << "\nlinux:!android {\n    LIBS += -ldl\n    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc\n}\n\n";
-    out << "macx {\n    DEFINES += _MACOS_TARGET_\n    QMAKE_MAC_SDK= macosx\n";
-    out << "    QMAKE_CFLAGS += -mmacosx-version-min=10.7 -std=c11 #-x objective-c++\n";
-    out << "    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c11 -std=c++11 -O3 -fPIC#-x objective-c++\n";
-    out << "    QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++\n";
-    out << "    LIBS += -lstdc++ -lc -lpthread\n";
-    out << "    LIBS += -L/usr/local/lib\n}\n\n";
-    out << "win32 {\n\n    DEFINES += WIN64 UNICODE _UNICODE\n    QMAKE_COMPILER_DEFINES += _WIN64\n";
-    out << "    QMAKE_CXXFLAGS += -wd4250 -wd4251 -wd4244 -wd4275 /Od\n}\n\n";
-    out << "android {\n    QMAKE_LFLAGS += -nostdlib++\n}\n\n";
-    out << "OTHER_FILES += \\n    packagedependencies.txt\n\n";
-    out << "OTHER_FILES += \\n    xpcfGrpcRemoting" << metadata[MetadataType::PROJECT_NAME] <<".xml\n\n";
-    out << "#NOTE : Must be placed at the end of the .pro\ninclude ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)\n";
+    fs::path projectFilePath("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".pro",utf8);
+    projectFilePath = m_folder/projectFilePath;
+    std::ofstream projectFile(projectFilePath.generic_string(utf8).c_str(), std::ios::out);
 
+    projectFile << "## remove Qt dependencies\nQT       -= core gui\nCONFIG -= qt\n";
+
+    projectFile << "\n## global definitions : target lib name, version\n";
+    projectFile << "TARGET = xpcfGrpcRemoting"<< metadata[MetadataType::PROJECT_NAME] << "\n";
+    projectFile << "FRAMEWORK = $$TARGET\n";
+    projectFile << "VERSION="<< metadata[MetadataType::PROJECT_VERSION] << "\n";
+    projectFile << "\nDEFINES += MYVERSION=$${VERSION}\nDEFINES += TEMPLATE_LIBRARY\nCONFIG += c++1z\n\n";
+    projectFile << "include(findremakenrules.pri)\n\n";
+    projectFile << "CONFIG(debug,debug|release) {\n    DEFINES += _DEBUG=1\n    DEFINES += DEBUG=1\n}\n";
+    projectFile << "CONFIG(release,debug|release) {\n    DEFINES += _NDEBUG=1\n    DEFINES += NDEBUG=1\n}\n\n";
+    projectFile << "DEPENDENCIESCONFIG = shared recursive install_recurse\n\n";
+    projectFile << "## Configuration for Visual Studio to install binaries and dependencies. Work also for QT Creator by replacing QMAKE_INSTALL\n";
+    projectFile << "PROJECTCONFIG = QTVS\n\n";
+    projectFile << "#NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion\n";
+    projectFile << "include ($${QMAKE_REMAKEN_RULES_ROOT}/templatelibconfig.pri)\n\n";
+    projectFile << "include (" << priFileName << ")\n\n";
+    projectFile << "\nunix:!android {\n    QMAKE_CXXFLAGS += -Wignored-qualifiers\n#    QMAKE_LINK=clang++\n#    QMAKE_CXX = clang++\n}\n\n";
+    projectFile << "\nlinux:!android {\n    LIBS += -ldl\n    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc\n}\n\n";
+    projectFile << "macx {\n    DEFINES += _MACOS_TARGET_\n    QMAKE_MAC_SDK= macosx\n";
+    projectFile << "    QMAKE_CFLAGS += -mmacosx-version-min=10.7 -std=c11 #-x objective-c++\n";
+    projectFile << "    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c11 -std=c++11 -O3 -fPIC#-x objective-c++\n";
+    projectFile << "    QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++\n";
+    projectFile << "    LIBS += -lstdc++ -lc -lpthread\n";
+    projectFile << "    LIBS += -L/usr/local/lib\n}\n\n";
+    projectFile << "win32 {\n\n    DEFINES += WIN64 UNICODE _UNICODE\n    QMAKE_COMPILER_DEFINES += _WIN64\n";
+    projectFile << "    QMAKE_CXXFLAGS += -wd4250 -wd4251 -wd4244 -wd4275 /Od\n}\n\n";
+    projectFile << "android {\n    QMAKE_LFLAGS += -nostdlib++\n}\n\n";
+    projectFile << "OTHER_FILES += \\n    packagedependencies.txt\n\n";
+    projectFile << "OTHER_FILES += \\n    xpcfGrpcRemoting" << metadata[MetadataType::PROJECT_NAME] <<".xml\n\n";
+    projectFile << "#NOTE : Must be placed at the end of the .pro\ninclude ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)\n";
+    projectFile.close();
+
+    fs::path priFilePath(priFileName,utf8);
+    priFilePath = m_folder/priFilePath;
+    std::ofstream priFile(priFilePath.generic_string(utf8).c_str(), std::ios::out);
+    priFile << m_headerProjectInfos.str();
+    priFile << m_srcProjectInfos.str();
+    priFile.close();
 }
 
 std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
@@ -176,7 +186,6 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
     // protobuf|3.15.6|protobuf|brew@system
 
     if (m_mode == GenerateMode::STD_COUT) {
-        generateProjectFile(metadata,std::cout);
         std::cout << m_protoProjectInfos.str();
         std::cout << m_headerProjectInfos.str();
         std::cout << m_srcProjectInfos.str();
@@ -185,11 +194,7 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
     }
     else {
         fs::detail::utf8_codecvt_facet utf8;
-        fs::path projectFilePath("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".pro",utf8);
-        projectFilePath = m_folder/projectFilePath;
-        std::ofstream projectFile(projectFilePath.generic_string(utf8).c_str(), std::ios::out);
-        generateProjectFile(metadata,projectFile);
-        projectFile.close();
+        generateProjectFile(metadata);
         fs::path xmlFilePath("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".xml",utf8);
         xmlFilePath = m_folder/xmlFilePath;
         std::ofstream xmlFile(xmlFilePath.generic_string(utf8).c_str(), std::ios::out);
