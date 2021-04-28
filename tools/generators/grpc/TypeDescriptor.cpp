@@ -474,7 +474,7 @@ UniqueRef<TypeDescriptor::TypeDescriptorInfo> TypeDescriptor::parseType(const cp
     else {
         info->m_const = true;
     }
-    if (info->m_isBuiltin && info->m_const && info->m_isPointer && info->m_builtinType == cpp_char) {
+    if (info->m_isBuiltin && info->m_const && info->m_isPointer && info->m_builtinType == cpp_builtin_type::cpp_char) {
         info->m_isBuiltin = false;
         info->m_kind = type_kind::c_string_t;
     }

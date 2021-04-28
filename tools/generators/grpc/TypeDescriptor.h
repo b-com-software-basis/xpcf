@@ -69,7 +69,7 @@
 
 //Endpoint notion ? Interface with destination configuration ?
 
-enum cpp_builtin_type {
+enum class cpp_builtin_type {
     cpp_void, //< `void`
 
     cpp_bool, //< `bool`
@@ -136,7 +136,7 @@ enum cpp_builtin_type {
     cpp_uintmax_t
 };
 
-enum type_kind {
+enum class type_kind {
     builtin_t,
     c_string_t,
     std_string_t,
@@ -146,12 +146,13 @@ enum type_kind {
     template_t
 };
 
-enum template_type {
+enum class template_type {
     none,
     vector_t,
     map_t,
     tuple_t,
-    sharedptr_t
+    sharedptr_t,
+    user_defined_t
 };
 
 class TypeDescriptor
@@ -174,7 +175,7 @@ public:
         bool isLeaf = false; // false for intermediate template
         type_kind m_kind;
         mutable std::string m_rpcType;
-        template_type m_templateType;
+        template_type m_templateType = template_type::none;
         cpp_builtin_type m_builtinType;
         std::vector<std::shared_ptr<TypeDescriptor>> m_tmplArgsVector; // only for template type desc
         mutable std::string m_nameSpace = "";
@@ -191,10 +192,10 @@ public:
     bool isPointer() const { return m_descriptorInfo->m_isPointer; }
     bool isVoid() const { return m_descriptorInfo->m_void; }
 
-    enum type_kind kind() const { return m_descriptorInfo->m_kind; }
+    type_kind kind() const { return m_descriptorInfo->m_kind; }
     const std::string & getTypename() const { return m_descriptorInfo->m_typename; }
-    enum template_type getTemplateType() const { return m_descriptorInfo->m_templateType; }
-    enum cpp_builtin_type getBuiltinType() const { return m_descriptorInfo->m_builtinType; }
+    template_type getTemplateType() const { return m_descriptorInfo->m_templateType; }
+    cpp_builtin_type getBuiltinType() const { return m_descriptorInfo->m_builtinType; }
     std::string getFullTypeDescription() const;
     void enableStaticCast(const std::string & rpcType) const { m_descriptorInfo->m_rpcType = rpcType; m_staticCast = true; }
     bool needsStaticCast() const { return m_staticCast; }

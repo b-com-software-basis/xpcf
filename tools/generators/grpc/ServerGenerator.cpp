@@ -139,7 +139,8 @@ void ServerGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager 
                 blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(" << p.getName() << ");\n";
             }
         }
-        else if (p.type().kind() == type_kind::user_defined_t) {
+        else if (p.type().kind() == type_kind::user_defined_t
+                 || p.type().kind() == type_kind::template_t) {
             blockMgr.out() << "response->set_" << boost::to_lower_copy(p.getName()) << "(xpcf::serialize<" << p.type().getFullTypeDescription() <<">(" << p.getName() << "));\n";
         }
     }

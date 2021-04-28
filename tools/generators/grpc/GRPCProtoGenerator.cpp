@@ -12,64 +12,64 @@ template<> GRPCProtoGenerator * xpcf::ComponentFactory::createInstance<GRPCProto
 //protoc grpcIPointCloudManagerService.proto --grpc_out=. --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin
 //message generation: generates grpcIPointCloudManagerService.pb.[h/cc]
 // protoc grpcIPointCloudManagerService.proto --cpp_out=./
-static const std::map<enum cpp_builtin_type,std::pair<std::string,bool>> builtinType2protobufTypeMap =
+static const std::map<cpp_builtin_type,std::pair<std::string,bool>> builtinType2protobufTypeMap =
 {
-{ cpp_void,{"Empty",false}},
+{ cpp_builtin_type::cpp_void,{"Empty",false}},
 
-{ cpp_bool,{"bool",false}},
+{ cpp_builtin_type::cpp_bool,{"bool",false}},
 
-{ cpp_uchar,{"uint32",true}},
-{ cpp_ushort,{"uint32",true}},
-{ cpp_uint,{"uint32",false}},
-{ cpp_ulong,{"uint64",false}},
-{ cpp_ulonglong,{"uint64",false}},
-{ cpp_uint128,{"bytes",false}},
+{ cpp_builtin_type::cpp_uchar,{"uint32",true}},
+{ cpp_builtin_type::cpp_ushort,{"uint32",true}},
+{ cpp_builtin_type::cpp_uint,{"uint32",false}},
+{ cpp_builtin_type::cpp_ulong,{"uint64",false}},
+{ cpp_builtin_type::cpp_ulonglong,{"uint64",false}},
+{ cpp_builtin_type::cpp_uint128,{"bytes",false}},
 
-{ cpp_schar,{"sint32",true}},
-{ cpp_short,{"sint32",true}},
-{ cpp_int,{"sint32",false}},
-{ cpp_long,{"sint64",false}},
-{ cpp_longlong,{"sint64",false}},
-{ cpp_int128,{"bytes",false}},
+{ cpp_builtin_type::cpp_schar,{"sint32",true}},
+{ cpp_builtin_type::cpp_short,{"sint32",true}},
+{ cpp_builtin_type::cpp_int,{"sint32",false}},
+{ cpp_builtin_type::cpp_long,{"sint64",false}},
+{ cpp_builtin_type::cpp_longlong,{"sint64",false}},
+{ cpp_builtin_type::cpp_int128,{"bytes",false}},
 
-{ cpp_float,{"float",false}},
-{ cpp_double,{"double",false}},
-{ cpp_longdouble,{"bytes",false}},
-{ cpp_float128,{"bytes",false}},
+{ cpp_builtin_type::cpp_float,{"float",false}},
+{ cpp_builtin_type::cpp_double,{"double",false}},
+{ cpp_builtin_type::cpp_longdouble,{"bytes",false}},
+{ cpp_builtin_type::cpp_float128,{"bytes",false}},
 
-{ cpp_char,{"sint32",true}},
-{ cpp_wchar,{"sint32",true}},
-{ cpp_char16,{"sint32",true}},
-{ cpp_char32,{"sint32",true}},
-{ cpp_int8_t,{"sint32",true}},
-{ cpp_int16_t,{"sint32",false}},
-{ cpp_int32_t,{"sint32",true}},
-{ cpp_int64_t,{"sint64",false}},
+{ cpp_builtin_type::cpp_char,{"sint32",true}},
+{ cpp_builtin_type::cpp_wchar,{"sint32",true}},
+{ cpp_builtin_type::cpp_char16,{"sint32",true}},
+{ cpp_builtin_type::cpp_char32,{"sint32",true}},
+{ cpp_builtin_type::cpp_int8_t,{"sint32",true}},
+{ cpp_builtin_type::cpp_int16_t,{"sint32",false}},
+{ cpp_builtin_type::cpp_int32_t,{"sint32",true}},
+{ cpp_builtin_type::cpp_int64_t,{"sint64",false}},
 
-{ cpp_uint8_t,{"uint32",true}},
-{ cpp_uint16_t,{"uint32",true}},
-{ cpp_uint32_t,{"uint32",false}},
-{ cpp_uint64_t,{"uint64",false}},
+{ cpp_builtin_type::cpp_uint8_t,{"uint32",true}},
+{ cpp_builtin_type::cpp_uint16_t,{"uint32",true}},
+{ cpp_builtin_type::cpp_uint32_t,{"uint32",false}},
+{ cpp_builtin_type::cpp_uint64_t,{"uint64",false}},
 
-{ cpp_int_least8_t,{"sint32",true}},
-{ cpp_int_least16_t,{"sint32",true}},
-{ cpp_int_least32_t,{"sint32",false}},
-{ cpp_int_least64_t,{"sint64",false}},
+{ cpp_builtin_type::cpp_int_least8_t,{"sint32",true}},
+{ cpp_builtin_type::cpp_int_least16_t,{"sint32",true}},
+{ cpp_builtin_type::cpp_int_least32_t,{"sint32",false}},
+{ cpp_builtin_type::cpp_int_least64_t,{"sint64",false}},
 
-{ cpp_uint_least8_t,{"uint32",true}},
-{ cpp_uint_least16_t,{"uint32",true}},
-{ cpp_uint_least32_t,{"uint32",false}},
-{ cpp_uint_least64_t,{"uint64",false}},
+{ cpp_builtin_type::cpp_uint_least8_t,{"uint32",true}},
+{ cpp_builtin_type::cpp_uint_least16_t,{"uint32",true}},
+{ cpp_builtin_type::cpp_uint_least32_t,{"uint32",false}},
+{ cpp_builtin_type::cpp_uint_least64_t,{"uint64",false}},
 
-{ cpp_int_fast8_t,{"sint32",true}},
-{ cpp_int_fast16_t,{"sint32",true}},
-{ cpp_int_fast32_t,{"sint32",false}},
-{ cpp_int_fast64_t,{"sint64",false}},
+{ cpp_builtin_type::cpp_int_fast8_t,{"sint32",true}},
+{ cpp_builtin_type::cpp_int_fast16_t,{"sint32",true}},
+{ cpp_builtin_type::cpp_int_fast32_t,{"sint32",false}},
+{ cpp_builtin_type::cpp_int_fast64_t,{"sint64",false}},
 
-{ cpp_uint_fast8_t,{"uint32",true}},
-{ cpp_uint_fast16_t,{"uint32",true}},
-{ cpp_uint_fast32_t,{"uint32",false}},
-{ cpp_uint_fast64_t,{"uint64",false}},
+{ cpp_builtin_type::cpp_uint_fast8_t,{"uint32",true}},
+{ cpp_builtin_type::cpp_uint_fast16_t,{"uint32",true}},
+{ cpp_builtin_type::cpp_uint_fast32_t,{"uint32",false}},
+{ cpp_builtin_type::cpp_uint_fast64_t,{"uint64",false}},
 };
 
 
@@ -150,7 +150,7 @@ void GRPCProtoGenerator::generateService(const SRef<ClassDescriptor> c, std::ost
 
 }
 
-const std::pair<std::string,bool> & GRPCProtoGenerator::tryConvertType(enum cpp_builtin_type type)
+const std::pair<std::string,bool> & GRPCProtoGenerator::tryConvertType(cpp_builtin_type type)
 {
     static const std::pair<std::string,bool> typeStr = {"",false};
     if (builtinType2protobufTypeMap.find(type) != builtinType2protobufTypeMap.end()) {

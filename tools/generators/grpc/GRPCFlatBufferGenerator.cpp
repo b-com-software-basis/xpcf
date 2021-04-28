@@ -4,72 +4,72 @@ namespace xpcf = org::bcom::xpcf;
 
 template<> GRPCFlatBufferGenerator * xpcf::ComponentFactory::createInstance<GRPCFlatBufferGenerator>();
 
-const std::map<enum cpp_builtin_type,std::string> builtinType2flatbufferTypeMap =
+const std::map<cpp_builtin_type,std::string> builtinType2flatbufferTypeMap =
 {
-    { cpp_void,""},
+    { cpp_builtin_type::cpp_void,""},
 
-        { cpp_bool,""},
+        { cpp_builtin_type::cpp_bool,""},
 
-        { cpp_uchar,""},
-        { cpp_ushort,""},
-        { cpp_uint,""},
-        { cpp_ulong,""},
-        { cpp_ulonglong,""},
-        { cpp_uint128,""},
+        { cpp_builtin_type::cpp_uchar,""},
+        { cpp_builtin_type::cpp_ushort,""},
+        { cpp_builtin_type::cpp_uint,""},
+        { cpp_builtin_type::cpp_ulong,""},
+        { cpp_builtin_type::cpp_ulonglong,""},
+        { cpp_builtin_type::cpp_uint128,""},
 
-        { cpp_schar,""},
-        { cpp_short,""},
-        { cpp_int,""},
-        { cpp_long,""},
-        { cpp_longlong,""},
-        { cpp_int128,""},
+        { cpp_builtin_type::cpp_schar,""},
+        { cpp_builtin_type::cpp_short,""},
+        { cpp_builtin_type::cpp_int,""},
+        { cpp_builtin_type::cpp_long,""},
+        { cpp_builtin_type::cpp_longlong,""},
+        { cpp_builtin_type::cpp_int128,""},
 
-        { cpp_float,""},
-        { cpp_double,""},
-        { cpp_longdouble,""},
-        { cpp_float128,""},
+        { cpp_builtin_type::cpp_float,""},
+        { cpp_builtin_type::cpp_double,""},
+        { cpp_builtin_type::cpp_longdouble,""},
+        { cpp_builtin_type::cpp_float128,""},
 
-        { cpp_char,""},
-        { cpp_wchar,""},
-        { cpp_char16,""},
-        { cpp_char32,""},
+        { cpp_builtin_type::cpp_char,""},
+        { cpp_builtin_type::cpp_wchar,""},
+        { cpp_builtin_type::cpp_char16,""},
+        { cpp_builtin_type::cpp_char32,""},
 
-        { cpp_nullptr,""},
-        { cpp_int8_t,""},
-        { cpp_int16_t,""},
-        { cpp_int32_t,""},
-        { cpp_int64_t,""},
+        { cpp_builtin_type::cpp_nullptr,""},
+        { cpp_builtin_type::cpp_int8_t,""},
+        { cpp_builtin_type::cpp_int16_t,""},
+        { cpp_builtin_type::cpp_int32_t,""},
+        { cpp_builtin_type::cpp_int64_t,""},
 
-        { cpp_uint8_t,""},
-        { cpp_uint16_t,""},
-        { cpp_uint32_t,""},
-        { cpp_uint64_t,""},
+        { cpp_builtin_type::cpp_uint8_t,""},
+        { cpp_builtin_type::cpp_uint16_t,""},
+        { cpp_builtin_type::cpp_uint32_t,""},
+        { cpp_builtin_type::cpp_uint64_t,""},
 
-        { cpp_int_least8_t,""},
-        { cpp_int_least16_t,""},
-        { cpp_int_least32_t,""},
-        { cpp_int_least64_t,""},
+        { cpp_builtin_type::cpp_int_least8_t,""},
+        { cpp_builtin_type::cpp_int_least16_t,""},
+        { cpp_builtin_type::cpp_int_least32_t,""},
+        { cpp_builtin_type::cpp_int_least64_t,""},
 
-        { cpp_uint_least8_t,""},
-        { cpp_uint_least16_t,""},
-        { cpp_uint_least32_t,""},
-        { cpp_uint_least64_t,""},
+        { cpp_builtin_type::cpp_uint_least8_t,""},
+        { cpp_builtin_type::cpp_uint_least16_t,""},
+        { cpp_builtin_type::cpp_uint_least32_t,""},
+        { cpp_builtin_type::cpp_uint_least64_t,""},
 
-        { cpp_int_fast8_t,""},
-        { cpp_int_fast16_t,""},
-        { cpp_int_fast32_t,""},
-        { cpp_int_fast64_t,""},
+        { cpp_builtin_type::cpp_int_fast8_t,""},
+        { cpp_builtin_type::cpp_int_fast16_t,""},
+        { cpp_builtin_type::cpp_int_fast32_t,""},
+        { cpp_builtin_type::cpp_int_fast64_t,""},
 
-        { cpp_uint_fast8_t,""},
-        { cpp_uint_fast16_t,""},
-        { cpp_uint_fast32_t,""},
-        { cpp_uint_fast64_t,""},
+        { cpp_builtin_type::cpp_uint_fast8_t,""},
+        { cpp_builtin_type::cpp_uint_fast16_t,""},
+        { cpp_builtin_type::cpp_uint_fast32_t,""},
+        { cpp_builtin_type::cpp_uint_fast64_t,""},
 
-        { cpp_intptr_t,""},
-        { cpp_uintptr_t,""},
+        { cpp_builtin_type::cpp_intptr_t,""},
+        { cpp_builtin_type::cpp_uintptr_t,""},
 
-        { cpp_intmax_t,""},
-        { cpp_uintmax_t,""},
+        { cpp_builtin_type::cpp_intmax_t,""},
+        { cpp_builtin_type::cpp_uintmax_t,""},
 };
 
 GRPCFlatBufferGenerator::GRPCFlatBufferGenerator():AbstractGenerator(xpcf::toMap<GRPCFlatBufferGenerator>())
@@ -82,7 +82,7 @@ GRPCFlatBufferGenerator::~GRPCFlatBufferGenerator()
 
 }
 
-const std::string & GRPCFlatBufferGenerator::tryConvertType(enum cpp_builtin_type type)
+const std::string & GRPCFlatBufferGenerator::tryConvertType(cpp_builtin_type type)
 {
     static const std::string typeStr = "";
     if (builtinType2flatbufferTypeMap.find(type) != builtinType2flatbufferTypeMap.end()) {
