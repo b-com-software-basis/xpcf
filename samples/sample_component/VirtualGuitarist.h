@@ -59,6 +59,8 @@ public:
 
     void learn () override;
     void playMusic (const MusicScore & score) override;
+    void playScore (std::vector<std::pair<std::string, float>> & score) override;
+    void playModifyScore (std::vector<std::pair<std::string, float>> & score) override;
     void listen () override;
     void practice () override;
     void party () override;
@@ -66,7 +68,7 @@ public:
     SRef<IGuitar> getGuitar(IGuitar::GuitarType type) override;
     std::vector<std::string> getGuitarCollection() override;
 
-    void playSolo (const MusicScore & score) override;
+    void playSolo (MusicScore & score) override;
     void playRhythm () override;
 
     void onInjected() override;

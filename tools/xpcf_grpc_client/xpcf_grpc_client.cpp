@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2019 Jonathan Müller <jonathanmueller.dev@gmail.com>
+﻿// Copyright (C) 2017-2019 Jonathan Müller <jonathanmueller.dev@gmail.com>
 // This file is subject to the license terms in the LICENSE file
 // found in the top-level directory of this distribution.
 
@@ -51,9 +51,7 @@ int main(int argc, char* argv[])
         return 1;
     }
     MusicScore m;
-    m.add("A4",0.4);
-    m.add("C5",0.2);
-    m.add("E5",0.4);
+
 
     SRef<xpcf::IComponentManager> cmpMgr = xpcf::getComponentManagerInstance();
     std::string file = options["file"].as<std::string>();
@@ -63,7 +61,21 @@ int main(int argc, char* argv[])
     auto electricGuitar = cmpMgr->resolve<IElectricGuitar>();
     auto human = cmpMgr->resolve<IHuman>();
     auto musician = cmpMgr->resolve<IMusician>();
+    std::cout<<"Calling playsolo on empty score"<<std::endl;
     guitarist->playSolo(m);
+    std::cout<<"Calling playScore on empty vector"<<std::endl;
+    guitarist->playScore(m.m_score);
+    m.add("A4",0.4);
+    m.add("C5",0.2);
+    m.add("E5",0.4);
+    std::cout<<"Calling playsolo on score with notes"<<std::endl;
+    guitarist->playSolo(m);
+    std::cout<<"Calling playModifyScore on score with notes"<<std::endl;
+    guitarist->playModifyScore(m.m_score);
+    std::cout<<"Score after playModifyScore called"<<std::endl;
+    for (auto & [key, duration] :  m.m_score) {
+        std::cout<<"key="<<key<<" duration="<<duration<<std::endl;
+    }
     human->sleep();
     musician->playMusic(m);
     std::cout<<"Guitar brand "<<guitar->getGuitarBrand()<<std::endl;

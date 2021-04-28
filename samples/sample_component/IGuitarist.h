@@ -43,7 +43,7 @@ class [[xpcf::clientUUID("824b6642-ad39-476a-80c1-8ee16614f9fc")]] [[xpcf::serve
 {
 public:
     virtual ~IGuitarist() = default;
-    virtual void playSolo (const MusicScore & score) = 0;
+    virtual void playSolo (MusicScore & score) = 0;
     virtual void playRhythm () = 0;
     virtual SRef<IGuitar> getGuitar() = 0;
     virtual SRef<IGuitar> getGuitar(IGuitar::GuitarType type) = 0;

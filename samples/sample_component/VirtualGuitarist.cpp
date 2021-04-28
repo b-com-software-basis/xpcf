@@ -68,54 +68,76 @@ void VirtualGuitarist::unloadComponent ()
     return;
 }
 
-void VirtualGuitarist::playSolo(const MusicScore & score)
+void VirtualGuitarist::playSolo(MusicScore & score)
 {
     std::cout<<m_name<<"::"<<" VirtualGuitarist::playSolo ()  called!"<<std::endl;
     for (auto & [key,duration] : score.m_score) {
         std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
     }
+    /*std::cout<<"Adding key = G4"<<std::endl;
+    score.add("G4",0.4);*/
 }
 
 void VirtualGuitarist::playRhythm()
 {
 
-    std::cout<<m_name<<"::"<<" VirtualGuitarist::playRhythm ()  called!"<<std::endl;
+    std::cout<<m_name<<"::"<<"playRhythm ()  called!"<<std::endl;
 
 }
 void VirtualGuitarist::learn ()
 {
 
-    std::cout<<m_name<<"::"<<" VirtualGuitarist::learn ()  called!"<<std::endl;
+    std::cout<<m_name<<"::"<<"learn ()  called!"<<std::endl;
 
 }
 
 void VirtualGuitarist::playMusic (const MusicScore & score)
 {
 
-    std::cout<<m_name<<"::"<<" VirtualGuitarist::playMusic ()  called!"<<std::endl;
+    std::cout<<m_name<<"::"<<"playMusic ()  called!"<<std::endl;
     for (auto & [key,duration] : score.m_score) {
         std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
     }
 }
 
+void VirtualGuitarist::playScore (std::vector<std::pair<std::string, float>> & score)
+{
+
+    std::cout<<m_name<<"::"<<"playScore ()  called!"<<std::endl;
+    for (auto & [key,duration] : score) {
+        std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
+    }
+}
+
+void VirtualGuitarist::playModifyScore (std::vector<std::pair<std::string, float>> & score)
+{
+
+    std::cout<<m_name<<"::"<<"playModifyScore ()  called!"<<std::endl;
+    for (auto & [key,duration] : score) {
+        std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
+    }
+    std::cout<<"Adding key = G4"<<std::endl;
+    score.push_back(std::make_pair("G4",0.4));
+}
+
 void VirtualGuitarist::listen ()
 {
 
-    std::cout<<m_name<<"::"<<" VirtualGuitarist::listen ()  called!"<<std::endl;
+    std::cout<<m_name<<"::"<<"listen ()  called!"<<std::endl;
 
 }
 
 void VirtualGuitarist::practice ()
 {
 
-    std::cout<<m_name<<"::"<<" VirtualGuitarist::practice ()  called!"<<std::endl;
+    std::cout<<m_name<<"::"<<"practice ()  called!"<<std::endl;
 
 }
 
 void VirtualGuitarist::party ()
 {
 
-    std::cout<<m_name<<"::"<<" VirtualGuitarist::party ()  called!"<<std::endl;
+    std::cout<<m_name<<"::"<<"party ()  called!"<<std::endl;
 
 }
 
