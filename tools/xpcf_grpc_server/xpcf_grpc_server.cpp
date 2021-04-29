@@ -10,6 +10,10 @@
 #include <xpcf/core/helpers.h>
 #include "GrpcServerManager.h"
 #include <cstdlib>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+
+namespace fs = boost::filesystem;
 
 namespace xpcf = org::bcom::xpcf;
 
@@ -27,8 +31,12 @@ void print_error(const std::string& msg)
 
 int main(int argc, char* argv[])
 {
+    fs::detail::utf8_codecvt_facet utf8;
     SRef<xpcf::IComponentManager> cmpMgr = xpcf::getComponentManagerInstance();
     cmpMgr->bindLocal<xpcf::IGrpcServerManager,xpcf::GrpcServerManager>();
+    std::string configSrc;
+    fs::path currentPath(boost::filesystem::initial_path().generic_string(utf8));
+    configSrc = currentPath.generic_string(utf8);
 
     cxxopts::Options option_list("xpcf_grpc_server",
                                  "xpcf_grpc_server - The commandline interface to the xpcf grpc server application.\n");
@@ -50,17 +58,18 @@ int main(int argc, char* argv[])
     }
     else if ((!options.count("file") || options["file"].as<std::string>().empty())
              && (!options.count("folder") || options["folder"].as<std::string>().empty())) {
-        print_error("missing one of file or folder argument");
-        return -1;
+        print_error("missing one of file or folder argument, using " + configSrc + " folder as default");
+        cmpMgr->load(configSrc.c_str(),false);
     }
-    std::string configSrc;
+
     if (options.count("file") && !options["file"].as<std::string>().empty()) {
         configSrc = options["file"].as<std::string>();
+        cmpMgr->load(configSrc.c_str());
     }
-    else {
+    if (options.count("folder") && !options["folder"].as<std::string>().empty()) {
         configSrc = options["folder"].as<std::string>();
+        cmpMgr->load(configSrc.c_str(),false);
     }
-    cmpMgr->load(configSrc.c_str());
     auto serverMgr = cmpMgr->resolve<xpcf::IGrpcServerManager>();
     char * serverURL = getenv("XPCF_GRPC_SERVER_URL");
     if (serverURL != nullptr) {
