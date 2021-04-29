@@ -33,6 +33,7 @@ class IGrpcService: virtual public org::bcom::xpcf::IComponentIntrospect
 public:
     virtual ~IGrpcService() override = default;
     virtual ::grpc::Service * getService() = 0;
+    virtual const char * getServiceName() = 0;
 };
 
 }}}

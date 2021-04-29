@@ -7,6 +7,8 @@ GrpcServerManager::GrpcServerManager():ConfigurableBase(toMap<GrpcServerManager>
     declareInterface<IGrpcServerManager>(this);
     declareProperty("server_address",m_serverAddress);
     declareProperty("serverCredentials",m_serverCredentials);
+    declareProperty("max_receive_message_size", m_receiveMessageMaxSize);
+    declareProperty("max_send_message_size", m_sendMessageMaxSize);
     declareInjectable<IGrpcService>(m_services);
 }
 
@@ -22,14 +24,26 @@ void GrpcServerManager::unloadComponent ()
     return;
 }
 
+XPCFErrorCode GrpcServerManager::onConfigured()
+{
+    if (m_receiveMessageMaxSize > 0) {
+        m_builder.SetMaxReceiveMessageSize(m_receiveMessageMaxSize);
+    }
+
+    if (m_receiveMessageMaxSize > 0) {
+        m_builder.SetMaxSendMessageSize(m_receiveMessageMaxSize);
+    }
+    return XPCFErrorCode::_SUCCESS;
+}
+
 void GrpcServerManager::registerService(grpc::Service * service)
 {
-    builder.RegisterService(service);
+    m_builder.RegisterService(service);
 }
 
 void GrpcServerManager::registerService(const grpc::string & host, grpc::Service * service)
 {
-    builder.RegisterService(host, service);
+    m_builder.RegisterService(host, service);
 }
 
 void GrpcServerManager::registerService(SRef<IGrpcService> service)
@@ -44,11 +58,12 @@ void GrpcServerManager::registerService(const grpc::string & host, SRef<IGrpcSer
 
 void GrpcServerManager::runServer()
 {
-    builder.AddListeningPort(m_serverAddress, GrpcHelper::getServerCredentials(static_cast<grpcCredentials>(m_serverCredentials)));
+    m_builder.AddListeningPort(m_serverAddress, GrpcHelper::getServerCredentials(static_cast<grpcCredentials>(m_serverCredentials)));
     for (auto service: *m_services) {
+        std::cout << "Registering IGrpcService # " << service->getServiceName() << std::endl;
         registerService(service);
     }
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+    std::unique_ptr<grpc::Server> server(m_builder.BuildAndStart());
     std::cout << "Server listening on " << m_serverAddress << std::endl;
     server->Wait();
 }

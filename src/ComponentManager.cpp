@@ -109,6 +109,7 @@ uuids::uuid ComponentManager::getModuleUUID(const uuids::uuid & componentUUID) c
 void ComponentManager::releaseComponent(uuids::uuid componentUUID)
 {
     //Note : release the module ref, or count moduleref per component uuid to check ??
+    //Caution : no release must occur for bindLocal'd components
     ModuleManager::instance()->releaseModuleRef(getModuleUUID(componentUUID));
 }
 

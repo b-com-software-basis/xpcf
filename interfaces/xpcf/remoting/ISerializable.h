@@ -79,11 +79,18 @@ template <typename T, typename S = boost::archive::binary_oarchive> std::string 
     std::stringstream ss;
     S oa(ss);
     oa << object;
+#ifdef WITHGRPCPROBES
+    std::cout << "xpcf::serialize = " << ss.str().length() << " bytes"<<std::endl;
+#endif
     return ss.str();
 }
 
 template <typename T, typename S = boost::archive::binary_iarchive> T deserialize(const std::string & buffer)
 {
+    static_assert (utils::is_default_constructible<T>::value, "Type passed to deserialize is not default constructible" );
+#ifdef WITHGRPCPROBES
+    std::cout << "xpcf::deserialize = " << buffer.length() << " bytes"<<std::endl;
+#endif
     std::stringstream ss(buffer);
     S ia(ss);
     T obj; // T must be default-constructible

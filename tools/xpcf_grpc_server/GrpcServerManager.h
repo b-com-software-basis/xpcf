@@ -35,6 +35,7 @@ public:
     GrpcServerManager();
     ~GrpcServerManager() override;
     void unloadComponent () override;
+    XPCFErrorCode onConfigured() override;
     void registerService(grpc::Service * service) override;
     void registerService(const grpc::string & host, grpc::Service * service) override;
     void registerService(SRef<IGrpcService> service) override;
@@ -42,9 +43,11 @@ public:
     void runServer() override;
 
 private:
-    grpc::ServerBuilder builder;
+    grpc::ServerBuilder m_builder;
     std::string m_serverAddress = "0.0.0.0:50051";
     uint32_t m_serverCredentials = grpcCredentials::InsecureChannelCredentials;
+    int64_t m_receiveMessageMaxSize = -1;
+    int64_t m_sendMessageMaxSize = -1;
     SRef<org::bcom::xpcf::ICollection<SRef<IGrpcService> >> m_services;
 };
 

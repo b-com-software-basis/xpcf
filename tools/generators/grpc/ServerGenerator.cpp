@@ -61,6 +61,7 @@ void ServerGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Met
                 blockMgr.out() <<  m_className +"();\n";
                 blockMgr.out() << "~"+ m_className +"() override = default;\n";
                 blockMgr.out() << "::grpc::Service * getService() override;\n";
+                blockMgr.out() << "const char * getServiceName() override { return \""<< c->getName() <<"\"; }\n";
                 blockMgr.out() << "void unloadComponent () override final;\n";
                 blockMgr.out() << "org::bcom::xpcf::XPCFErrorCode onConfigured() override;\n";
                 blockMgr.newline();
