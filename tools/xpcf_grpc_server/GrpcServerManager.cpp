@@ -30,8 +30,8 @@ XPCFErrorCode GrpcServerManager::onConfigured()
         m_builder.SetMaxReceiveMessageSize(m_receiveMessageMaxSize);
     }
 
-    if (m_receiveMessageMaxSize > 0) {
-        m_builder.SetMaxSendMessageSize(m_receiveMessageMaxSize);
+    if (m_sendMessageMaxSize > 0) {
+        m_builder.SetMaxSendMessageSize(m_sendMessageMaxSize);
     }
     return XPCFErrorCode::_SUCCESS;
 }
