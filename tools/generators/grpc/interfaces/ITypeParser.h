@@ -18,7 +18,7 @@ public:
     virtual SRef<ClassDescriptor> getInterfaceInfo(const std::string & name) = 0;
     virtual std::map<IRPCGenerator::MetadataType,std::string> & metadata() = 0;
     virtual int parse_database(const std::string & databasePath, const cxxopts::ParseResult & options) = 0;
-    virtual const cppast::cpp_file* parse_file(const std::string& filename, bool fatal_error) = 0;
+    virtual int parse_file(const std::string& filename, bool fatal_error) = 0;
     virtual void parseAst(std::ostream& out, const cppast::cpp_file& file) = 0;
     virtual int initOptions(const cxxopts::ParseResult & options) = 0;
 

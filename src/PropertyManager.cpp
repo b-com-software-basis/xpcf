@@ -124,15 +124,22 @@ void PropertyManager::declareComponent(tinyxml2::XMLElement * xmlElt, const fs::
 {
     string componentUuidStr = xmlElt->Attribute("uuid");
     uuids::uuid componentUuid = toUUID(componentUuidStr);
-    uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
-    if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
-        m_moduleConfigMap[moduleUuid] = configFilePath;
-    }
-    else {
-        fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
-        if (moduleConfigurationPath != configFilePath) {
-            m_componentConfigMap[componentUuid] = configFilePath;
+    try {
+        uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
+        if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
+            m_moduleConfigMap[moduleUuid] = configFilePath;
         }
+        else {
+            fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
+            if (moduleConfigurationPath != configFilePath) {
+                m_componentConfigMap[componentUuid] = configFilePath;
+            }
+        }
+    }
+    catch (const ModuleNotFoundException & e) {
+        // no associated module in current configuration :
+        // add config path to component configuration as the component can be declared from bindLocal
+        m_componentConfigMap[componentUuid] = configFilePath;
     }
 }
 
@@ -146,15 +153,22 @@ void PropertyManager::declareConfigure(tinyxml2::XMLElement * xmlElt, const fs::
     else {
         componentUuid =  toUUID(componentAttrValue);
     }
-    uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
-    if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
-        m_moduleConfigMap[moduleUuid] = configFilePath;
-    }
-    else {
-        fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
-        if (moduleConfigurationPath != configFilePath) {
-            m_componentConfigMap[componentUuid] = configFilePath;
+    try {
+        uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
+        if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
+            m_moduleConfigMap[moduleUuid] = configFilePath;
         }
+        else {
+            fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
+            if (moduleConfigurationPath != configFilePath) {
+                m_componentConfigMap[componentUuid] = configFilePath;
+            }
+        }
+    }
+    catch (const ModuleNotFoundException & e) {
+        // no associated module in current configuration :
+        // add config path to component configuration as the component can be declared from bindLocal
+        m_componentConfigMap[componentUuid] = configFilePath;
     }
 }
 
@@ -173,7 +187,7 @@ void PropertyManager::declareProperties(tinyxml2::XMLElement * xmlElt, const fs:
 fs::path PropertyManager::getConfigPath(uuids::uuid componentUUID) const
 {
     if (m_componentConfigMap.find(componentUUID) != m_componentConfigMap.end()) {
-         return m_componentConfigMap.at(componentUUID);
+        return m_componentConfigMap.at(componentUUID);
     }
     try {
         uuids::uuid moduleUUID = m_registry->getModuleUUID(componentUUID);
@@ -200,30 +214,30 @@ XPCFErrorCode configureValue(string valueStr, SRef<IProperty> property,uint32_t 
     try {
         switch (property->getType()) {
         case IProperty::IProperty_INTEGER:
-                property->setIntegerValue(std::stol(valueStr,nullptr,0), valueIndex);
+            property->setIntegerValue(std::stol(valueStr,nullptr,0), valueIndex);
             break;
         case IProperty::IProperty_UINTEGER:
-                property->setUnsignedIntegerValue(std::stoul(valueStr,nullptr,0), valueIndex);
+            property->setUnsignedIntegerValue(std::stoul(valueStr,nullptr,0), valueIndex);
             break;
 
         case IProperty::IProperty_LONG:
-                property->setLongValue(std::stoll(valueStr,nullptr,0), valueIndex);
+            property->setLongValue(std::stoll(valueStr,nullptr,0), valueIndex);
             break;
         case IProperty::IProperty_ULONG:
-                property->setUnsignedLongValue(std::stoull(valueStr,nullptr,0), valueIndex);
+            property->setUnsignedLongValue(std::stoull(valueStr,nullptr,0), valueIndex);
             break;
         case IProperty::IProperty_FLOAT:
-             property->setFloatingValue(std::stof(valueStr,nullptr), valueIndex);
+            property->setFloatingValue(std::stof(valueStr,nullptr), valueIndex);
             break;
         case IProperty::IProperty_DOUBLE:
             property->setDoubleValue(std::stod(valueStr,nullptr), valueIndex);
             break;
         case IProperty::IProperty_CHARSTR:
-                property->setStringValue(valueStr.c_str(), valueIndex);
+            property->setStringValue(valueStr.c_str(), valueIndex);
             break;
         case IProperty::IProperty_UNICODESTR:
             //??????
-                //property->setUnicodeStringValue(getUnicodeStringValue(i), valueIndex);
+            //property->setUnicodeStringValue(getUnicodeStringValue(i), valueIndex);
             break;
         default:
             return XPCFErrorCode::_ERROR_TYPE;
@@ -371,7 +385,7 @@ XPCFErrorCode PropertyManager::configure(const uuids::uuid & componentUUID, SRef
     std::function<bool(tinyxml2::XMLElement *)> unnamedPredicate = [](tinyxml2::XMLElement * element) {
         const char * name = element->Attribute("name");
         if (name == nullptr) {
-                return true;
+            return true;
         }
         return false;
     };

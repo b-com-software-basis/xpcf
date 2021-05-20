@@ -24,7 +24,11 @@
 #define IGRPCSERVICE_H
 
 #include <xpcf/api/IComponentIntrospect.h>
-#include <grpc++/grpc++.h>
+
+namespace grpc
+{
+    class Service;
+}
 
 namespace org { namespace bcom { namespace xpcf {
 

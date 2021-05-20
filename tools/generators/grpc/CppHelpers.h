@@ -10,7 +10,7 @@
 const std::string cppBeginBlock = "{\n";
 const std::string cppEndBlock = "}\n\n";
 const std::string classEndBlock = "};\n\n";
-const std::string indentStr = "  ";
+static const std::string indentStr = "  ";
 
 typedef enum {
     STD = 0,
@@ -111,7 +111,6 @@ public:
 
 
 private:
-
     uint32_t m_indentLevel = 0;
     std::ostream& m_out;
     std::stack<CPP> m_blockStack;

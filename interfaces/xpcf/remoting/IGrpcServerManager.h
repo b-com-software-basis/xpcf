@@ -26,7 +26,6 @@
 
 #include <xpcf/api/IComponentIntrospect.h>
 #include <xpcf/remoting/IGrpcService.h>
-#include <grpc++/grpc++.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -35,9 +34,9 @@ class IGrpcServerManager: virtual public org::bcom::xpcf::IComponentIntrospect
 public:
     virtual ~IGrpcServerManager() override = default;
     virtual void registerService(grpc::Service * service) = 0;
-    virtual void registerService(const grpc::string & host, grpc::Service * service) = 0;
+    virtual void registerService(const std::string & host, grpc::Service * service) = 0;
     virtual void registerService(SRef<IGrpcService> service) = 0;
-    virtual void registerService(const grpc::string & host, SRef<IGrpcService> service) = 0;
+    virtual void registerService(const std::string & host, SRef<IGrpcService> service) = 0;
     virtual void runServer() = 0;
 };
 

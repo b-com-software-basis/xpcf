@@ -28,6 +28,7 @@
 #include <map>
 #include <vector>
 #include <xpcf/core/uuid.h>
+#include <xpcf/core/traits.h>
 
 class ClassDescriptor
 {
@@ -43,12 +44,15 @@ public:
     ClassDescriptor(const cppast::cpp_class& c);
     ClassDescriptor(const ClassDescriptor&  other) = delete;
     const std::string & getName() const { return m_baseClass.name(); }
+    std::string getFullName() const;
     const org::bcom::xpcf::uuids::uuid & getClientUUID() const { return m_clientUUID; }
     const org::bcom::xpcf::uuids::uuid & createClientUUID() const;
     const org::bcom::xpcf::uuids::uuid & createServerUUID() const;
     const org::bcom::xpcf::uuids::uuid & getServerUUID() const { return m_serverUUID; }
+    void setXpcfTrait(const org::bcom::xpcf::Traits & trait);
+    const org::bcom::xpcf::Traits & getXpcfTrait() const { return m_xpcfTrait; }
     const std::vector<std::string> & getBases() { return m_bases; }
-    bool isInterface() { return m_isInterface; }
+    bool isInterface() const { return m_isInterface; }
     bool parse(const cppast::cpp_entity_index& index);
     bool ignored() const { return m_ignored; }
     const std::map<ClassDescriptor::MetadataType,std::string> & getMetadata() const { return m_metadata; }
@@ -84,6 +88,7 @@ private:
     std::map<MetadataType,std::string> m_metadata;
     std::map<std::string,bool> m_classParsed;
     std::vector<std::string> m_bases;
+    org::bcom::xpcf::Traits m_xpcfTrait;
 
 };
 

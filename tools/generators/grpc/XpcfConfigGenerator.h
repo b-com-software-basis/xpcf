@@ -20,19 +20,19 @@
  * @date 2020-09-25
  */
 
-#ifndef PROJECTGENERATOR_H
-#define PROJECTGENERATOR_H
+#ifndef XPCFCONFIGGENERATOR_H
+#define XPCFCONFIGGENERATOR_H
 #include <xpcf/component/ComponentBase.h>
 
 #include "AbstractGenerator.h"
 #include "XmlHelpers.h"
 
 
-class ProjectGenerator : public AbstractGenerator
+class XpcfConfigGenerator : public AbstractGenerator
 {
 public:
-    ProjectGenerator();
-    ~ProjectGenerator() override;
+    XpcfConfigGenerator();
+    ~XpcfConfigGenerator() override;
     std::map<MetadataType,std::string> generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) override;
     //stringstream to aggregate all project info, serialized to out upon destruction ? or unload ?
     //howto forward project option generation standalone/embedded ? configurable comp? through metadata ?
@@ -40,32 +40,18 @@ public:
     void finalizeImpl(std::map<MetadataType,std::string> metadata) override;
 
 private:
-    void generateModuleMain(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata);
-    void generateProjectFile(std::map<MetadataType,std::string> metadata);
-    std::stringstream m_srcProjectInfos;
-    std::stringstream m_headerProjectInfos;
-    std::stringstream m_protoProjectInfos;
-    std::stringstream m_moduleMainInfosHeader;
-    std::stringstream m_moduleMainInfosSource;
-    std::stringstream m_moduleMainDeclareComponents;
-    std::stringstream m_moduleMainDeclareModule;
-    std::unique_ptr<CppBlockManager> m_moduleHdrMgr;
-    std::unique_ptr<CppBlockManager> m_moduleSrcMgr;
-    std::unique_ptr<CppBlockManager> m_moduleDeclareMgr;
-    std::string m_moduleUUID;
-    std::string m_moduleName;
-    std::string m_moduleDescription;
-
+    std::unique_ptr<XmlBlockManager> m_xmlClientMgr;
+    std::unique_ptr<XmlBlockManager> m_xmlServerMgr;
+    std::unique_ptr<std::ofstream> m_xmlServerFile;
+    std::unique_ptr<std::ofstream> m_xmlClientFile;
+    std::vector<std::string> m_grpcComponentBinds;
 };
 
-
-
-
-template <> struct org::bcom::xpcf::ComponentTraits<ProjectGenerator>
+template <> struct org::bcom::xpcf::ComponentTraits<XpcfConfigGenerator>
 {
-    static constexpr const char * UUID = "{9d465f72-0935-4f64-8620-7fd349edcb9a}";
-    static constexpr const char * NAME = "ProjectGenerator";
-    static constexpr const char * DESCRIPTION = "ProjectGenerator implements AbstractGenerator interface";
+    static constexpr const char * UUID = "{E794AA3D-5939-495B-A569-D3EBB536BD2B}";
+    static constexpr const char * NAME = "XpcfConfigGenerator";
+    static constexpr const char * DESCRIPTION = "XpcfConfigGenerator implements AbstractGenerator interface";
 };
 
-#endif // PROJECTGENERATOR_H
+#endif // XPCFCONFIGGENERATOR_H

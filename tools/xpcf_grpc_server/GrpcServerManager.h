@@ -26,6 +26,7 @@
 #include <xpcf/remoting/IGrpcServerManager.h>
 #include <xpcf/collection/ICollection.h>
 #include <xpcf/remoting/GrpcHelper.h>
+#include <grpc++/grpc++.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -37,9 +38,9 @@ public:
     void unloadComponent () override;
     XPCFErrorCode onConfigured() override;
     void registerService(grpc::Service * service) override;
-    void registerService(const grpc::string & host, grpc::Service * service) override;
+    void registerService(const std::string & host, grpc::Service * service) override;
     void registerService(SRef<IGrpcService> service) override;
-    void registerService(const grpc::string & host, SRef<IGrpcService> service) override;
+    void registerService(const std::string & host, SRef<IGrpcService> service) override;
     void runServer() override;
 
 private:

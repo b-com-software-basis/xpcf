@@ -42,6 +42,7 @@
 #include "ProxyGenerator.h"
 #include "ServerGenerator.h"
 #include "ProjectGenerator.h"
+#include "XpcfConfigGenerator.h"
 #include "ASTParser.h"
 #include <boost/log/core/core.hpp>
 namespace xpcf = org::bcom::xpcf;
@@ -77,6 +78,7 @@ SRef<xpcf::IComponentManager> bindXpcfComponents() {
     cmpMgr->bindLocal<GRPCFlatBufferGenerator, IRPCGenerator, ProxyGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
     cmpMgr->bindLocal<ProxyGenerator, IRPCGenerator, ServerGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
     cmpMgr->bindLocal<ServerGenerator, IRPCGenerator, ProjectGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
+    cmpMgr->bindLocal<ProjectGenerator, IRPCGenerator, XpcfConfigGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
 #endif
     cmpMgr->bindLocal<ITypeParser, ASTParser, xpcf::BindingScope::Singleton>("astParser");
     return cmpMgr;
@@ -204,10 +206,9 @@ try
             }
         }
         else {
-            auto file = astParser->parse_file(options["file"].as<std::string>(), options.count("fatal_errors") == 1);
-            if (!file)
-                return 2;
-            astParser->parseAst(std::cout, *file);
+            result = astParser->parse_file(options["file"].as<std::string>(), options.count("fatal_errors") == 1);
+            if (result != 0)
+                return result;
         }
         //update types : try to qualify non fqdn types in parameters ... from classes found during parsing
         for (auto & [name,c] : astParser->getParsedInterfaces()) {
@@ -241,6 +242,7 @@ try
 
             }
         }
+        serviceGenerator->initialize(astParser->metadata());
         for (auto & [name,c] : astParser->getParsedInterfaces()) {
             // check every typedescriptor in each method of the interface is known in classes map or is a builtin type??
             // Note : we must find a message/serialized buffer for each type in each interface

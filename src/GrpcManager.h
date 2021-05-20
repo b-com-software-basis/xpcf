@@ -2,6 +2,7 @@
 #define GRPCMANAGER_H
 #include <xpcf/component/ConfigurableBase.h>
 #include <xpcf/remoting/IGrpcServerManager.h>
+#include <grpc++/grpc++.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -14,9 +15,9 @@ public:
     void unloadComponent () override;
 
     void registerService(grpc::Service * service) override;
-    void registerService(const grpc::string & host, grpc::Service * service) override;
+    void registerService(const std::string & host, grpc::Service * service) override;
     void registerService(SRef<IGrpcService> service) override;
-    void registerService(const grpc::string & host, SRef<IGrpcService> service) override;
+    void registerService(const std::string & host, SRef<IGrpcService> service) override;
 
     void runServer() override;
 

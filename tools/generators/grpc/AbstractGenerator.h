@@ -42,9 +42,10 @@ public:
     void setDestinationFolder(const std::string & folder) override;
     void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) override;
 
-    virtual std::map<MetadataType,std::string> generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) { return metadata; }
-    virtual std::map<MetadataType,std::string> validateImpl(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) { return metadata; }
-    virtual void finalizeImpl(std::map<MetadataType,std::string> metadata) {}
+    virtual std::map<MetadataType,std::string> generateImpl([[maybe_unused]] SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) { return metadata; }
+    virtual std::map<MetadataType,std::string> validateImpl([[maybe_unused]]  const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) { return metadata; }
+    virtual void initializeImpl([[maybe_unused]]  std::map<MetadataType,std::string> metadata) {}
+    virtual void finalizeImpl([[maybe_unused]]  std::map<MetadataType,std::string> metadata) {}
 
     std::map<MetadataType,std::string> generate(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) final {
         metadata = generateImpl(c, metadata);
@@ -52,6 +53,13 @@ public:
             return m_nextGenerator->generate(c,metadata);
         }
         return metadata;
+    }
+
+    void initialize(std::map<MetadataType,std::string> metadata) final {
+        initializeImpl(metadata);
+        if (m_nextGenerator) {
+            m_nextGenerator->initialize(metadata);
+        }
     }
 
     std::map<MetadataType,std::string> validate(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) final {

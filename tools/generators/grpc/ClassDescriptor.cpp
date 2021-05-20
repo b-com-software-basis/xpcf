@@ -18,6 +18,21 @@ ClassDescriptor::ClassDescriptor(const cppast::cpp_class& c):m_baseClass(c)
 {
 }
 
+std::string ClassDescriptor::getFullName() const
+{
+    if (m_metadata.at(MetadataType::INTERFACENAMESPACE).empty()) {
+        return m_baseClass.name();
+    }
+    return m_metadata.at(MetadataType::INTERFACENAMESPACE) + "::" + m_baseClass.name();
+}
+
+void ClassDescriptor::setXpcfTrait(const org::bcom::xpcf::Traits & trait)
+{
+    m_xpcfTrait.uuid = trait.uuid;
+    m_xpcfTrait.name = trait.name;
+    m_xpcfTrait.description = trait.description;
+}
+
 const org::bcom::xpcf::uuids::uuid & ClassDescriptor::createClientUUID() const
 {
     xpcf::uuids::random_generator gen;

@@ -3,7 +3,11 @@
 #include <cppast/cpp_file.hpp>
 #include <cppast/cpp_namespace.hpp>
 #include <cppast/cpp_class_template.hpp>
+#include <cppast/cpp_variable.hpp>
+#include <cppast/cpp_expression.hpp>
 #include <xpcf/api/IComponentManager.h>
+
+#include <boost/algorithm/string.hpp>
 
 
 namespace xpcf = org::bcom::xpcf;
@@ -117,6 +121,12 @@ int ASTParser::initOptions(const cxxopts::ParseResult & options)
     if (options.count("name")) {
         m_metadata[IRPCGenerator::MetadataType::PROJECT_NAME] = options["name"].as<std::string>();
     }
+    xpcf::uuids::random_generator gen;
+    xpcf::uuids::uuid moduleUUID = gen();
+    m_metadata[IRPCGenerator::MetadataType::MODULE_UUID] = xpcf::uuids::to_string(moduleUUID);
+    m_metadata[IRPCGenerator::MetadataType::MODULE_NAME] = "xpcfGrpcRemoting" +  m_metadata[IRPCGenerator::MetadataType::PROJECT_NAME];
+    m_metadata[IRPCGenerator::MetadataType::MODULE_DESCRIPTION] = "xpcf remoting module for project " + m_metadata[IRPCGenerator::MetadataType::PROJECT_NAME];
+
     if (options.count("project_version")) {
         m_metadata[IRPCGenerator::MetadataType::PROJECT_VERSION] = options["project_version"].as<std::string>();
     }
@@ -134,7 +144,7 @@ std::string ASTParser::computeNamespace()
 {
     std::string nspace;
     uint32_t nspaceIdx = 0;
-    for (auto n : m_currentNamespace) {
+    for (auto & n : m_currentNamespace) {
         if (nspaceIdx > 0) {
             nspace += "::";
         }
@@ -144,6 +154,64 @@ std::string ASTParser::computeNamespace()
     return nspace;
 }
 
+bool isXpcfTrait(const cppast::cpp_class_template_specialization& c)
+{
+    return (c.name() == "InterfaceTraits") || (c.name() == "ComponentTraits");
+}
+
+std::string retrieveXpcfTraitType(const cppast::cpp_class_template_specialization& c)
+{
+    return c.unexposed_arguments().as_string();
+}
+
+
+void ASTParser::parseXpcfTrait(std::ostream& out, const cppast::cpp_class_template_specialization& c)
+{
+    out << "Found class_template_specialization_t defined type = "<< c.name()<<'\n';
+
+    // There is only one argument for this template class, and it's the interface typename
+    std::string xpcfTraitTypeName = retrieveXpcfTraitType(c);
+    out<< "Found xpcf trait type = " << xpcfTraitTypeName<<'\n';
+    if (xpcfTraitTypeName.find("::") == 0) {
+        xpcfTraitTypeName.erase(0,2);
+    }
+    const cppast::cpp_class & cppastClass = c.class_();
+    std::string traitsClassName = cppastClass.name();
+    out << "Class specialized = "<< traitsClassName <<'\n';
+    for (const cppast::cpp_entity & ec: cppastClass) {
+        if (ec.kind() == cppast::cpp_entity_kind::variable_t) { // static variable are not considered members of the class ...
+            auto & varEntity = static_cast<const cppast::cpp_variable &>(ec);
+            out<< "Found variable " << ec.name()<<'\n';
+            std::string exprValue;
+            if (varEntity.default_value()) {
+                const cppast::cpp_expression& expr = varEntity.default_value().value();
+
+                switch (expr.kind())
+                {
+                case cppast::cpp_expression_kind::literal_t:
+                    exprValue = static_cast<const cppast::cpp_literal_expression&>(varEntity.default_value().value()).value();
+                    break;
+                case cppast::cpp_expression_kind::unexposed_t:
+                    auto & unexpExpr = static_cast<const cppast::cpp_unexposed_expression&>(varEntity.default_value().value());
+                    exprValue = unexpExpr.expression().as_string();
+                    break;
+                }
+                out<< " value = " << exprValue <<'\n';
+                boost::algorithm::erase_all(exprValue,"\"");
+                if (ec.name() == "UUID") {
+                    m_xpcfTraits[xpcfTraitTypeName].uuid = exprValue;
+                }
+                if (ec.name() == "NAME") {
+                    m_xpcfTraits[xpcfTraitTypeName].name = exprValue;
+                }
+                if (ec.name() == "DESCRIPTION") {
+                    m_xpcfTraits[xpcfTraitTypeName].description = exprValue;
+                }
+            }
+        }
+    }
+}
+
 void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, const std::string & filePath)
 {
     // print name and the kind of the entity
@@ -151,15 +219,15 @@ void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, cons
         out << e.name();
     else
         out << "<anonymous>";
-    out << " (" << cppast::to_string(e.kind()) << ")";
+    out << " (" << cppast::to_string(e.kind()) << ")\n";
 
     // print whether or not it is a definition
     if (cppast::is_definition(e))
-        out << " [definition]";
+        out << " [definition]\n";
 
     // print number of attributes
     if (!e.attributes().empty())
-        out << " [" << e.attributes().size() << " attribute(s)]";
+        out << " [" << e.attributes().size() << " attribute(s)]\n";
 
     if (e.kind() == cppast::cpp_entity_kind::class_t) {
         out << " [" << e.name() << "] is class"<< '\n';
@@ -167,44 +235,26 @@ void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, cons
         SRef<ClassDescriptor> c = xpcf::utils::make_shared<ClassDescriptor>(e, entityNspace, filePath);
         c->parse(m_index);
         if (c->isInterface() && !c->ignored()) {
-            m_interfaces.insert(std::make_pair(c->getName(),c));
+            m_interfaces.insert(std::make_pair(c->getFullName(),c));
         }
         else {
             if (!xpcf::mapContains(m_classes, c->getName())) {
-                m_classes.insert(std::make_pair(c->getName(),c));
-                out << "Found user defined type = "<<c->getName()<<'\n';
+                m_classes.insert(std::make_pair(c->getFullName(),c));
+                out << "Found user defined type = "<<c->getFullName()<<'\n';
             }
         }
     }
 
     if (e.kind() == cppast::cpp_entity_kind::class_template_specialization_t) {
-        const cppast::cpp_class_template_specialization & c = static_cast<const cppast::cpp_class_template_specialization&>(e);
-        out << "Found class_template_specialization_t defined type = "<< e.name()<<'\n';
-        if (c.name() == "InterfaceTraits") {
-            // There is only one argument for this template class, and it's the interface typename
-            std::string interfaceTypeName = c.unexposed_arguments().as_string();
-        }
-        for (auto & param : c.parameters() ) {
-            out<< "Found param " << param.name()<<'\n';
-        }
-        if (c.arguments_exposed()) {
-            for (auto & arg : c.arguments() ) {
-                if (arg.type().has_value())
-                out<< "Found argument " << cppast::to_string(arg.type().value())<<'\n';
-            }
-        }
-        else {
-            out<< "Found arguments " << c.unexposed_arguments().as_string()<<'\n';
-        }
-        for (auto & attr : c.attributes() ) {
-            out<< "Found attribute " << attr.name()<<'\n';
-        }
-        const cppast::cpp_class & cppastClass = c.class_();
-        out << "Class specialized = "<< cppastClass.name()<<'\n';
-        for (const cppast::cpp_entity & ec: c) {
-            if (ec.kind() == cppast::cpp_entity_kind::member_variable_t) {
-                 out<< "Found member " << ec.name()<<'\n';
-            }
+        auto & c = static_cast<const cppast::cpp_class_template_specialization&>(e);
+        if (isXpcfTrait(c)) {
+            parseXpcfTrait(out, c);
+            /* std::string traitTypeName = retrieveXpcfTraitType(c);
+            m_xpcfTraits[traitTypeName] = xpcfTraitInfo; // to handle later on : must be independent of parsing order
+            if (xpcf::mapContains(m_interfaces,traitTypeName)) {
+                auto desc = m_interfaces.at(traitTypeName);
+                desc->setXpcfTrait(xpcfTraitInfo);
+            }*/
         }
     }
 
@@ -287,6 +337,16 @@ void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, cons
     }
 }
 
+void ASTParser::processPostAstParsingActions()
+{
+    // perform actions depending on full parsing result
+    for (auto & [name,c] : getParsedInterfaces()) {
+        if (xpcf::mapContains(m_xpcfTraits, name)) {
+            c->setXpcfTrait(m_xpcfTraits.at(name));
+        }
+    }
+}
+
 void ASTParser::parseAst(std::ostream& out, const cppast::cpp_file& file)
 {
     // print file name
@@ -308,7 +368,7 @@ void ASTParser::parseAst(std::ostream& out, const cppast::cpp_file& file)
             prefix.pop_back();
             prefix.pop_back();
             if (e.kind() == cppast::cpp_entity_kind::namespace_t) {
-                out << "leaving namespace "<< m_currentNamespace.back();
+                out << "leaving namespace "<< m_currentNamespace.back() <<"\n";
                 m_currentNamespace.pop_back();
             }
         }
@@ -340,16 +400,33 @@ void ASTParser::parseAst(std::ostream& out, const cppast::cpp_file& file)
 }
 
 // parse a file
-const cppast::cpp_file* ASTParser::parse_file(const std::string& filename, bool fatal_error)
-
+int ASTParser::parse_file(const std::string& filename, bool fatal_error)
 {
     // the parser is used to parse the entity
     // there can be multiple parser implementations
     // parse the file
-    m_fileParsed = m_fileParser->parse(m_index, filename, m_config);
-    if (fatal_error && m_fileParser->error())
-        return nullptr;
-    return m_fileParsed.get();
+    try
+    {
+        m_fileParsed = m_fileParser->parse(m_index, filename, m_config);
+    }
+    catch (cppast::libclang_error& ex)
+    {
+        std::cerr << "fatal libclang error: " << ex.what() << '\n';
+        return 1;
+    }
+
+    if (fatal_error && m_fileParser->error()) {
+        // a non-fatal parse error
+        // error has been logged to stderr
+        return 1;
+    }
+
+    if (!m_fileParsed) {
+        return 2;
+    }
+    parseAst(std::cout, *m_fileParsed);
+    processPostAstParsingActions();
+    return 0;
 }
 
 
@@ -398,6 +475,7 @@ try
     for (auto& file : m_simpleParser->files()) {
         parseAst(std::cout,file);
     }
+    processPostAstParsingActions();
     return 0;
 }
 catch (std::exception& ex)

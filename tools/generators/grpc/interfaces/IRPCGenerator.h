@@ -48,13 +48,17 @@ public:
         CPPNAMESPACE,
         PROJECT_NAME,
         PROJECT_VERSION,
-        PROJECT_DEPENDENCY_URL
+        PROJECT_DEPENDENCY_URL,
+        MODULE_UUID,
+        MODULE_NAME,
+        MODULE_DESCRIPTION
     } MetadataType;
     virtual ~IRPCGenerator() override = default;
     virtual void setDestinationFolder(const std::string & folder) = 0;
     virtual void setGenerateMode(const GenerateMode & mode = GenerateMode::STD_COUT) = 0;
     virtual std::map<MetadataType,std::string> generate(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) = 0;
     virtual std::map<MetadataType,std::string> validate(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata) = 0;
+    virtual void initialize(std::map<MetadataType,std::string> metadata) = 0;
     virtual void finalize(std::map<MetadataType,std::string> metadata) = 0;
 };
 

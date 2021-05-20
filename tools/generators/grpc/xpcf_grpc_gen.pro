@@ -67,6 +67,8 @@ HEADERS += \ \
     RemoteServiceGenerator.h \
     ServerGenerator.h \
     TypeDescriptor.h \
+    XmlHelpers.h \
+    XpcfConfigGenerator.h \
     interfaces/IRPCGenerator.h \
     interfaces/ITypeParser.h
 
@@ -85,6 +87,7 @@ SOURCES += \
     RemoteServiceGenerator.cpp \
     ServerGenerator.cpp \
     TypeDescriptor.cpp \
+    XpcfConfigGenerator.cpp \
     xpcf_grpc_gen.cpp
 
 linux {

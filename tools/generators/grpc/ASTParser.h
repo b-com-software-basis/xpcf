@@ -5,6 +5,7 @@
 
 #include "interfaces/ITypeParser.h"
 #include <cppast/libclang_parser.hpp> // for libclang_parser, libclang_compile_config, cpp_entity,...
+#include <cppast/cpp_class_template.hpp>
 
 class ASTParser : public org::bcom::xpcf::ComponentBase, virtual public ITypeParser
 {
@@ -23,17 +24,20 @@ public:
     int initOptions(const cxxopts::ParseResult & options) override;
 
     int parse_database(const std::string & databasePath, const cxxopts::ParseResult & options) override;
-    const cppast::cpp_file* parse_file(const std::string& filename, bool fatal_error) override;
+    int parse_file(const std::string& filename, bool fatal_error) override;
 
 private:
     static int set_compile_options(const cxxopts::ParseResult & options, cppast::libclang_compile_config & config);
     void parse_database(const cppast::libclang_compilation_database& database, const cxxopts::ParseResult & options);
     void parseEntity(std::ostream& out, const cppast::cpp_entity& e, const std::string & filePath);
+    void parseXpcfTrait(std::ostream& out, const cppast::cpp_class_template_specialization& c);
+    void processPostAstParsingActions();
     std::string computeNamespace();
     std::map<IRPCGenerator::MetadataType,std::string> m_metadata;
     //std::vector<SRef<ClassDescriptor>> m_interfaces;
     std::map<std::string,SRef<ClassDescriptor>> m_interfaces;
     std::map<std::string,SRef<ClassDescriptor>> m_classes;
+    std::map<std::string,org::bcom::xpcf::Traits> m_xpcfTraits;
     std::vector<std::string> m_currentNamespace;
     std::string m_currentFileName;
     cppast::cpp_entity_index  m_index; // the entity index is used to resolve cross references in the AST

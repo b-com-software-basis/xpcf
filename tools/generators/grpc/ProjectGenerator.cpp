@@ -1,6 +1,7 @@
 #include "ProjectGenerator.h"
 #include <boost/process.hpp>
 
+
 namespace bp = boost::process;
 namespace xpcf = org::bcom::xpcf;
 
@@ -33,12 +34,6 @@ ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenera
     m_headerProjectInfos << "\nHEADERS +=";
     m_srcProjectInfos << "\nSOURCES +=";
     m_protoProjectInfos << "\nPROTO =";
-    m_xmlModuleInfos << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
-    m_xmlModuleInfos << "<xpcf-registry autoAlias=\"true\">\n";
-    m_xmlFactoryInfos << "<factory>\n";
-    m_xmlFactoryInfos << "  <bindings>\n";
-    m_xmlFactoryInfos << "    <bind interface=\"org::bcom::xpcf::IGrpcService\">\n";
-
     m_moduleHdrMgr = std::make_unique<CppBlockManager>(m_moduleMainInfosHeader);
     m_moduleSrcMgr = std::make_unique<CppBlockManager>(m_moduleMainInfosSource);
     m_moduleDeclareMgr = std::make_unique<CppBlockManager>(m_moduleMainDeclareModule);
@@ -62,7 +57,12 @@ ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenera
 
 ProjectGenerator::~ProjectGenerator()
 {
+}
 
+void ProjectGenerator::initializeImpl(std::map<MetadataType,std::string> metadata)
+{
+    m_moduleName = "xpcfGrpcRemoting" +  metadata[MetadataType::PROJECT_NAME];
+    m_moduleDescription = "xpcf remoting module for project " + metadata[MetadataType::PROJECT_NAME];
 }
 
 void ProjectGenerator::generateModuleMain(const SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
@@ -151,16 +151,7 @@ std::map<IRPCGenerator::MetadataType,std::string> ProjectGenerator::generateImpl
     m_srcProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".pb.cc";
     m_srcProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] << ".grpc.pb.cc";
     m_protoProjectInfos << " \\\n" << (*c)[ClassDescriptor::MetadataType::GRPCPROTOFILENAME];
-    //m_xmlModuleComponentsInfos << "<component uuid=\"" << c->getClientUUID()<<"\" name=\""<< metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME] <<"\" description=\""<< metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME] <<" grpc client proxy component\">\n";
-    //m_xmlModuleComponentsInfos << "  <interface uuid=\"125f2007-1bf9-421d-9367-fbdc1210d006\" name=\"XPCF::IComponentIntrospect\" description=\"Component introspection interface.\"/>\n";
-    //m_xmlModuleComponentsInfos << "<interface uuid=\""<< c->getUUID() <<" name=\"" << c->getName() << " description=\""<< c->getDescription() <<"\"/>\n";
-    //m_xmlModuleComponentsInfos << "</component>\n";
-    m_xmlModuleComponentsInfos << "<component uuid=\"" << c->getServerUUID()<<"\" name=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<"\" description=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<" grpc server component\">\n";
-    m_xmlModuleComponentsInfos << "  <interface uuid=\"125f2007-1bf9-421d-9367-fbdc1210d006\" name=\"XPCF::IComponentIntrospect\" description=\"Component introspection interface.\"/>\n";
-    m_xmlModuleComponentsInfos << "  <interface uuid=\"baab5e42-2c24-48de-953b-07237af419e4\" name=\"org::bcom::xpcf::IGrpcService\" description=\"xpcf GrpcService interface\"/>\n";
-    m_xmlModuleComponentsInfos << "</component>\n";
-    m_xmlFactoryInfos<< "      <component to=\""<< metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME] <<"\"/>\n";
-    generateModuleMain(c,metadata);
+    generateModuleMain (c,metadata);
     return metadata;
 }
 
@@ -169,7 +160,6 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
     m_moduleName = "xpcfGrpcRemoting" +  metadata[MetadataType::PROJECT_NAME];
     m_moduleDescription = "xpcf remoting module for project " + metadata[MetadataType::PROJECT_NAME];
     m_moduleDeclareMgr->out() << "XPCF_DECLARE_MODULE(\""<< m_moduleUUID <<"\", \"" << m_moduleName << "\",\"" << m_moduleDescription << "\");\n";
-    m_xmlModuleInfos << "<module uuid=\"{" << m_moduleUUID <<"}\" name=\""<< m_moduleName <<"\" description=\""<< m_moduleDescription <<"\" path=\"$REMAKENROOT/modules\">\n";
     m_moduleHdrMgr->includeGuardsEnd();
     m_moduleSrcMgr->out()<<"return errCode;\n";
     m_moduleSrcMgr->leave();
@@ -178,9 +168,6 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
     m_moduleSrcMgr->out() << m_moduleMainDeclareComponents.str();
     m_headerProjectInfos << " \\\n" << "xpcfGrpcModuleMain.h" << "\n";
     m_srcProjectInfos << " \\\n" << "xpcfGrpcModuleMain.cpp" << "\n";
-    m_xmlFactoryInfos<< "    </bind>\n";
-    m_xmlFactoryInfos<< "  </bindings>\n";
-    m_xmlFactoryInfos<< "</factory>\n";
     //to put version in pkgDepsFile for protobuf
     //pkg-config --modversion protobuf
     // protobuf|3.15.6|protobuf|brew@system
@@ -195,15 +182,6 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
     else {
         fs::detail::utf8_codecvt_facet utf8;
         generateProjectFile(metadata);
-        fs::path xmlFilePath("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".xml",utf8);
-        xmlFilePath = m_folder/xmlFilePath;
-        std::ofstream xmlFile(xmlFilePath.generic_string(utf8).c_str(), std::ios::out);
-        xmlFile << m_xmlModuleInfos.str();
-        xmlFile << m_xmlModuleComponentsInfos.str();
-        xmlFile << "</module>\n";
-        xmlFile << m_xmlFactoryInfos.str();
-        xmlFile << "</xpcf-registry>\n";
-        xmlFile.close();
         fs::path moduleHeaderFilePath("xpcfGrpcModuleMain.h",utf8);
         moduleHeaderFilePath = m_folder/moduleHeaderFilePath;
         std::ofstream moduleHeaderFile(moduleHeaderFilePath.generic_string(utf8).c_str(), std::ios::out);
@@ -231,16 +209,12 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
     }
     bp::ipstream stream;
     boost::filesystem::path p = bp::search_path("protoc");
-    if (!p.empty()) {
+//    if (!p.empty()) {
         //bp::child c(command, args, bp::std_out > stream);
   //      bp::system(p,"--version | sed 's/[a-zA-Z ]*//'", bp::std_out > stream);
 
-        std::string line;
-        getline(stream, line);
-        if (   !line.empty()) {
 
-        }
-    }
+  //  }
 
 
 }
