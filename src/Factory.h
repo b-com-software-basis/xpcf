@@ -50,12 +50,12 @@ enum class ContextType {
     Multi
 };
 
-typedef struct  {
+struct FactoryBindInfos {
     uuids::uuid componentUUID;
     BindingScope scope;
     uint8_t bindingRangeMask = 0;
     std::string properties;
-} FactoryBindInfos;
+};
 
 using FactoryContext = std::pair<ContextType, FactoryBindInfos>;
 
