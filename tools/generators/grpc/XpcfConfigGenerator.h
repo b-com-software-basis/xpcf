@@ -40,10 +40,11 @@ public:
     void finalizeImpl(std::map<MetadataType,std::string> metadata) override;
 
 private:
+    std::unique_ptr<XmlFileManager> createXmlFileManager(const std::string & fileName);
     std::unique_ptr<XmlBlockManager> m_xmlClientMgr;
     std::unique_ptr<XmlBlockManager> m_xmlServerMgr;
-    std::unique_ptr<std::ofstream> m_xmlServerFile;
-    std::unique_ptr<std::ofstream> m_xmlClientFile;
+    std::unique_ptr<XmlBlockManager> m_xmlClientPropsMgr;
+    std::unique_ptr<XmlBlockManager> m_xmlServerPropsMgr;
     std::vector<std::string> m_grpcComponentBinds;
 };
 

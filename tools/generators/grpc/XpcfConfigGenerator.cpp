@@ -16,33 +16,40 @@ XpcfConfigGenerator::~XpcfConfigGenerator()
 {
 }
 
+std::unique_ptr<XmlFileManager> XpcfConfigGenerator::createXmlFileManager(const std::string & fileName)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path xmlFilePath(fileName,utf8);
+    xmlFilePath = m_folder/xmlFilePath;
+    return XmlFileManager::createXmlFileManager(xmlFilePath);
+}
+
 void XpcfConfigGenerator::initializeImpl(std::map<MetadataType,std::string> metadata)
 {
     if (m_mode == GenerateMode::STD_COUT) {
         m_xmlClientMgr = std::make_unique<XmlBlockManager>(std::cout);
         m_xmlServerMgr = std::make_unique<XmlBlockManager>(std::cout);
+        m_xmlClientPropsMgr = std::make_unique<XmlBlockManager>(std::cout);
+        m_xmlServerPropsMgr = std::make_unique<XmlBlockManager>(std::cout);
     }
     else {
-        fs::detail::utf8_codecvt_facet utf8;
-        fs::path xmlClientFilePath("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "Client.xml",utf8);
-        xmlClientFilePath = m_folder/xmlClientFilePath;
-        m_xmlClientFile = std::make_unique<std::ofstream>(xmlClientFilePath.generic_string(utf8).c_str(), std::ios::out);
-        m_xmlClientMgr = std::make_unique<XmlBlockManager>(*m_xmlClientFile);
-        fs::path xmlServerFilePath("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "Server.xml",utf8);
-        xmlServerFilePath = m_folder/xmlServerFilePath;
-        m_xmlServerFile = std::make_unique<std::ofstream>(xmlServerFilePath.generic_string(utf8).c_str(), std::ios::out);
-        m_xmlServerMgr = std::make_unique<XmlBlockManager>(*m_xmlServerFile);
+        m_xmlClientMgr = createXmlFileManager("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "Client.xml");
+        m_xmlServerMgr = createXmlFileManager("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "Server.xml");
+        m_xmlClientPropsMgr = createXmlFileManager("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "Client_properties.xml");
+        m_xmlServerPropsMgr = createXmlFileManager("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "Server_properties.xml");
     }
-    m_xmlClientMgr->xmlRootNodeStart();
+    m_xmlClientMgr->xmlOpenRootNode();
     m_xmlClientMgr->enter<XML::MODULE>({{"uuid",metadata[MetadataType::MODULE_UUID]},
                                         {"name",metadata[MetadataType::MODULE_NAME]},
                                         {"description",metadata[MetadataType::MODULE_DESCRIPTION]},
                                         {"path","$REMAKENROOT/modules"}});
-    m_xmlServerMgr->xmlRootNodeStart();
+    m_xmlServerMgr->xmlOpenRootNode();
     m_xmlServerMgr->enter<XML::MODULE>({{"uuid",metadata[MetadataType::MODULE_UUID]},
                                         {"name",metadata[MetadataType::MODULE_NAME]},
                                         {"description",metadata[MetadataType::MODULE_DESCRIPTION]},
                                         {"path","$REMAKENROOT/modules"}});
+    m_xmlClientPropsMgr->xmlOpenRootNode("xpcf-configuration");
+    m_xmlServerPropsMgr->xmlOpenRootNode("xpcf-configuration");
 }
 
 std::map<IRPCGenerator::MetadataType,std::string> XpcfConfigGenerator::generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
@@ -75,6 +82,8 @@ std::map<IRPCGenerator::MetadataType,std::string> XpcfConfigGenerator::generateI
 
 void XpcfConfigGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
+    m_xmlClientMgr->leave();
+    m_xmlServerMgr->leave();
     {
         xml_block_guard<XML::FACTORY> factoryBlk(*m_xmlServerMgr);
         {
@@ -87,18 +96,11 @@ void XpcfConfigGenerator::finalizeImpl(std::map<MetadataType,std::string> metada
             }
         }
     }
-    m_xmlServerMgr->xmlRootNodeEnd();
-    m_xmlClientMgr->xmlRootNodeEnd();
+    m_xmlClientMgr->release();
+    m_xmlServerMgr->release();
+    m_xmlClientPropsMgr->release();
+    m_xmlServerPropsMgr->release();
     //to put version in pkgDepsFile for protobuf
     //pkg-config --modversion protobuf
     // protobuf|3.15.6|protobuf|brew@system
-
-    if (m_mode != GenerateMode::STD_COUT) {
-        if (m_xmlClientFile) {
-            m_xmlClientFile->close();
-        }
-        if (m_xmlServerFile) {
-            m_xmlServerFile->close();
-        }
-    }
 }

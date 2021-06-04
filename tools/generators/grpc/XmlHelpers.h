@@ -7,6 +7,8 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+#include <boost/filesystem/path.hpp>
 
 typedef enum {
     REGISTRY = 0,
@@ -23,11 +25,13 @@ typedef enum {
     PROPERTY = 11,
 } XML;
 
+
+//template <typename S = std::ostream>
 class XmlBlockManager {
 public:
 
     XmlBlockManager(std::ostream& out):m_out(out) {};
-    ~XmlBlockManager() = default;
+    virtual ~XmlBlockManager() = default;
 
     void newline() {
         m_out << '\n';
@@ -75,7 +79,7 @@ public:
         }
     }
 
-    template< XML t = REGISTRY>
+    template< XML t = MODULE>
     void node(std::initializer_list<std::pair<std::string,std::string>> attributes = {}) {
         // assert for non coherent nodes : registry, etc must be multiline blocks
         switch (t) {
@@ -89,7 +93,7 @@ public:
             node("interface", attributes);
             break;
         case BIND:
-            node("bind",attributes);
+            node("bind", attributes);
             break;
         case CONFIGURE:
             node("configure", attributes);
@@ -105,7 +109,7 @@ public:
         std::string b;
         b = indent() + "<" + nodeName;
         for (auto & [attrName, attrValue] : attributes) {
-             b += " " + attrName  + "=\"" + attrValue + "\"";
+            b += " " + attrName  + "=\"" + attrValue + "\"";
         }
         b += ">\n";
         m_indentLevel ++;
@@ -116,7 +120,7 @@ public:
         std::string b;
         b = indent() + "<" + nodeName;
         for (auto & [attrName, attrValue] : attributes) {
-             b += " " + attrName  + "=\"" + attrValue + "\"";
+            b += " " + attrName  + "=\"" + attrValue + "\"";
         }
         b += "/>\n";
         m_out << b;
@@ -130,13 +134,13 @@ public:
 
     std::ostream& out() { return m_out << indent(); }
 
-    void xmlRootNodeStart(const std::string & nodeName = "xpcf-registry", std::initializer_list<std::pair<std::string,std::string>> attributes = {{"autoAlias","true"}}) {
+    void xmlOpenRootNode(const std::string & nodeName = "xpcf-registry", std::initializer_list<std::pair<std::string,std::string>> attributes = {{"autoAlias","true"}}) {
         out() << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n";
         m_rootName = nodeName;
         enter(m_rootName);
     }
 
-    void xmlRootNodeEnd() {
+    void xmlCloseOpenedNodes() {
         while (!m_blockNameStack.empty()) {
             leave();
         }
@@ -159,13 +163,54 @@ public:
         return ind;
     }
 
+    virtual void release() {
+        xmlCloseOpenedNodes();
+    }
+
 
 private:
     const std::string m_indentStr = "  ";
     uint32_t m_indentLevel = 0;
-    std::ostream& m_out;
+    std::ostream & m_out;
     std::string m_rootName;
     std::stack<std::string> m_blockNameStack;
+};
+
+class XmlFileManager : public XmlBlockManager {
+public:
+    XmlFileManager(std::unique_ptr<std::ofstream> xmlFile):m_xmlFile(std::move(xmlFile)),
+        XmlBlockManager(*xmlFile) {}
+
+    ~XmlFileManager() override {
+        release();
+    }
+
+    void release() override {
+        XmlBlockManager::release();
+        m_xmlFile->close();
+    }
+
+    static std::unique_ptr<XmlFileManager> createXmlFileManager(const boost::filesystem::path & fileName)
+    {
+        boost::filesystem::detail::utf8_codecvt_facet utf8;
+        return std::make_unique<XmlFileManager>(std::make_unique<std::ofstream>(fileName.generic_string(utf8).c_str(), std::ios::out));
+    }
+
+private:
+    std::unique_ptr<std::ofstream> m_xmlFile;
+};
+
+class XmlStringStreamManager : public XmlBlockManager {
+public:
+    XmlStringStreamManager(std::unique_ptr<std::stringstream> stream):m_stream(std::move(stream)),
+        XmlBlockManager(*stream) {}
+
+    ~XmlStringStreamManager() override {
+        release();
+    }
+
+private:
+    std::unique_ptr<std::stringstream> m_stream;
 };
 
 template< XML t = REGISTRY>
