@@ -25,14 +25,7 @@ void GrpcServerManager::unloadComponent ()
 }
 
 XPCFErrorCode GrpcServerManager::onConfigured()
-{
-    if (m_receiveMessageMaxSize > 0) {
-        m_builder.SetMaxReceiveMessageSize(m_receiveMessageMaxSize);
-    }
-
-    if (m_sendMessageMaxSize > 0) {
-        m_builder.SetMaxSendMessageSize(m_sendMessageMaxSize);
-    }
+{   
     return XPCFErrorCode::_SUCCESS;
 }
 
@@ -58,6 +51,13 @@ void GrpcServerManager::registerService(const std::string &host, SRef<IGrpcServi
 
 void GrpcServerManager::runServer()
 {
+    if (m_receiveMessageMaxSize > 0) {
+        m_builder.SetMaxReceiveMessageSize(m_receiveMessageMaxSize);
+    }
+
+    if (m_sendMessageMaxSize > 0) {
+        m_builder.SetMaxSendMessageSize(m_sendMessageMaxSize);
+    }
     m_builder.AddListeningPort(m_serverAddress, GrpcHelper::getServerCredentials(static_cast<grpcCredentials>(m_serverCredentials)));
     for (auto service: *m_services) {
         std::cout << "Registering IGrpcService # " << service->getServiceName() << std::endl;

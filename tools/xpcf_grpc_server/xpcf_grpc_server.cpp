@@ -29,6 +29,17 @@ void print_error(const std::string& msg)
     std::cerr << msg << '\n';
 }
 
+void tryConfigureServer(const std::string & envVarName, const std::string & propName, SRef<xpcf::IGrpcServerManager> server)
+{
+    char * envValue = getenv(envVarName.c_str());
+    if (envValue != nullptr) {
+        serverMgr->bindTo<xpcf::IConfigurable>()->getProperty(propName)->setStringValue(envValue);
+    }
+    else {
+        std::cout<<"No '"<<envVarName<<"' environment variable found";
+    }
+}
+
 int main(int argc, char* argv[])
 {
     fs::detail::utf8_codecvt_facet utf8;
@@ -71,13 +82,11 @@ int main(int argc, char* argv[])
         cmpMgr->load(configSrc.c_str(),false);
     }
     auto serverMgr = cmpMgr->resolve<xpcf::IGrpcServerManager>();
-    char * serverURL = getenv("XPCF_GRPC_SERVER_URL");
-    if (serverURL != nullptr) {
-        serverMgr->bindTo<xpcf::IConfigurable>()->getProperty("server_address")->setStringValue(serverURL);
-    }
-    else {
-        std::cout<<"No 'XPCF_GRPC_SERVER_URL' environment variable found: ";
-    }
+    tryConfigureServer("XPCF_GRPC_SERVER_URL", "server_address", server);
+    tryConfigureServer("XPCF_GRPC_CREDENTIALS", "serverCredentials", server);
+    tryConfigureServer("XPCF_GRPC_MAX_RECV_MSG_SIZE", "max_receive_message_size", server);
+    tryConfigureServer("XPCF_GRPC_MAX_SEND_MSG_SIZE", "max_send_message_size", server);
+
     std::cout<<"xpcf_grpc_server listens on: "<<serverMgr->bindTo<xpcf::IConfigurable>()->getProperty("server_address")->getStringValue()<<std::endl;
     serverMgr->runServer();
     return 0;
