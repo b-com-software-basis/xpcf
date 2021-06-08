@@ -88,7 +88,7 @@
 <properties>
         <configure component="7FD1E545-F2F5-44A0-B30E-51B477455077">
             <property name="server_address" access="rw" type="string" value="0.0.0.0:34123"/>
-            <property name="serverCredentials" access="rw" type="uint" value="0"/>
+            <property name="server_credentials" access="rw" type="uint" value="0"/>
         </configure>
         <configure component="Tuner">
             <property name="TuneType" type="ulong" value="0"/>

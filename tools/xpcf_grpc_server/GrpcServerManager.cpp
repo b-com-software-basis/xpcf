@@ -6,7 +6,7 @@ GrpcServerManager::GrpcServerManager():ConfigurableBase(toMap<GrpcServerManager>
 {
     declareInterface<IGrpcServerManager>(this);
     declareProperty("server_address",m_serverAddress);
-    declareProperty("serverCredentials",m_serverCredentials);
+    declareProperty("server_credentials",m_serverCredentials);
     declareProperty("max_receive_message_size", m_receiveMessageMaxSize);
     declareProperty("max_send_message_size", m_sendMessageMaxSize);
     declareInjectable<IGrpcService>(m_services);
