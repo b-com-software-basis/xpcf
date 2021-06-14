@@ -71,12 +71,6 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
         // handle attrib
         for (auto & attrib : m_baseMethod.attributes()) {
             if (attrib.scope().has_value()) {
-                if (attrib.scope().value() == "xpcf") {
-                    if (attrib.name() == "ignore") {
-                        m_ignored = true;
-                        return true;
-                    }
-                }
                 if (attrib.scope().value() == "grpc") {
                     if (attrib.name() == "request") {
                         if (attrib.arguments().has_value()) {

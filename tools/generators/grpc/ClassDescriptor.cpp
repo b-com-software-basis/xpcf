@@ -66,9 +66,9 @@ void ClassDescriptor::generateRpcMapping(const std::map<std::string, std::vector
 void ClassDescriptor::parseMethods(const cppast::cpp_class & c, std::map<std::string, std::vector<std::size_t>> & virtualMethodsMap, const cppast::cpp_entity_index& index)
 {
     for (auto & base: c.bases()) {
-         std::cout<<"parseMethods::Base name="<<base.name()<<std::endl;
+        std::cout<<"parseMethods::Base name="<<base.name()<<std::endl;
         if (base.name() == "org::bcom::xpcf::ComponentBase" ||
-            base.name() == "org::bcom::xpcf::ConfigurableBase") {
+                base.name() == "org::bcom::xpcf::ConfigurableBase") {
             m_isXpcfComponent = true;
         }
         if (base.name() == "org::bcom::xpcf::IComponentIntrospect") {
@@ -90,7 +90,7 @@ void ClassDescriptor::parseMethods(const cppast::cpp_class & c, std::map<std::st
             // cast to member_function
             SRef<MethodDescriptor> desc  = xpcf::utils::make_shared<MethodDescriptor>(static_cast<const cppast::cpp_member_function&>(m));
             desc->parse(index);
-            if (desc->isPureVirtual() && !desc->ignored()) {
+            if (desc->isPureVirtual()) {
                 m_virtualMethods.push_back(desc);
                 virtualMethodsMap[desc->getName()].push_back(m_virtualMethods.size() - 1);
             }
@@ -123,6 +123,25 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
                             std::string serverUUIDStr =  attrib.arguments().value().as_string();
                             boost::algorithm::erase_all(serverUUIDStr,"\"");
                             m_serverUUID = xpcf::toUUID(serverUUIDStr);
+                        }
+                    }
+                }
+                if (attrib.scope().value() == "grpc") {
+                    if (attrib.name() == "client_receiveSize") {
+                        if (attrib.arguments().has_value()) {
+                            //when no attrib : howto figure out to not specify channel arguments ?
+                            std::string recvSizeStr = attrib.arguments().value().as_string();
+                            boost::algorithm::erase_all(recvSizeStr,"\"");
+                            m_clientReceiveSizeOverriden = true;
+                            m_clientReceiveSize = std::atol(recvSizeStr.c_str());
+                        }
+                    }
+                    else if (attrib.name() == "client_sendSize") {
+                        if (attrib.arguments().has_value()) {
+                            std::string sndSizeStr = attrib.arguments().value().as_string();
+                            boost::algorithm::erase_all(sndSizeStr,"\"");
+                            m_clientSendSizeOverriden = true;
+                            m_clientSendSize = std::atol(sndSizeStr.c_str());
                         }
                     }
                 }

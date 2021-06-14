@@ -30,6 +30,15 @@
 #include <xpcf/core/uuid.h>
 #include <xpcf/core/traits.h>
 
+// xpcf remoting DSL: following keywords can be used at the interface level
+// [[xpcf::ignore]] : can be used at class or method level to specify the corresponding class/method must be ignored while generating remoting code
+// [[xpcf::clientUUID(uuid_string)]] : can be used at class level only : used to specify the xpcf remoting client UUID
+// [[xpcf::serverUUID(uuid_string)]] : can be used at class level only : used to specify the xpcf remoting server UUID
+// -> uuid_string is a uuid formed string without quotes !!
+// side note : there will be a need to differentiate between grpc protobuf UUIDs vs flatbuffers UUIDs vs another rpc layer UUIDs ?
+// message receive size can be specified with [[ggrpc::client_receiveSize("size")]] where -1 is unlimited size
+// message send size can be specified with [[ggrpc::client_sendSize("size")]] where -1 is unlimited size
+
 class ClassDescriptor
 {
 public:
@@ -73,6 +82,19 @@ public:
 
     std::vector<SRef<MethodDescriptor>> & methods() const { return  m_virtualMethods; }
 
+    bool clientReceiveSizeOverriden() {
+        return m_clientReceiveSizeOverriden;
+    }
+    bool clientSendSizeOverriden(){
+        return m_clientSendSizeOverriden;
+    }
+    int64_t getClientReceiveSize() {
+        return m_clientReceiveSize;
+    }
+    int64_t getClientSendSize() {
+        return m_clientSendSize;
+    }
+
 private:
     void generateRpcMapping(const std::map<std::string, std::vector<std::size_t>> & virtualMethodsMap);
     void parseMethods(const cppast::cpp_class & c, std::map<std::string, std::vector<std::size_t>> & virtualMethodsMap, const cppast::cpp_entity_index& index);
@@ -83,6 +105,10 @@ private:
     bool m_isXpcfInterface = false;
     bool m_isInterface = false;
     bool m_isXpcfComponent = false;
+    int64_t m_clientReceiveSize;
+    int64_t m_clientSendSize;
+    bool m_clientReceiveSizeOverriden = false;
+    bool m_clientSendSizeOverriden = false;
     mutable org::bcom::xpcf::uuids::uuid m_clientUUID = {00000000-0000-0000-0000-000000000000};
     mutable org::bcom::xpcf::uuids::uuid m_serverUUID = {00000000-0000-0000-0000-000000000000};
     std::map<MetadataType,std::string> m_metadata;

@@ -271,9 +271,23 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
         blockMgr.out() << "XPCFErrorCode " + m_className +"::onConfigured()\n";
         {
             block_guard methodBlk(blockMgr);
-            blockMgr.out() << "m_channel = ::grpc::CreateChannel(m_channelUrl, xpcf::GrpcHelper::getCredentials(static_cast<xpcf::grpcCredentials>(m_channelCredentials)));\n";
-            blockMgr.out() << "m_grpcStub = ::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::NewStub(m_channel);\n";
-            blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
+            if (c->clientReceiveSizeOverriden() || c->clientSendSizeOverriden()) {
+                blockMgr.out() << "::grpc::ChannelArguments ch_args;\n";
+                if (c->clientReceiveSizeOverriden() ) {
+                     blockMgr.out() << "ch_args.SetMaxReceiveMessageSize("<<c->getClientReceiveSize()<<");\n";
+                }
+                if (c->clientSendSizeOverriden() ) {
+                     blockMgr.out() << "ch_args.SetMaxSendMessageSize("<<c->getClientSendSize()<<");\n";
+                }
+                blockMgr.out() << "m_channel = ::grpc::CreateCustomChannel(m_channelUrl,\n";
+                blockMgr.out() << "xpcf::GrpcHelper::getCredentials(static_castxpcf::grpcCredentials(m_channelCredentials)),\n";
+                blockMgr.out() << "ch_args);\n";
+            }
+            else {
+                blockMgr.out() << "m_channel = ::grpc::CreateChannel(m_channelUrl, xpcf::GrpcHelper::getCredentials(static_cast<xpcf::grpcCredentials>(m_channelCredentials)));\n";
+                blockMgr.out() << "m_grpcStub = ::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::NewStub(m_channel);\n";
+                blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
+            }
         }
         blockMgr.newline();
         processBodyMethods(c, blockMgr);

@@ -29,6 +29,14 @@
 #include <ParameterDescriptor.h>
 #include <xpcf/core/refs.h>
 
+// xpcf remoting DSL: following keywords can be used at the method level
+// streaming rpc must be indicated with [[grpc::server_streaming]], [[grpc::client_streaming]] or [[grpc::streaming]] at the method level
+// optionally, grpc request and response message name can be set with [[grpc::request("requestMessageName")]] and [[grpc::response("responseMessageName")]]
+// grpc method rpc name can be set with  [[grpc::rpcName("rpcname")]]
+// However, if you set the request and response across several methods, and use the same messages for several methods, you are responsible to ensure that message content are consistent
+// Otherwise, request message content is built from input and input/output parameters
+// response message content is built from output and input/output parameters
+// xpcf remoting DSL: following keywords can be used at the method parameter level
 // note : deducing a method parameter is [in] means :
 // - plain T with no ref or pointer or shared_ptr
 // - for pointers : one const on each derefed level i.e. const T* const T * const * const * and so on.
@@ -38,22 +46,13 @@
 // - T & with no const
 // - T(*)n with no const
 // mixed or inout types are not deduced and must be disambiguated with custom attributes at the parameter level : [[xpcf::in]], [[xpcf::out]], [[xpcf::inout]]
-// [[xpcf::ignore]] : can be used at class or method level to specify the corresponding class/method must be ignored while generating remoting code
-// [[xpcf::clientUUID(uuid_string)]] : can be used at class level only : used to specify the xpcf remoting client UUID
-// [[xpcf::serverUUID(uuid_string)]] : can be used at class level only : used to specify the xpcf remoting server UUID
-// -> uuid_string is a uuid formed string without quotes !!
-// side note : there will be a need to differentiate between grpc protobuf UUIDs vs flatbuffers UUIDs vs another rpc layer UUIDs ?
-// streaming rpc must be indicated with [[grpc::server_streaming]], [[grpc::client_streaming]] or [[grpc::streaming]] at the method level
-// optionally, grpc request and response message name can be set with [[grpc::request("requestMessageName")]] and [[grpc::response("responseMessageName")]]
-// grpc method rpc name can be set with  [[grpc::rpcName("rpcname")]]
-// However, if you set the request and response across several methods, and use the same messages for several methods, you are responsible to ensure that message content are consistent
-// Otherwise, request message content is built from input and input/output parameters
-// response message content is built from output and input/output parameters
+
+
 
 class MethodDescriptor
 {
 public:
-    typedef enum {
+    typedef enum streaming_type {
         none = 0x0,
         client = 0x01,
         server = 0x02,
@@ -67,13 +66,12 @@ public:
     const std::string getDeclaration() const;
     std::string getReturnType() const;
     const streaming_type & streamingType() const { return m_rpcStreamingType; }
-  /*  void addAttribute();
+    /*  void addAttribute();
     bool isClientStream();
     bool isServerStream();
     void addParameter();*/
     bool isPureVirtual() const { return m_pureVirtual; }
     bool isConst() const {return m_const; }
-    bool ignored() const { return m_ignored; }
     bool parse(const cppast::cpp_entity_index& index);
     bool hasInputs() { return ((m_inParams.size() != 0) || (m_inoutParams.size() != 0)); }
     bool hasOutputs() { return ((m_inoutParams.size() != 0) || (m_outParams.size() != 0 ) || !m_returnDescriptor.isVoid() ); }
@@ -86,13 +84,14 @@ public:
     std::string m_responseName;
     std::string m_rpcName;
 
+
+
 private:
     void setStreamingType(const std::string & streamType);
     TypeDescriptor m_returnDescriptor;
     streaming_type m_rpcStreamingType = streaming_type::none;
     const cppast::cpp_member_function& m_baseMethod;
     bool m_pureVirtual = false;
-    bool m_ignored = false;
     bool m_const = false;
     std::string m_returnType;
 };
