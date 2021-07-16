@@ -33,9 +33,7 @@
 #include <boost/log/attributes.hpp>
 #endif
 
-#include <thread>
-#include <vector>
-#include <map>
+#include <deque>
 
 namespace org { namespace bcom { namespace xpcf {
 enum class ContextType {
