@@ -25,8 +25,8 @@
 
 //#define BOOST_ALL_DYN_LINK 1
 
-#include "xpcf/api/IComponentManager.h"
-#include "xpcf/component/ComponentBase.h"
+#include <xpcf/api/IComponentManager.h>
+#include <xpcf/component/ComponentBase.h>
 #include <xpcf/collection/Collection.h>
 #include "tinyxmlhelper.h"
 
@@ -118,7 +118,7 @@ private:
 #ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 #endif
-    SRef<IFactory> m_factory;
+    SRef<AbstractFactory> m_factory;
     SRef<IRegistry> m_registry;
     SRef<IAliasManager> m_aliasManager;
     SRef<IPropertyManager> m_propertyManager;

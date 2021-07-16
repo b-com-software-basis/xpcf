@@ -24,9 +24,9 @@
 #define ORG_BCOM_XPCF_PROPERTYMANAGER_H
 
 //#define BOOST_ALL_DYN_LINK 1
-#include "xpcf/component/ComponentBase.h"
-#include "xpcf/core/XPCFErrorCode.h"
-#include "xpcf/api/IConfigurable.h"
+#include <xpcf/component/ComponentBase.h>
+#include <xpcf/core/XPCFErrorCode.h>
+#include <xpcf/api/IConfigurable.h>
 #include "AliasManager.h"
 #include "Registry.h"
 

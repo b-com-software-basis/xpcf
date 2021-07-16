@@ -20,11 +20,11 @@
  * @date 2017-04-28
  */
 
-#include "xpcf/api/IConfigurable.h"
+#include <xpcf/api/IConfigurable.h>
 #include "ModuleManager.h"
 #include "ComponentManager.h"
-#include "xpcf/component/ComponentFactory.h"
-#include "xpcf/core/Exception.h"
+#include <xpcf/component/ComponentFactory.h>
+#include <xpcf/core/Exception.h>
 #include "PathBuilder.h"
 #include "PropertyManager.h"
 
@@ -91,7 +91,7 @@ template<> ComponentManager* ComponentFactory::createInstance()
 ComponentManager::ComponentManager():ComponentBase(toUUID<ComponentManager>()),m_libraryLoaded(false)
 {
     declareInterface<IComponentManager>(this);
-    m_factory =  ComponentFactory::create<Factory>()->bindTo<IFactory>();
+    m_factory =  ComponentFactory::create<Factory>()->bindTo<AbstractFactory>();
     m_registry = m_factory->resolve<IRegistry>();
     m_aliasManager = m_factory->resolve<IAliasManager>();
     m_propertyManager =  m_factory->resolve<IPropertyManager>();
@@ -460,7 +460,7 @@ XPCFErrorCode ComponentManager::loadLibrary(fs::path configurationFilePath)
             }
             processXmlNode(rootElt, "module", std::bind(&IRegistry::declareModule, m_registry.get(), _1));
             processXmlNode(rootElt, "aliases", std::bind(&IAliasManager::declareAliases, m_aliasManager.get(), _1));
-            processXmlNode(rootElt, "factory", std::bind(&IFactory::declareFactory, m_factory.get(), _1));
+            processXmlNode(rootElt, "factory", std::bind(&AbstractFactory::declareFactory, m_factory.get(), _1));
             std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareConfigureFunc = std::bind(&IPropertyManager::declareConfiguration,  m_propertyManager.get(), _1,_2);
             processXmlNode<const fs::path &>(rootElt, "configuration", declareConfigureFunc, configurationFilePath);
             std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declarePropertiesFunc = std::bind(&IPropertyManager::declareProperties,  m_propertyManager.get(), _1,_2);

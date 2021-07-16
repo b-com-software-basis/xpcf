@@ -69,6 +69,31 @@ Factory::Factory():ComponentBase(toUUID<Factory>())
     m_resolver->setBinder(bindFunc);
 }
 
+// the context can be shared from xpcf main factory, or dedicated to this new factory context and in this case empty
+// however, if the context is empty, how can the user populate the registry, aliases, props as the factory has no load method and for the moment doesn't provide access to its inner components ..?
+SRef<IFactory> Factory::createNewFactoryContext(bool cloneFromMainContext)
+{
+    Factory * f = ComponentFactory::createInstance<Factory>();
+    f->m_propertyManager = IFactory::resolve<IPropertyManager>();
+    f->m_aliasManager = IFactory::resolve<IAliasManager>();
+    if (cloneFromMainContext) {
+        // TODO clone alias, props informations
+        // for the moment, the propertymanager is shared between factories when context is cloned.
+        f->m_propertyManager = m_propertyManager;
+        f->m_autoBindings = m_autoBindings;
+        f->m_defaultBindings = m_defaultBindings;
+        f->m_multiBindings = m_multiBindings;
+        f->m_bindingsProperties = m_bindingsProperties;
+        f->m_multiBindingsProperties = m_multiBindingsProperties;
+        f->m_namedBindings = m_namedBindings;
+        f->m_namedBindingsProperties = m_namedBindingsProperties;
+        f->m_factoryMethods = m_factoryMethods;
+        f->m_specificBindings = m_specificBindings;
+        f->m_specificNamedBindings = m_specificNamedBindings;
+    }
+    return IComponentIntrospect::acquireComponentRef<Factory, IComponentIntrospect>(f)->bindTo<IFactory>();
+}
+
 void Factory::clear()
 {
     m_autoBindings.clear();

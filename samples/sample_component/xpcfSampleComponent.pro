@@ -9,7 +9,10 @@ DEFINES += MYVERSION=$${VERSION}
 CONFIG += c++17
 CONFIG += shared
 #DEFINES += USE_XPCF_STD
-
+macx {
+    # EXPERIMENTAL : needs to use remaken configure first
+    # REMAKENCONFIG += use_remaken_parser
+}
 DEPENDENCIESCONFIG = shared
 !contains(DEFINES,USE_XPCF_STD) {
    DEFINES += USE_XPCF_BOOST
@@ -64,6 +67,7 @@ macx {
     QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c++17 -fPIC#-x objective-c++
     QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
     LIBS += -lstdc++ -lc -lpthread
+    LIBS += -L/usr/local/lib
 }
 
 win32 {

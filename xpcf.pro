@@ -28,6 +28,11 @@ staticlib {
 }
 message("CONFIG="$${CONFIG})
 
+macx {
+    # EXPERIMENTAL : needs to use remaken configure first
+    # REMAKENCONFIG += use_remaken_parser
+}
+
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (builddefs/qmake/templatelibconfig.pri)
 
@@ -112,6 +117,7 @@ HEADERS += \
     interfaces/xpcf/api/ModuleMetadata.h \
     interfaces/xpcf/api/InterfaceMetadata.h \
     interfaces/xpcf/api/IInjectable.h \
+    interfaces/xpcf/api/IFactory.h \
     interfaces/xpcf/component/ComponentBase.h \
     interfaces/xpcf/component/ComponentFactory.h \
     interfaces/xpcf/component/ComponentTraits.h \

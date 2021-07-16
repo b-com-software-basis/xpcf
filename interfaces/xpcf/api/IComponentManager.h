@@ -24,6 +24,7 @@
 #define ORG_BCOM_XPCF_ICOMPONENTMANAGER_H
 
 #include <xpcf/api/IInjectable.h>
+#include <xpcf/api/IFactory.h>
 #include <xpcf/api/InterfaceMetadata.h>
 #include <xpcf/api/ComponentMetadata.h>
 #include <xpcf/api/ModuleMetadata.h>
@@ -31,20 +32,6 @@
 #include <xpcf/component/ComponentFactory.h>
 
 namespace org { namespace bcom { namespace xpcf {
-
-typedef enum {
-    Transient,
-    Singleton
-} BindingScope;
-
-
-typedef enum {
-    Explicit = 1,
-    WithParents = 2,
-    Named = 4,
-    Default = 8,
-    All = 16
-} BindingRange;
 
 /**
  * @class IComponentManager

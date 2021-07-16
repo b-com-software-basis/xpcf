@@ -37,6 +37,7 @@ public:
                   std::is_same<S<T, ::std::allocator<T>>, std::deque<T, ::std::allocator<T>>>::value,
                   "Sequence type not allowed for Collection");
     Collection() { m_enumerator = unixpcf::make_unique<Enumerator<T,S>>(m_sequence); }
+    Collection(const Collection & other) { this->m_sequence = other.m_sequence; }
     ~Collection() override = default;
 
     //ICollection
@@ -54,6 +55,7 @@ public:
 
     uint32_t size() const override;
     //    void unloadComponent() override final;
+    Collection operator = (Collection collection) { Collection coll; coll.m_sequence = collection.m_sequence; return coll; }
 
 private:
     mutable S<T, ::std::allocator<T>> m_sequence;

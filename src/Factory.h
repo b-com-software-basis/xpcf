@@ -24,7 +24,7 @@
 #define ORG_BCOM_XPCF_FACTORY_H
 
 //#define BOOST_ALL_DYN_LINK 1
-#include <xpcf/api/IComponentManager.h>
+#include <xpcf/api/IFactory.h>
 #include "AliasManager.h"
 #include "Registry.h"
 #include "PropertyManager.h"
@@ -43,139 +43,23 @@
 #include <map>
 
 namespace org { namespace bcom { namespace xpcf {
-enum class ContextType {
-    Component,
-    Named,
-    Specific,
-    Multi
-};
 
-struct FactoryBindInfos {
-    uuids::uuid componentUUID;
-    BindingScope scope;
-    uint8_t bindingRangeMask = 0;
-    std::string properties;
-};
 
-using FactoryContext = std::pair<ContextType, FactoryBindInfos>;
-
-inline bool operator==(const FactoryBindInfos& lhs, const FactoryBindInfos& rhs)
-{
-    return lhs.componentUUID == rhs.componentUUID &&
-           lhs.scope == rhs.scope &&
-           lhs.properties == rhs.properties;
-}
-
-class IFactory : virtual public IComponentIntrospect {
+class AbstractFactory : virtual public IFactory {
 public:
-    virtual ~IFactory() override = default;
-    virtual void clear() = 0;
-    virtual void autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID) = 0;
-    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                      BindingScope scope,
-                      uint8_t bindingRangeMask) = 0;
-    virtual void bind(const std::string & name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                      BindingScope scope,
-                      uint8_t bindingRangeMask) = 0;
-    virtual void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-                      const uuids::uuid & instanceUUID, BindingScope scope,
-                      uint8_t bindingRangeMask) = 0;
-    virtual void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-                      const uuids::uuid & instanceUUID, BindingScope scope,
-                      uint8_t bindingRangeMask) = 0;
-    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                           BindingScope scope,
-                      uint8_t bindingRangeMask) = 0;
-    virtual void bind(const std::string & name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                           BindingScope scope,
-                      uint8_t bindingRangeMask) = 0;
-    virtual void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-                      const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                      const uuids::uuid & instanceUUID, BindingScope scope,
-                      uint8_t bindingRangeMask) = 0;
-    virtual void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-                      const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                      const uuids::uuid & instanceUUID, BindingScope scope,
-                      uint8_t bindingRangeMask) = 0;
-
+    virtual ~AbstractFactory() override = default;
     virtual void declareFactory(tinyxml2::XMLElement * xmlModuleElt) = 0;
-    virtual SRef<IComponentIntrospect> resolve(const SPtr<InjectableMetadata> & injectableInfo,
-                                               std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID,
-                                               std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const std::string & name,
-                                               std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const SPtr<InjectableMetadata> & injectableInfo,
-                                               std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const uuids::uuid & interfaceUUID,
-                                       std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID) = 0;
-    virtual uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID, const std::string & name) = 0;
-
-    virtual void inject(SRef<IInjectable> component, std::deque<FactoryContext> contextLevels = {}) = 0;
-    template <typename I> SRef<I> resolve();
-    template <typename I> SRef<I> resolve(const std::string & name);
-    template < typename I, typename C, BindingScope scope = BindingScope::Transient,
-               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All  > void bindLocal();
-    template < typename I, typename C, BindingScope scope = BindingScope::Transient,
-               uint8_t bindingRangeMask = BindingRange::Named  > void bindLocal(const char * name);
-    template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
-               uint8_t bindingRangeMask = BindingRange::Explicit > void bindLocal();
-    template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
-               uint8_t bindingRangeMask = BindingRange::Explicit > void bindLocal(const char * name);
-
-
 };
 
-
-template <typename I>
-SRef<I> IFactory::resolve()
-{
-    return resolve(toUUID<I>())->template bindTo<I>();
-}
-
-template <typename I>
-SRef<I> IFactory::resolve(const std::string & name)
-{
-    return resolve(toUUID<I>(), name)->template bindTo<I>();
-}
-
-template < typename I, typename C, BindingScope scope,
-           uint8_t bindingRangeMask> void IFactory::bindLocal()
-{
-    bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
-}
-
-template < typename I, typename C, BindingScope scope,
-           uint8_t bindingRangeMask> void IFactory::bindLocal(const char * name)
-{
-    bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
-}
-
-template < typename T, typename I, typename C, BindingScope scope,
-           uint8_t bindingRangeMask> void bindLocal()
-{
-    bind(toUUID<T>(), toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
-}
-
-template < typename T, typename I, typename C, BindingScope scope,
-           uint8_t bindingRangeMask> void bindLocal(const char * name)
-{
-    bind(toUUID<T>(), name, toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
-}
-
-
-template <> struct InterfaceTraits<IFactory>
+template <> struct InterfaceTraits<AbstractFactory>
 {
     static constexpr const char * UUID = "701F105A-C2A1-4939-96D9-754C9A087144";
-    static constexpr const char * NAME = "XPCF::IFactory";
-    static constexpr const char * DESCRIPTION = "Factory interface.\nProvides binding between interfaces uuid and concrete components uuid for injection patterns";
+    static constexpr const char * NAME = "XPCF::AbstractFactory";
+    static constexpr const char * DESCRIPTION = "AbstractFactory interface.\nProvides binding between interfaces uuid and concrete components uuid for injection patterns";
 };
 
 class Factory : public ComponentBase,
-        virtual public IFactory {
+        virtual public AbstractFactory {
 public:
     Factory();
     ~Factory() override = default;
@@ -241,6 +125,8 @@ public:
                                        std::deque<FactoryContext> contextLevels) override;
     uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID) override;
     uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID, const std::string & name) override;
+
+    SRef<IFactory> createNewFactoryContext(bool cloneFromMainContext) override;
     void unloadComponent () override final;
 
 private:
