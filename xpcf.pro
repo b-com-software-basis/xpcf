@@ -26,6 +26,7 @@ staticlib {
     DEFINES += BOOST_ALL_DYN_LINK
     DEPENDENCIESCONFIG = sharedlib
 }
+message("CONFIG="$${CONFIG})
 
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (builddefs/qmake/templatelibconfig.pri)
@@ -202,4 +203,5 @@ DISTFILES += \
     doc/xpcf-registry-sample.xml \
     packagedependencies-linux.txt \
     packagedependencies-mac.txt \
+    packagedependencies-win.txt \
     packagedependencies.txt
