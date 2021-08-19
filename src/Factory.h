@@ -44,10 +44,28 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+struct FactoryBindInfos {
+    uuids::uuid componentUUID;
+    BindingScope scope;
+    uint8_t bindingRangeMask = 0;
+    std::string properties;
+};
+
+using FactoryContext = std::pair<ContextType, FactoryBindInfos>;
+
+inline bool operator==(const FactoryBindInfos& lhs, const FactoryBindInfos& rhs)
+{
+    return lhs.componentUUID == rhs.componentUUID &&
+           lhs.scope == rhs.scope &&
+           lhs.properties == rhs.properties;
+}
 
 class AbstractFactory : virtual public IFactory {
 public:
     virtual ~AbstractFactory() override = default;
+    virtual void autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID) = 0;
+    virtual void inject(SRef<IInjectable> component, std::deque<FactoryContext> contextLevels = {}) = 0;
+
     virtual void declareFactory(tinyxml2::XMLElement * xmlModuleElt) = 0;
 };
 
@@ -113,16 +131,27 @@ public:
                    const FactoryBindInfos & bindInfos);
 
     void declareFactory(tinyxml2::XMLElement * xmlModuleElt) override;
+    SRef<IComponentIntrospect> resolve(const SPtr<InjectableMetadata> & injectableInfo) override
+        { return resolve(injectableInfo, {}); }
+    SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID) override
+        { return resolve(interfaceUUID, std::deque<FactoryContext>()); }
+    SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const std::string & name) override
+        { return resolve(interfaceUUID, name, {}); }
+    const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const SPtr<InjectableMetadata> & injectableInfo) override
+        { return resolveAll(injectableInfo, {}); }
+    const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const uuids::uuid & interfaceUUID) override
+        { return resolveAll(interfaceUUID, {}); }
+
     SRef<IComponentIntrospect> resolve(const SPtr<InjectableMetadata> & injectableInfo,
-                                       std::deque<FactoryContext> contextLevels) override;
+                                       std::deque<FactoryContext> contextLevels);
     SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID,
-                                       std::deque<FactoryContext> contextLevels) override;
+                                       std::deque<FactoryContext> contextLevels);
     SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const std::string & name,
-                                       std::deque<FactoryContext> contextLevels) override;
+                                       std::deque<FactoryContext> contextLevels);
     const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const SPtr<InjectableMetadata> & injectableInfo,
-                                                   std::deque<FactoryContext> contextLevels = {}) override;
+                                                   std::deque<FactoryContext> contextLevels);
     const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const uuids::uuid & interfaceUUID,
-                                       std::deque<FactoryContext> contextLevels) override;
+                                       std::deque<FactoryContext> contextLevels);
     uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID) override;
     uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID, const std::string & name) override;
 

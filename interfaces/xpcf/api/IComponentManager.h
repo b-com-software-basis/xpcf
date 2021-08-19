@@ -45,49 +45,7 @@ namespace org { namespace bcom { namespace xpcf {
 class IComponentManager : virtual public IComponentIntrospect {
 public:
 
-    /**
-     * Declare a binding from the service identified with @p interfaceUUID to the concrete component identified with @p instanceUUID.
-     * @param [in] interfaceUUID : the interface identifier
-     * @param [in] instanceUUID : the component identifier
-     * @param [in] scope : the creation scope used to determine the lifetime of the object retrieved with resolve
-     * @note bindings can come from in-code calls to bind, from autobinds or bindings declared in an xml configuration file or from autobinds while introspecting a module
-     */
-    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                      BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All) = 0;
-
-    virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                      BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Named) = 0;
-
-    virtual void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-                      const uuids::uuid & instanceUUID, BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Explicit) = 0;
-
-    virtual void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-                      const uuids::uuid & instanceUUID, BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Explicit) = 0;
-
-    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                           BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All) = 0;
-
-    virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                           BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Named) = 0;
-
-    virtual void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-                      const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                      const uuids::uuid & instanceUUID, BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Explicit) = 0;
-
-    virtual void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-                      const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                      const uuids::uuid & instanceUUID, BindingScope scope = BindingScope::Transient,
-                      uint8_t bindingRangeMask = BindingRange::Explicit) = 0;
-
+    virtual SRef<IFactory> getFactory() = 0;
     template < typename I, BindingScope scope = BindingScope::Transient,
                uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bind(const uuids::uuid& componentUUID);
 
@@ -217,6 +175,15 @@ public:
      *
      * @note with @fn resolve()
      * @return
+     * @throws InjectableNotFoundException when no bind was found to resolve an instance for I
+     * or when the component resolved for I declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename I> const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll();
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @return
      * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
      */
     template < typename C> SRef<IComponentIntrospect> create();
@@ -247,27 +214,6 @@ public:
      * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
      */
     virtual SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid & componentUUID) = 0;
-
-    /**
-     *
-     * @note with @fn resolve()
-     * @param [in]
-     * @return
-     * @throws  InjectableNotFoundExceptionwhen no bind was found to resolve an instance for I
-     * or when the component resolved for I declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID) = 0;
-
-    /**
-     *
-     * @note with @fn resolve()
-     * @param [in]
-     * @param [in]
-     * @return
-     * @throws InjectableNotFoundException when no bind was found to resolve an instance for {I, name}
-     * or when the component resolved for {I, name} declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const char * name) = 0;
 
     /**
      * Retrieve every module metadata registered in the ComponentManager
@@ -339,14 +285,17 @@ SRef<IComponentIntrospect> IComponentManager::create()
 
 template < typename I> SRef<I> IComponentManager::resolve()
 {
-    SRef<IComponentIntrospect> rICIntrospect = resolve(toUUID<I>());
-    return  rICIntrospect->bindTo<I>();
+    return getFactory()->resolve<I>();
+}
+
+template < typename I> const SRef<IEnumerable<SRef<IComponentIntrospect>>> IComponentManager::resolveAll()
+{
+    return getFactory()->resolveAll<I>();
 }
 
 template < typename I> SRef<I> IComponentManager::resolve(const char * name)
 {
-    SRef<IComponentIntrospect> rICIntrospect = resolve(toUUID<I>(), name);
-    return  rICIntrospect->bindTo<I>();
+    return getFactory()->resolve<I>(name);
 }
 
 template < typename I >
@@ -365,13 +314,13 @@ SRef<IComponentIntrospect> IComponentManager::create(const char * instanceName)
 template < typename I, BindingScope scope,
            uint8_t bindingRangeMask> void  IComponentManager::bind(const uuids::uuid & componentUUID)
 {
-    bind(toUUID<I>(), componentUUID, scope, bindingRangeMask);
+    getFactory()->bind(toUUID<I>(), componentUUID, scope, bindingRangeMask);
 }
 
 template < typename T, typename I, BindingScope scope,
            uint8_t bindingRangeMask> void  IComponentManager::bind(const uuids::uuid & componentUUID)
 {
-    bind(toUUID<T>(), toUUID<I>(), componentUUID, scope, bindingRangeMask);
+    getFactory()->bind(toUUID<T>(), toUUID<I>(), componentUUID, scope, bindingRangeMask);
 }
 
 template < typename I, typename C, BindingScope scope,
@@ -390,13 +339,13 @@ template < typename T, typename I, typename C, BindingScope scope,
 template < typename I, BindingScope scope,
            uint8_t bindingRangeMask> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
 {
-    bind(name, toUUID<I>(), componentUUID, scope, bindingRangeMask);
+    getFactory()->bind(name, toUUID<I>(), componentUUID, scope, bindingRangeMask);
 }
 
 template < typename T, typename I, BindingScope scope,
            uint8_t bindingRangeMask> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
 {
-    bind(toUUID<T>(), name, toUUID<I>(), componentUUID, scope);
+    getFactory()->bind(toUUID<T>(), name, toUUID<I>(), componentUUID, scope);
 }
 
 template < typename I, typename C, BindingScope scope,
@@ -414,25 +363,25 @@ template < typename T, typename I, typename C, BindingScope scope,
 template < typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IComponentManager::bindLocal()
 {
-    bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
+    getFactory()->bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IComponentManager::bindLocal()
 {
-    bind(toUUID<T>(), toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope, bindingRangeMask);
+    getFactory()->bind(toUUID<T>(), toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope, bindingRangeMask);
 }
 
 template < typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IComponentManager::bindLocal(const char * name)
 {
-    bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
+    getFactory()->bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IComponentManager::bindLocal(const char * name)
 {
-    bind(toUUID<T>(), name, toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope);
+    getFactory()->bind(toUUID<T>(), name, toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope);
 }
 
 /**

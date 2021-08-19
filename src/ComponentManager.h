@@ -52,6 +52,7 @@ class XPCF_EXPORT_API ComponentManager : public ComponentBase,
         virtual public IComponentManager {
 public:
     static ComponentManager* instance();
+    SRef<IFactory> getFactory() override;
     XPCFErrorCode load() override;
     XPCFErrorCode load(const char* libraryFilePath) override;
     XPCFErrorCode load(const char* folderPathStr, bool bRecurse) override;
@@ -61,36 +62,6 @@ public:
     void clear() override;
     SRef<IComponentIntrospect> createComponent(const uuids::uuid & componentUUID) final;
     SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid& componentUUID) override;
-    SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID)  override;
-    SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const char * name) override;
-
-    void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, BindingScope scope,
-              uint8_t bindingRangeMask) override;
-    void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, BindingScope scope,
-              uint8_t bindingRangeMask) override;
-    void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-              const uuids::uuid & instanceUUID, BindingScope scope,
-              uint8_t bindingRangeMask) override;
-    void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-              const uuids::uuid & instanceUUID, BindingScope scope,
-              uint8_t bindingRangeMask) override;
-    void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-              BindingScope scope,
-              uint8_t bindingRangeMask) override;
-    void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-              BindingScope scope,
-              uint8_t bindingRangeMask) override;
-    void bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
-              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-              const uuids::uuid & instanceUUID, BindingScope scope = BindingScope::Transient,
-              uint8_t bindingRangeMask = BindingRange::Explicit) override;
-
-    void bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
-              const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-              const uuids::uuid & instanceUUID, BindingScope scope = BindingScope::Transient,
-              uint8_t bindingRangeMask = BindingRange::Explicit) override;
 
     void unloadComponent () override final;
     void releaseComponent(uuids::uuid componentUUID);

@@ -21,11 +21,26 @@ DEFINES += XPCF_USE_BOOST
 staticlib {
     DEFINES += XPCF_STATIC
     DEPENDENCIESCONFIG = staticlib
+    #INSTALLSUBDIR=static
 } else {
     DEFINES += XPCF_SHARED
     DEFINES += BOOST_ALL_DYN_LINK
     DEPENDENCIESCONFIG = sharedlib
+    #INSTALLSUBDIR=shared
 }
+
+CONFIG(debug,debug|release) {
+#    DEFINES += XPCF_WITH_LOGS
+    DEFINES += "XPCFDEBUG"
+    DEFINES += XPCFSUBDIRSEARCH=\\\"debug\\\"
+    #INSTALLSUBDIR=$${INSTALLSUBDIR}/debug
+}
+
+CONFIG(release,debug|release) {
+    #INSTALLSUBDIR=$${INSTALLSUBDIR}/release
+    DEFINES += XPCFSUBDIRSEARCH=\\\"release\\\"
+}
+
 message("CONFIG="$${CONFIG})
 
 macx {
@@ -156,7 +171,7 @@ HEADERS += \
 
 linux {
     QMAKE_LFLAGS += -ldl
-    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
+    #LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 macx {

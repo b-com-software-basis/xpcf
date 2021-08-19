@@ -108,11 +108,15 @@ BOOST_FIXTURE_TEST_CASE( test_load_module_metadata,XpcfFixture,* boost::unit_tes
     xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
     try {
         SRef<xpcf::IConfigurable> rIConfigurable;
-        BOOST_REQUIRE_NO_THROW( rIConfigurable = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<xpcf::IConfigurable>() );
+        auto vgComponent = xpcfComponentManager->create<component::VirtualGuitarist>();
+        BOOST_REQUIRE_NO_THROW( rIConfigurable = vgComponent->bindTo<xpcf::IConfigurable>() );
         BOOST_TEST_MESSAGE("Accessing class values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
         for (auto property : rIConfigurable->getProperties()) {
             displayParameter(property);
         }
+    }
+    catch (xpcf::Exception & e) {
+        BOOST_TEST_MESSAGE("Catched xpcf exception : "<<e.what());
     }
     catch (std::out_of_range & e) {
         BOOST_TEST_MESSAGE("Catched : "<<e.what());
@@ -281,7 +285,8 @@ BOOST_FIXTURE_TEST_CASE( test_component_creation,XpcfFixture,* boost::unit_test:
     // create a component
     //
     try {
-        BOOST_REQUIRE_NO_THROW( rIConfigurable = xpcfComponentManager->create<component::VirtualGuitarist>()->bindTo<xpcf::IConfigurable>() );
+        rIComponentIntrospect = xpcfComponentManager->create<component::VirtualGuitarist>();
+        BOOST_REQUIRE_NO_THROW( rIConfigurable = rIComponentIntrospect->bindTo<xpcf::IConfigurable>() );
         BOOST_REQUIRE_NO_THROW( rITestInstance = xpcfComponentManager->create<component::VirtualGuitarist>("testInstance")->bindTo<xpcf::IConfigurable>() );
 
         BOOST_CHECK_THROW( rIComponentIntrospect = xpcfComponentManager->create<fakeComponent>(),xpcf::ModuleNotFoundException);
@@ -307,6 +312,9 @@ BOOST_FIXTURE_TEST_CASE( test_component_creation,XpcfFixture,* boost::unit_test:
         for (auto property : rITestInstance->getProperties()) {
             displayParameter(property);
         }
+    }
+    catch (xpcf::Exception & e) {
+        BOOST_TEST_MESSAGE("Catched xpcf exception : "<<e.what());
     }
     catch (std::out_of_range & e) {
         BOOST_TEST_MESSAGE("Catched : "<<e.what());

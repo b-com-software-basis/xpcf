@@ -24,6 +24,8 @@
 #define ORG_BCOM_XPCF_PATHBUILDER_H
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+
 namespace fs = boost::filesystem;
 
 namespace org { namespace bcom { namespace xpcf {
@@ -43,6 +45,12 @@ public:
     static fs::path appendModuleDecorations(const fs::path & sl);
     static fs::path appendModuleDecorations(const char * sl);
     static inline bool is_shared_library(const std::string& s) {
+        fs::detail::utf8_codecvt_facet utf8;
+        fs::path libPath(s,utf8);
+        auto linkStatus = fs::symlink_status(libPath);
+        if (linkStatus.type() == fs::symlink_file) {
+            return false;
+        }
         return (s.find(".dll") != std::string::npos || s.find(".so") != std::string::npos || s.find(".dylib") != std::string::npos);
         // side effects on path typically toto.app/contents/...
               /*  && s.find(".lib") == std::string::npos

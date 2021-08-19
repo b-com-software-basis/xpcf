@@ -46,8 +46,8 @@
             <bind name="ibanezGuitar" interface="IElectricGuitar" to="Ibanez7ElectricGuitar" range="all"/>
             <!-- multibind -->
             <bind interface="IElectricGuitar">
-                <component to="JacksonDinky6ElectricGuitar"/>
-                <component to="Ibanez7ElectricGuitar"/>
+                <component to="JacksonDinky6ElectricGuitar" range="all"/>
+                <component to="Ibanez7ElectricGuitar" range="all"/>
             </bind>
         </bindings>
         <!-- custom bindings : explicit injection for a particular component -->
@@ -56,7 +56,7 @@
                     <bind interface="ITuner" to="Tuner" properties="nashville"/>
             </inject>
             <inject to="VirtualGuitarist">
-                    <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" />
+                    <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" range="all" />
             </inject>
             <inject to="TakamineFolkGuitar">
                     <bind interface="ITuner" to="Tuner" properties="DADGAD"/>

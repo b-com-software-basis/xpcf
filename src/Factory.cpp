@@ -57,6 +57,7 @@ static const map<string,BindingRange> bindingRangeConvertMap = {
 Factory::Factory():ComponentBase(toUUID<Factory>())
 {
     declareInterface<IFactory>(this);
+    declareInterface<AbstractFactory>(this);
     IFactory::bindLocal<IAliasManager,AliasManager,BindingScope::Singleton>();
     IFactory::bindLocal<IRegistry,Registry,BindingScope::Singleton>();
     bind(toUUID<IPropertyManager>(), toUUID<PropertyManager>(), &getPropertyManagerInstance, BindingScope::Singleton, BindingRange::Default);

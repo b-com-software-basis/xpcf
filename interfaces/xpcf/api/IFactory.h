@@ -57,28 +57,18 @@ typedef enum {
     All = 16
 } BindingRange;
 
-struct FactoryBindInfos {
-    uuids::uuid componentUUID;
-    BindingScope scope;
-    uint8_t bindingRangeMask = 0;
-    std::string properties;
-};
-
-using FactoryContext = std::pair<ContextType, FactoryBindInfos>;
-
-inline bool operator==(const FactoryBindInfos& lhs, const FactoryBindInfos& rhs)
-{
-    return lhs.componentUUID == rhs.componentUUID &&
-           lhs.scope == rhs.scope &&
-           lhs.properties == rhs.properties;
-}
-
 class IFactory : virtual public IComponentIntrospect {
 public:
     virtual ~IFactory() override = default;
     virtual void clear() = 0;
     virtual SRef<IFactory> createNewFactoryContext(bool cloneFromMainContext = false) = 0;
-    virtual void autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID) = 0;
+    /**
+     * Declare a binding from the service identified with @p interfaceUUID to the concrete component identified with @p instanceUUID.
+     * @param [in] interfaceUUID : the interface identifier
+     * @param [in] instanceUUID : the component identifier
+     * @param [in] scope : the creation scope used to determine the lifetime of the object retrieved with resolve
+     * @note bindings can come from in-code calls to bind, from autobinds or bindings declared in an xml configuration file or from autobinds while introspecting a module
+     */
     virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
                       BindingScope scope,
                       uint8_t bindingRangeMask) = 0;
@@ -108,22 +98,36 @@ public:
                       const uuids::uuid & instanceUUID, BindingScope scope,
                       uint8_t bindingRangeMask) = 0;
 
-    virtual SRef<IComponentIntrospect> resolve(const SPtr<InjectableMetadata> & injectableInfo,
-                                               std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID,
-                                               std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const std::string & name,
-                                               std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const SPtr<InjectableMetadata> & injectableInfo,
-                                               std::deque<FactoryContext> contextLevels = {}) = 0;
-    virtual const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const uuids::uuid & interfaceUUID,
-                                       std::deque<FactoryContext> contextLevels = {}) = 0;
+    virtual SRef<IComponentIntrospect> resolve(const SPtr<InjectableMetadata> & injectableInfo) = 0;
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @param [in]
+     * @return
+     * @throws  InjectableNotFoundExceptionwhen no bind was found to resolve an instance for I
+     * or when the component resolved for I declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID) = 0;
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @param [in]
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when no bind was found to resolve an instance for {I, name}
+     * or when the component resolved for {I, name} declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const std::string & name) = 0;
+    virtual const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const SPtr<InjectableMetadata> & injectableInfo) = 0;
+    virtual const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(const uuids::uuid & interfaceUUID) = 0;
     virtual uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID) = 0;
     virtual uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID, const std::string & name) = 0;
 
-    virtual void inject(SRef<IInjectable> component, std::deque<FactoryContext> contextLevels = {}) = 0;
     template <typename I> SRef<I> resolve();
     template <typename I> SRef<I> resolve(const std::string & name);
+    template < typename I> const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll();
     template < typename I, typename C, BindingScope scope = BindingScope::Transient,
                uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All  > void bindLocal();
     template < typename I, typename C, BindingScope scope = BindingScope::Transient,
@@ -147,6 +151,12 @@ template <typename I>
 SRef<I> IFactory::resolve(const std::string & name)
 {
     return resolve(toUUID<I>(), name)->template bindTo<I>();
+}
+
+template < typename I>
+const SRef<IEnumerable<SRef<IComponentIntrospect>>> IFactory::resolveAll()
+{
+    return resolveAll(toUUID<I>());
 }
 
 template < typename I, typename C, BindingScope scope,
