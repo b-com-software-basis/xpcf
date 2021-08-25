@@ -36,12 +36,7 @@
 #include <deque>
 
 namespace org { namespace bcom { namespace xpcf {
-enum class ContextType {
-    Component,
-    Named,
-    Specific,
-    Multi
-};
+
 
 typedef enum {
     Transient,
@@ -57,11 +52,18 @@ typedef enum {
     All = 16
 } BindingRange;
 
+typedef enum {
+    Empty,
+    Cloned,
+    Shared
+} ContextMode;
+
+
 class IFactory : virtual public IComponentIntrospect {
 public:
     virtual ~IFactory() override = default;
     virtual void clear() = 0;
-    virtual SRef<IFactory> createNewFactoryContext(bool cloneFromMainContext = false) = 0;
+    virtual SRef<IFactory> createNewFactoryContext(ContextMode ctxMode = ContextMode::Empty) = 0;
     /**
      * Declare a binding from the service identified with @p interfaceUUID to the concrete component identified with @p instanceUUID.
      * @param [in] interfaceUUID : the interface identifier
@@ -128,6 +130,29 @@ public:
     template <typename I> SRef<I> resolve();
     template <typename I> SRef<I> resolve(const std::string & name);
     template < typename I> const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll();
+    template < typename I, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bind(const uuids::uuid& componentUUID);
+
+    template < typename T, typename I, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit> void bind(const uuids::uuid& componentUUID);
+
+    template < typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bind();
+
+    template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit> void bind();
+
+    template < typename I, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Named > void bind(const char * name, const uuids::uuid& componentUUID);
+
+    template < typename T, typename I, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit > void bind(const char * name, const uuids::uuid& componentUUID);
+
+    template < typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Named > void bind(const char * name);
+
+    template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit > void bind(const char * name);
     template < typename I, typename C, BindingScope scope = BindingScope::Transient,
                uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All  > void bindLocal();
     template < typename I, typename C, BindingScope scope = BindingScope::Transient,
@@ -159,10 +184,65 @@ const SRef<IEnumerable<SRef<IComponentIntrospect>>> IFactory::resolveAll()
     return resolveAll(toUUID<I>());
 }
 
+template < typename I, BindingScope scope,
+           uint8_t bindingRangeMask> void  IFactory::bind(const uuids::uuid & componentUUID)
+{
+    bind(toUUID<I>(), componentUUID, scope, bindingRangeMask);
+}
+
+template < typename T, typename I, BindingScope scope,
+           uint8_t bindingRangeMask> void  IFactory::bind(const uuids::uuid & componentUUID)
+{
+    bind(toUUID<T>(), toUUID<I>(), componentUUID, scope, bindingRangeMask);
+}
+
+template < typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void  IFactory::bind()
+{
+
+    bind<I,scope,bindingRangeMask>(toUUID<C>());
+}
+
+template < typename T, typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask > void IFactory::bind()
+{
+    bind<T,I,scope,bindingRangeMask>(toUUID<C>());
+}
+
+template < typename I, BindingScope scope,
+           uint8_t bindingRangeMask> void  IFactory::bind(const char * name, const uuids::uuid & componentUUID)
+{
+    bind(name, toUUID<I>(), componentUUID, scope, bindingRangeMask);
+}
+
+template < typename T, typename I, BindingScope scope,
+           uint8_t bindingRangeMask> void  IFactory::bind(const char * name, const uuids::uuid & componentUUID)
+{
+    bind(toUUID<T>(), name, toUUID<I>(), componentUUID, scope);
+}
+
+template < typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void  IFactory::bind(const char * name)
+{
+    bind<I,scope,bindingRangeMask>(name, toUUID<C>());
+}
+
+template < typename T, typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void  IFactory::bind(const char * name)
+{
+    bind<T,I,scope,bindingRangeMask>(name, toUUID<C>());
+}
+
 template < typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IFactory::bindLocal()
 {
     bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
+}
+
+template < typename T, typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void IFactory::bindLocal()
+{
+    bind(toUUID<T>(), toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope, bindingRangeMask);
 }
 
 template < typename I, typename C, BindingScope scope,
@@ -172,17 +252,10 @@ template < typename I, typename C, BindingScope scope,
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
-           uint8_t bindingRangeMask> void bindLocal()
+           uint8_t bindingRangeMask> void IFactory::bindLocal(const char * name)
 {
-    bind(toUUID<T>(), toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
+    bind(toUUID<T>(), name, toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope, bindingRangeMask);
 }
-
-template < typename T, typename I, typename C, BindingScope scope,
-           uint8_t bindingRangeMask> void bindLocal(const char * name)
-{
-    bind(toUUID<T>(), name, toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
-}
-
 
 template <> struct InterfaceTraits<IFactory>
 {

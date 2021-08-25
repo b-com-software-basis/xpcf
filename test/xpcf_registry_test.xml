@@ -32,6 +32,7 @@
     </component>
     </module>
     <aliases>
+            <alias name="IGuitarist" type="interface" uuid="41348765-1017-47a7-ab9f-6b59d39e4b95"/>
             <alias name="JacksonDinky6ElectricGuitar" type="component" uuid="7cc64f89-9a81-4fc8-9695-fde123fae225"/>
             <alias name="TakamineFolkGuitar" type="component" uuid="04E2254F-3349-4DC1-8EED-86835315FB6B"/>
             <alias name="VirtualGuitarist" type="component" uuid="63ff193d-93e6-4ede-9947-22f864ac843f"/>
@@ -44,6 +45,7 @@
             <bind interface="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" to="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" range="all"/>
             <bind name="jacksonGuitar" interface="IElectricGuitar" to="JacksonDinky6ElectricGuitar" range="all"/>
             <bind name="ibanezGuitar" interface="IElectricGuitar" to="Ibanez7ElectricGuitar" range="all"/>
+            <bind interface="IGuitarist" to="VirtualGuitarist" scope="Singleton" range="all"/>
             <!-- multibind -->
             <bind interface="IElectricGuitar">
                 <component to="JacksonDinky6ElectricGuitar" range="all"/>

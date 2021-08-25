@@ -541,6 +541,34 @@ BOOST_FIXTURE_TEST_CASE( test_component_multibind,XpcfFixture,* boost::unit_test
     }
     xpcfComponentManager->clear();
 }
+
+BOOST_FIXTURE_TEST_CASE( test_factory_newcontext,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
+{
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+
+    BOOST_TEST_MESSAGE("Resolve IGuitarist default binding");
+    SRef<IGuitarist> rIGuitaristXpcf1 = xpcfComponentManager->resolve<IGuitarist>();
+    BOOST_TEST_MESSAGE("Multibind guitars:");
+    for (auto guitarBrand: rIGuitaristXpcf1->getGuitarCollection()) {
+        BOOST_TEST_MESSAGE("guitar brand:" << guitarBrand);
+    }
+
+    auto newFactory = xpcfComponentManager->getFactory()->createNewFactoryContext(xpcf::ContextMode::Shared);
+    SRef<IElectricGuitar> rIIbanez = newFactory->resolve<IElectricGuitar>("ibanezGuitar");
+    SRef<IGuitarist> rIGuitaristNewFactory1 = newFactory->resolve<IGuitarist>();
+    rIGuitaristNewFactory1->bindTo<xpcf::IInjectable>()->inject<IElectricGuitar>(rIIbanez,"electricGuitar");
+    auto elecGuitar = rIGuitaristXpcf1->getGuitar(IGuitar::GuitarType::Electric);
+    BOOST_TEST_MESSAGE("xpcf factory VirtualGuitarist electricguitar brand:" << elecGuitar->getGuitarBrand());
+    elecGuitar = rIGuitaristNewFactory1->getGuitar(IGuitar::GuitarType::Electric);
+    BOOST_TEST_MESSAGE("new shared factory VirtualGuitarist electricguitar brand:" << elecGuitar->getGuitarBrand());
+    auto rIGuitaristXpcf2 = xpcfComponentManager->resolve<IGuitarist>();
+    auto rIGuitaristNewFactory2 = newFactory->resolve<IGuitarist>();
+    BOOST_TEST_MESSAGE("xpcf VirtualGuitarist adresses: 1=" << rIGuitaristXpcf1.get()<<" 2="<<rIGuitaristXpcf2.get());
+    BOOST_TEST_MESSAGE("new factory VirtualGuitarist adresses: 1=" << rIGuitaristNewFactory1.get()<<" 2="<<rIGuitaristNewFactory2.get());
+    xpcfComponentManager->clear();
+}
 BOOST_AUTO_TEST_SUITE_END()
 
 

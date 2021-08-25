@@ -327,13 +327,13 @@ template < typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void  IComponentManager::bind()
 {
 
-    bind<I,scope,bindingRangeMask>(toUUID<C>());
+    getFactory()->bind<I,C,scope,bindingRangeMask>();
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask > void IComponentManager::bind()
 {
-    bind<T,I,scope,bindingRangeMask>(toUUID<C>());
+    getFactory()->bind<T,I,C,scope,bindingRangeMask>();
 }
 
 template < typename I, BindingScope scope,
@@ -351,37 +351,37 @@ template < typename T, typename I, BindingScope scope,
 template < typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void  IComponentManager::bind(const char * name)
 {
-    bind<I,scope,bindingRangeMask>(name, toUUID<C>());
+    getFactory()->bind<I,C,scope,bindingRangeMask>(name);
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void  IComponentManager::bind(const char * name)
 {
-    bind<T,I,scope,bindingRangeMask>(name, toUUID<C>());
+    getFactory()->bind<T,I,C,scope,bindingRangeMask>(name);
 }
 
 template < typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IComponentManager::bindLocal()
 {
-    getFactory()->bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
+    getFactory()->bindLocal<I,C,scope,bindingRangeMask>();
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IComponentManager::bindLocal()
 {
-    getFactory()->bind(toUUID<T>(), toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope, bindingRangeMask);
+    getFactory()->bindLocal<T,I,C,scope,bindingRangeMask>();
 }
 
 template < typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IComponentManager::bindLocal(const char * name)
 {
-    getFactory()->bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope, bindingRangeMask);
+    getFactory()->bindLocal<I,C,scope,bindingRangeMask>(name);
 }
 
 template < typename T, typename I, typename C, BindingScope scope,
            uint8_t bindingRangeMask> void IComponentManager::bindLocal(const char * name)
 {
-    getFactory()->bind(toUUID<T>(), name, toUUID<I>(), &ComponentFactory::create<C>, toUUID<C>(), scope);
+    getFactory()->bindLocal<T,I,C,scope,bindingRangeMask>(name);
 }
 
 /**

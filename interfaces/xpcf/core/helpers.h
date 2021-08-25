@@ -3,6 +3,7 @@
 
 #include <map>
 #include <functional>
+#include <xpcf/core/refs.h>
 
 #ifndef SWIG
 namespace org { namespace bcom { namespace xpcf {
@@ -10,6 +11,14 @@ namespace org { namespace bcom { namespace xpcf {
 template < typename Key, typename T> bool mapContains(const std::map<Key,T> & mapContainer, Key k)
 {
     if (mapContainer.find(k) != mapContainer.end()) {
+        return true;
+    }
+    return false;
+}
+
+template < typename Key, typename T> bool mapContains(SRef<std::map<Key,T>> mapContainer, Key k)
+{
+    if (mapContainer->find(k) != mapContainer->end()) {
         return true;
     }
     return false;
