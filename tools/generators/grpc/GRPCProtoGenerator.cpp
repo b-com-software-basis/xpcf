@@ -288,37 +288,40 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateIm
 
 void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
-    fs::path remakenGrpcRoot = RemakenPathHelper::getRemakenRoot();
+    fs::path remakenGrpcRoot = RemakenPathHelper::computeRemakenRootPackageDir();
     std::vector<fs::path> envPath = boost::this_process::path();
     remakenGrpcRoot /= "grpc/1.37.1";
-    fs::path remakenGrpcBin = remakenGrpcRoot;
-    remakenGrpcBin /= "/bin/x86_64/shared/release/";
-    fs::path remakenGrpcLibs = remakenGrpcRoot;
-    remakenGrpcLibs /= "/lib/x86_64/shared/release/";
+    fs::path grpcBin = remakenGrpcRoot;
+    grpcBin /= "/bin/x86_64/shared/release/";
+    fs::path grpcLibs = remakenGrpcRoot;
+    grpcLibs /= "/lib/x86_64/shared/release/";
     std::string SharedLibraryPathEnvName(RemakenPathHelper::sharedLibraryPathEnvName());
 
     auto env = boost::this_process::environment();
     bp::environment runEnv = env;
     fs::detail::utf8_codecvt_facet utf8;
+    std::cout << "Searching protobuf compiler (protoc) from path: " << std::endl;
+    std::cout << "===> "<< grpcBin.generic_string(utf8) << std::endl;
 
-    if (fs::exists(remakenGrpcBin)) {
-        envPath.push_back(remakenGrpcBin);
-        runEnv[SharedLibraryPathEnvName] += remakenGrpcLibs.generic_string(utf8);
-    }
-
-    // else search in brew paths on unixes, what about win ?
+    bool isRemakenGrpc = true;
+    if (!fs::exists(grpcBin) || !fs::exists(grpcLibs)) {
+        isRemakenGrpc = false;
+     // else search in brew paths on unixes, what about win ?
 #ifdef BOOST_OS_MACOS_AVAILABLE
-    else if (fs::exists("/usr/local/bin/protoc") && fs::exists("/usr/local/bin/grpc_cpp_plugin")) {
-        envPath.push_back("/usr/local/bin");
-        runEnv[SharedLibraryPathEnvName] += "/usr/local/lib";
-    }
+    grpcBin = "/usr/local/bin/";
+    grpcLibs = "/usr/local/lib";
 #endif
 #ifdef BOOST_OS_LINUX_AVAILABLE
-    else if (fs::exists("/home/linuxbrew/.linuxbrew/bin/protoc") && fs::exists("/home/linuxbrew/.linuxbrew/bin/grpc_cpp_plugin")) {
-        envPath.push_back("/home/linuxbrew/.linuxbrew/bin");
-        runEnv[SharedLibraryPathEnvName] += "/home/linuxbrew/.linuxbrew/lib";
-    }
+    grpcBin = "/home/linuxbrew/.linuxbrew/bin/";
+    grpcLibs = "/home/linuxbrew/.linuxbrew/lib";
 #endif
+#ifdef BOOST_OS_WIN_AVAILABLE
+    std::cerr<<"Error grpc protoc compiler not found : check your grpc installation !"<<std::endl;
+    return;
+#endif
+    }
+    envPath.push_back(grpcBin);
+    runEnv[SharedLibraryPathEnvName] += grpcLibs.generic_string(utf8);
     fs::path toolPath = bp::search_path("protoc", envPath);
     fs::path pluginPath = bp::search_path("grpc_cpp_plugin", envPath);
     if (toolPath.empty()) {
@@ -329,7 +332,8 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
         std::cerr<<"Error grpc cpp plugin not found : check your grpc installation !"<<std::endl;
         return;
     }
-
+    std::cout << "Using protobuf compiler (protoc) from path: " << std::endl;
+    std::cout << "===> "<< grpcBin.generic_string(utf8) << std::endl;
 
     int result = -1;
     for (auto [name, protoFile] : m_protoNameFilesPathMap) {
@@ -338,15 +342,32 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
         protoPath += m_folder.generic_string(utf8).c_str();
         std::string destProto = "--cpp_out=";
         destProto += m_folder.generic_string(utf8).c_str();
-        std::cout<<toolPath.generic_string(utf8).c_str()<<" "<<protoPath<<" "<<protoFile<<" "<<destProto<<std::endl;
-        result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destProto.c_str());
+        if (isRemakenGrpc) {
+            std::string googleProtoPath = "--proto_path=";
+            fs::path protobufPath = remakenGrpcRoot;
+            protobufPath /= "interfaces";
+            googleProtoPath += protobufPath.generic_string(utf8).c_str();
+            std::cout<<toolPath.generic_string(utf8).c_str()<<" "<<protoPath<<" "<<googleProtoPath<<" "<<protoFile<<" "<<destProto<<std::endl;
+            result = bp::system(toolPath, protoPath.c_str(), googleProtoPath.c_str(), protoFile.generic_string(utf8).c_str(), destProto.c_str(), runEnv);
 
-        std::string destGrpc = "--grpc_out=";
-        destGrpc += m_folder.generic_string(utf8).c_str();
-        std::string plugin = "--plugin=protoc-gen-grpc=";
-        plugin += pluginPath.generic_string(utf8).c_str();
+            std::string destGrpc = "--grpc_out=";
+            destGrpc += m_folder.generic_string(utf8).c_str();
+            std::string plugin = "--plugin=protoc-gen-grpc=";
+            plugin += pluginPath.generic_string(utf8).c_str();
 
-        result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destGrpc.c_str(), plugin.c_str(), runEnv, env);
+            result = bp::system(toolPath, protoPath.c_str(), googleProtoPath.c_str(), protoFile.generic_string(utf8).c_str(), destGrpc.c_str(), plugin.c_str(), runEnv);
+        }
+        else {
+            std::cout<<toolPath.generic_string(utf8).c_str()<<" "<<protoPath<<" "<<protoFile<<" "<<destProto<<std::endl;
+            result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destProto.c_str(), runEnv);
+
+            std::string destGrpc = "--grpc_out=";
+            destGrpc += m_folder.generic_string(utf8).c_str();
+            std::string plugin = "--plugin=protoc-gen-grpc=";
+            plugin += pluginPath.generic_string(utf8).c_str();
+
+            result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destGrpc.c_str(), plugin.c_str(), runEnv);
+        }
     }
     m_protoFilesPath.clear();
 }
