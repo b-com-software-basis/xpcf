@@ -51,6 +51,34 @@ struct FactoryBindInfos {
     std::string properties;
 };
 
+struct FactoryContext {
+    // interface Uuid resolves to [ component Uuid , scope ]
+    std::map<uuids::uuid, FactoryBindInfos> autoBindings;
+    std::map<uuids::uuid, FactoryBindInfos> defaultBindings;
+    std::map<uuids::uuid, VectorCollection<FactoryBindInfos>> multiBindings;
+
+    // default and multibind properties association
+    // [interface UUID, component UUID] => properties name
+    std::map<std::pair<uuids::uuid, uuids::uuid>, std::string > bindingsProperties;
+    std::map<std::pair<uuids::uuid, uuids::uuid>, std::string > multiBindingsProperties;
+
+
+    // [interface Uuid, name] resolves to [ component Uuid , scope ]
+    std::map<std::pair<uuids::uuid,std::string>, FactoryBindInfos > namedBindings;
+    std::map<std::pair<uuids::uuid,std::string>, std::string > namedBindingsProperties;
+    // component UUID resolves to create function
+    std::map<uuids::uuid, std::function<SRef<IComponentIntrospect>(void)>> factoryMethods;
+    // component Uuid resolves to [ Interface, [component Uuid , scope] ]
+    // Note : when a specific binding already exists in defaultBindings, it is not added in m_specificBindings
+    std::map<uuids::uuid, std::map<uuids::uuid, FactoryBindInfos> > specificBindings;
+
+    // component Uuid resolves to [ [interface Uuid , name] , [component Uuid , scope] ]
+    std::map<uuids::uuid, std::map<std::pair<uuids::uuid,std::string>, FactoryBindInfos> > specificNamedBindings;
+
+    void clear();
+
+};
+
 enum class ContextType {
     Component,
     Named,
@@ -187,24 +215,8 @@ private:
 #ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 #endif
-
-    // interface Uuid resolves to [ component Uuid , scope ]
-    SRef<std::map<uuids::uuid, FactoryBindInfos>> m_autoBindings;
-    SRef<std::map<uuids::uuid, FactoryBindInfos>> m_defaultBindings;
-    SRef<std::map<uuids::uuid, VectorCollection<FactoryBindInfos>>> m_multiBindings;
-
-    // default and multibind properties association
-    // [interface UUID, component UUID] => properties name
-    SRef<std::map<std::pair<uuids::uuid, uuids::uuid>, std::string >> m_bindingsProperties;
-    SRef<std::map<std::pair<uuids::uuid, uuids::uuid>, std::string >> m_multiBindingsProperties;
-
-
-    // [interface Uuid, name] resolves to [ component Uuid , scope ]
-    SRef<std::map<std::pair<uuids::uuid,std::string>, FactoryBindInfos >> m_namedBindings;
-    SRef<std::map<std::pair<uuids::uuid,std::string>, std::string >> m_namedBindingsProperties;
-
-    // component UUID resolves to create function
-    std::map<uuids::uuid, std::function<SRef<IComponentIntrospect>(void)>> m_factoryMethods;
+    // The factory context contains every declared bind
+    SRef<FactoryContext> m_context;
 
     // component Uuid resolves to IComponentIntrospect reference
     std::map<uuids::uuid,SRef<IComponentIntrospect> > m_singletonInstances;
@@ -212,12 +224,6 @@ private:
     // [component Uuid, name] resolves to IComponentIntrospect reference
     std::map<std::pair<uuids::uuid,std::string>,SRef<IComponentIntrospect> > m_namedSingletonInstances;
 
-    // component Uuid resolves to [ Interface, [component Uuid , scope] ]
-    // Note : when a specific binding already exists in defaultBindings, it is not added in m_specificBindings
-    SRef<std::map<uuids::uuid, std::map<uuids::uuid, FactoryBindInfos> >> m_specificBindings;
-
-    // component Uuid resolves to [ [interface Uuid , name] , [component Uuid , scope] ]
-    SRef<std::map<uuids::uuid, std::map<std::pair<uuids::uuid,std::string>, FactoryBindInfos> >> m_specificNamedBindings;
     SRef<IRegistry> m_resolver;
     SRef<IAliasManager> m_aliasManager;
     SRef<IPropertyManager> m_propertyManager;

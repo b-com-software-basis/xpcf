@@ -87,7 +87,7 @@
         </component>
     </configuration>
     <properties>
-        <configure component="VirtualGuitarist component">
+        <configure component="VirtualGuitarist">
                 <property name="blurFactor" type="double" value="2.0"/>
                 <property name="blurScale" type="double" access="ro">
                     <value>0.2</value>

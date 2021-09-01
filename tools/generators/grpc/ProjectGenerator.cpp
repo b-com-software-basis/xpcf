@@ -23,8 +23,7 @@ std::string findRemakenRulesStr = "# Author(s) : Loic Touraine, Stephane Leduc\n
 "}\n\nmessage(\"Remaken qmake build rules used : \" $$QMAKE_REMAKEN_RULES_ROOT)\n";
 
 // TODO : package information should depend upon the generator used ! and grpc/protobuf version should be added from metadata !
-std::string pkgdepsStr = "protobuf|3.15.6|protobuf|brew@system\n"
-        "xpcf|2.5.0|xpcf|@github|https://github.com/SolarFramework/binaries/releases/download\n";
+std::string pkgdepsStr = "xpcf|2.5.0|xpcf|@github|https://github.com/SolarFramework/binaries/releases/download\n";
 
 ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenerator>())
 {
@@ -117,7 +116,7 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
     projectFile << "include ($${QMAKE_REMAKEN_RULES_ROOT}/templatelibconfig.pri)\n\n";
     projectFile << "include (" << priFileName << ")\n\n";
     projectFile << "\nunix:!android {\n    QMAKE_CXXFLAGS += -Wignored-qualifiers\n#    QMAKE_LINK=clang++\n#    QMAKE_CXX = clang++\n}\n\n";
-    projectFile << "\nlinux:!android {\n    LIBS += -ldl\n    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc\n}\n\n";
+    projectFile << "\nlinux:!android {\n    LIBS += -ldl\n    }\n\n";
     projectFile << "macx {\n    DEFINES += _MACOS_TARGET_\n    QMAKE_MAC_SDK= macosx\n";
     projectFile << "    QMAKE_CFLAGS += -mmacosx-version-min=10.7 -std=c11 #-x objective-c++\n";
     projectFile << "    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c11 -std=c++11 -O3 -fPIC#-x objective-c++\n";

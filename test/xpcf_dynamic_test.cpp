@@ -542,7 +542,7 @@ BOOST_FIXTURE_TEST_CASE( test_component_multibind,XpcfFixture,* boost::unit_test
     xpcfComponentManager->clear();
 }
 
-BOOST_FIXTURE_TEST_CASE( test_factory_newcontext,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
+BOOST_FIXTURE_TEST_CASE( test_factory_sharedcontext,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
     fs::path confPath = "xpcf_registry_test.xml";
     fs::detail::utf8_codecvt_facet utf8;
@@ -550,23 +550,73 @@ BOOST_FIXTURE_TEST_CASE( test_factory_newcontext,XpcfFixture,* boost::unit_test:
 
     BOOST_TEST_MESSAGE("Resolve IGuitarist default binding");
     SRef<IGuitarist> rIGuitaristXpcf1 = xpcfComponentManager->resolve<IGuitarist>();
-    BOOST_TEST_MESSAGE("Multibind guitars:");
-    for (auto guitarBrand: rIGuitaristXpcf1->getGuitarCollection()) {
-        BOOST_TEST_MESSAGE("guitar brand:" << guitarBrand);
-    }
 
-    auto newFactory = xpcfComponentManager->getFactory()->createNewFactoryContext(xpcf::ContextMode::Shared);
-    SRef<IElectricGuitar> rIIbanez = newFactory->resolve<IElectricGuitar>("ibanezGuitar");
-    SRef<IGuitarist> rIGuitaristNewFactory1 = newFactory->resolve<IGuitarist>();
-    rIGuitaristNewFactory1->bindTo<xpcf::IInjectable>()->inject<IElectricGuitar>(rIIbanez,"electricGuitar");
+    auto sharedFactory = xpcfComponentManager->getFactory()->createNewFactoryContext(xpcf::ContextMode::Shared);
+    SRef<IElectricGuitar> rIIbanez = sharedFactory->resolve<IElectricGuitar>("ibanezGuitar");
+    SRef<IGuitarist> rIGuitaristSharedFactory1 = sharedFactory->resolve<IGuitarist>();
+    rIGuitaristSharedFactory1->bindTo<xpcf::IInjectable>()->inject<IElectricGuitar>(rIIbanez,"electricGuitar");
     auto elecGuitar = rIGuitaristXpcf1->getGuitar(IGuitar::GuitarType::Electric);
     BOOST_TEST_MESSAGE("xpcf factory VirtualGuitarist electricguitar brand:" << elecGuitar->getGuitarBrand());
-    elecGuitar = rIGuitaristNewFactory1->getGuitar(IGuitar::GuitarType::Electric);
-    BOOST_TEST_MESSAGE("new shared factory VirtualGuitarist electricguitar brand:" << elecGuitar->getGuitarBrand());
+    elecGuitar = rIGuitaristSharedFactory1->getGuitar(IGuitar::GuitarType::Electric);
+    BOOST_TEST_MESSAGE("shared factory VirtualGuitarist electricguitar brand:" << elecGuitar->getGuitarBrand());
     auto rIGuitaristXpcf2 = xpcfComponentManager->resolve<IGuitarist>();
-    auto rIGuitaristNewFactory2 = newFactory->resolve<IGuitarist>();
+    auto rIGuitaristSharedFactory2 = sharedFactory->resolve<IGuitarist>();
     BOOST_TEST_MESSAGE("xpcf VirtualGuitarist adresses: 1=" << rIGuitaristXpcf1.get()<<" 2="<<rIGuitaristXpcf2.get());
-    BOOST_TEST_MESSAGE("new factory VirtualGuitarist adresses: 1=" << rIGuitaristNewFactory1.get()<<" 2="<<rIGuitaristNewFactory2.get());
+    BOOST_TEST_MESSAGE("shared factory VirtualGuitarist adresses: 1=" << rIGuitaristSharedFactory1.get()<<" 2="<<rIGuitaristSharedFactory2.get());
+
+    // Change bindings upon shared factory for VirtualGuitarist and default Guitar
+    // VirtualGuitarist is not a singleton anymore ...
+    sharedFactory->bind(xpcf::toUUID<IGuitarist>(),
+                        xpcf::toUUID("63ff193d-93e6-4ede-9947-22f864ac843f"),
+                        xpcf::BindingScope::Transient,
+                        xpcf::BindingRange::All);
+    sharedFactory->bind(xpcf::toUUID("63ff193d-93e6-4ede-9947-22f864ac843f"),
+                        xpcf::toUUID<IGuitar>(),
+                        xpcf::toUUID("04E2254F-3349-4DC1-8EED-86835315FB6B"),
+                        xpcf::BindingScope::Transient,
+                        xpcf::BindingRange::All);
+
+    // And retrieve new guitarist from componentmanager, as the sharedFactory is shared with the CM factory
+    auto rIGuitaristXpcf3 = xpcfComponentManager->resolve<IGuitarist>();
+
+    auto guitar = rIGuitaristXpcf3->getGuitar(IGuitar::GuitarType::Acoustic);
+    BOOST_TEST_MESSAGE("xpcf factory VirtualGuitarist acoustic guitar brand:" << guitar->getGuitarBrand());
+    guitar = rIGuitaristSharedFactory1->getGuitar(IGuitar::GuitarType::Acoustic);
+    BOOST_TEST_MESSAGE("shared factory VirtualGuitarist created before modified bind acoustic guitar brand:" << guitar->getGuitarBrand());
+    BOOST_TEST_MESSAGE("xpcf VirtualGuitarist adresses after bind changed to Transient: 1=" << rIGuitaristXpcf1.get()<<" 2="<<rIGuitaristXpcf3.get());
+
+    xpcfComponentManager->clear();
+}
+
+BOOST_FIXTURE_TEST_CASE( test_factory_clonedcontext,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
+{
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+
+    SRef<IGuitarist> rIGuitaristXpcf = xpcfComponentManager->resolve<IGuitarist>();
+
+    auto clonedFactory = xpcfComponentManager->getFactory()->createNewFactoryContext(xpcf::ContextMode::Cloned);
+    // Change specific bind for virtual guitarist for IGuitar to Ibanez electric guitar in cloned factory.
+    BOOST_TEST_MESSAGE("Change cloned factory IGuitarist default guitar bind to Ibanez");
+
+    clonedFactory->bind(xpcf::toUUID("63ff193d-93e6-4ede-9947-22f864ac843f"),
+                        xpcf::toUUID<IGuitar>(),
+                        xpcf::toUUID("{ED894181-0FDC-4326-A068-CB2A5899CB13}"),
+                        xpcf::BindingScope::Transient,
+                        xpcf::BindingRange::All);
+
+    BOOST_TEST_MESSAGE("Resolve IGuitarist xpcf binding");
+    SRef<IGuitarist> rIGuitaristXpcf1 = xpcfComponentManager->resolve<IGuitarist>();
+
+    BOOST_TEST_MESSAGE("Resolve IGuitarist cloned factory binding");
+    SRef<IGuitarist> rIGuitaristClonedFactory1 = clonedFactory->resolve<IGuitarist>();
+
+    auto guitar = rIGuitaristXpcf1->getGuitar(IGuitar::GuitarType::Acoustic);
+    BOOST_TEST_REQUIRE(guitar->getGuitarBrand() == "Takamine", "xpcf factory VirtualGuitarist created before modified bind guitar brand:" << guitar->getGuitarBrand());
+    guitar = rIGuitaristClonedFactory1->getGuitar(IGuitar::GuitarType::Acoustic);
+    BOOST_TEST_REQUIRE(guitar->getGuitarBrand() == "Ibanez", "cloned factory VirtualGuitarist guitar brand:" << guitar->getGuitarBrand());
+
     xpcfComponentManager->clear();
 }
 BOOST_AUTO_TEST_SUITE_END()

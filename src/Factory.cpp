@@ -54,18 +54,25 @@ static const map<string,BindingRange> bindingRangeConvertMap = {
     {"withparents",BindingRange::WithParents}
 };
 
+void FactoryContext::clear()
+{
+    autoBindings.clear();
+    defaultBindings.clear();
+    multiBindings.clear();
+    namedBindings.clear();
+    namedBindingsProperties.clear();
+    bindingsProperties.clear();
+    multiBindingsProperties.clear();
+    factoryMethods.clear();
+    specificBindings.clear();
+    specificNamedBindings.clear();
+}
+
+
 Factory::Factory():ComponentBase(toUUID<Factory>())
 {
     // bind structures must exist prior to Factory inner binds
-    m_autoBindings = utils::make_shared<std::map<uuids::uuid, FactoryBindInfos>>() ;
-    m_defaultBindings = utils::make_shared<std::map<uuids::uuid, FactoryBindInfos>>() ;
-    m_multiBindings = utils::make_shared<std::map<uuids::uuid, VectorCollection<FactoryBindInfos>>> ();
-    m_bindingsProperties = utils::make_shared<std::map<std::pair<uuids::uuid, uuids::uuid>, std::string >> ();
-    m_multiBindingsProperties = utils::make_shared<std::map<std::pair<uuids::uuid, uuids::uuid>, std::string >> ();
-    m_namedBindings = utils::make_shared<std::map<std::pair<uuids::uuid,std::string>, FactoryBindInfos >> ();
-    m_namedBindingsProperties = utils::make_shared<std::map<std::pair<uuids::uuid,std::string>, std::string >> ();
-    m_specificBindings = utils::make_shared<std::map<uuids::uuid, std::map<uuids::uuid, FactoryBindInfos> >> ();
-    m_specificNamedBindings = utils::make_shared<std::map<uuids::uuid, std::map<std::pair<uuids::uuid,std::string>, FactoryBindInfos> >> ();
+    m_context = utils::make_shared<FactoryContext>() ;
 
     declareInterface<IFactory>(this);
     declareInterface<AbstractFactory>(this);
@@ -92,44 +99,24 @@ SRef<IFactory> Factory::createNewFactoryContext(ContextMode ctxMode)
         f->m_aliasManager = m_aliasManager;
         f->m_propertyManager = m_propertyManager;
         f->m_resolver = m_resolver;
-        *(f->m_autoBindings) = *m_autoBindings;
-        *(f->m_defaultBindings) = *m_defaultBindings;
-        *(f->m_multiBindings) = *m_multiBindings;
-        *(f->m_bindingsProperties) = *m_bindingsProperties;
-        *(f->m_multiBindingsProperties) = *m_multiBindingsProperties;
-        *(f->m_namedBindings) = *m_namedBindings;
-        *(f->m_namedBindingsProperties) = *m_namedBindingsProperties;
-        f->m_factoryMethods = m_factoryMethods;
-        *(f->m_specificBindings) = *m_specificBindings;
-        *(f->m_specificNamedBindings) = *m_specificNamedBindings;
+
+        *(f->m_context) = *m_context;
     }
     if (ctxMode == ContextMode::Shared) {
         f->m_propertyManager = m_propertyManager;
         f->m_aliasManager = m_aliasManager;
         f->m_resolver = m_resolver;
-        f->m_autoBindings = m_autoBindings;
-        f->m_defaultBindings = m_defaultBindings;
-        f->m_multiBindings = m_multiBindings;
-        f->m_bindingsProperties = m_bindingsProperties;
-        f->m_multiBindingsProperties = m_multiBindingsProperties;
-        f->m_namedBindings = m_namedBindings;
-        f->m_namedBindingsProperties = m_namedBindingsProperties;
-        f->m_factoryMethods = m_factoryMethods;
-        f->m_specificBindings = m_specificBindings;
-        f->m_specificNamedBindings = m_specificNamedBindings;
+
+        f->m_context = m_context;
     }
     return IComponentIntrospect::acquireComponentRef<Factory, IComponentIntrospect>(f)->bindTo<IFactory>();
 }
 
 void Factory::clear()
 {
-    m_autoBindings->clear();
-    m_defaultBindings->clear();
-    m_specificBindings->clear();
-    m_specificNamedBindings->clear();
+    m_context->clear();
     m_singletonInstances.clear();
-    m_namedBindings->clear();
-    m_multiBindings->clear();
+    m_namedSingletonInstances.clear();
 }
 
 FactoryBindInfos Factory::getComponentBindingInfos(tinyxml2::XMLElement * xmlBindElt)
@@ -182,7 +169,7 @@ void Factory::declareSingleBind(const uuids::uuid & interfaceUUID, tinyxml2::XML
 void Factory::declareMultiBind(const uuids::uuid & interfaceUUID, tinyxml2::XMLElement * xmlBindElt)
 {
     tinyxml2::XMLElement *element = xmlBindElt->FirstChildElement("component");
-    VectorCollection<FactoryBindInfos> & binds = (*m_multiBindings)[interfaceUUID];
+    VectorCollection<FactoryBindInfos> & binds = m_context->multiBindings[interfaceUUID];
     while (element != nullptr) {
         FactoryBindInfos infos = getComponentBindingInfos(element);
         infos.bindingRangeMask |= BindingRange::Default;
@@ -289,23 +276,23 @@ SRef<IComponentIntrospect> Factory::resolveFromModule(const uuids::uuid & compon
 
 void Factory::autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID)
 {
-    if (! mapContains(m_defaultBindings,interfaceUUID)) {
+    if (! mapContains(m_context->defaultBindings,interfaceUUID)) {
         // no explicit bind already exists : add autobind
-        (*m_autoBindings)[interfaceUUID] = FactoryBindInfos{instanceUUID, BindingScope::Transient, BindingRange::All, ""};
+        m_context->autoBindings[interfaceUUID] = FactoryBindInfos{instanceUUID, BindingScope::Transient, BindingRange::All, ""};
     }
 }
 
 void Factory::bind(const uuids::uuid & interfaceUUID, const FactoryBindInfos & bindInfos)
 {
-    if (mapContains(m_defaultBindings,interfaceUUID)) {
+    if (mapContains(m_context->defaultBindings,interfaceUUID)) {
         // bind already exists : error ???
         // should we return or update the bind ?
     }
-    if (mapContains(m_autoBindings,interfaceUUID)) {
+    if (mapContains(m_context->autoBindings,interfaceUUID)) {
         // remove autobind as an explicit bind is added
-        m_autoBindings->erase(interfaceUUID);
+        m_context->autoBindings.erase(interfaceUUID);
     }
-    (*m_defaultBindings)[interfaceUUID] = bindInfos;
+    m_context->defaultBindings[interfaceUUID] = bindInfos;
 }
 
 void Factory::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
@@ -320,10 +307,10 @@ void Factory::bind(const std::string & name, const uuids::uuid & interfaceUUID,
                    const FactoryBindInfos & bindInfos)
 {
     pair<uuids::uuid,string> key = make_pair(interfaceUUID,name);
-    if (mapContains(m_namedBindings,key)) {
+    if (mapContains(m_context->namedBindings,key)) {
         // bind already exists : error ???
     }
-    (*m_namedBindings)[key] = bindInfos;
+    m_context->namedBindings[key] = bindInfos;
 }
 
 void Factory::bind(const std::string & name, const uuids::uuid & interfaceUUID,
@@ -338,7 +325,7 @@ void Factory::bind(const uuids::uuid & interfaceUUID,
                    const FactoryBindInfos & bindInfos)
 {
     bind(interfaceUUID, bindInfos);
-    m_factoryMethods[bindInfos.componentUUID] = factoryFunc;
+    m_context->factoryMethods[bindInfos.componentUUID] = factoryFunc;
 }
 
 void Factory::bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
@@ -354,7 +341,7 @@ void Factory::bind(const std::string & name, const uuids::uuid & interfaceUUID,
                    const FactoryBindInfos & bindInfos)
 {
     bind(name, interfaceUUID, bindInfos);
-    m_factoryMethods[bindInfos.componentUUID] = factoryFunc;
+    m_context->factoryMethods[bindInfos.componentUUID] = factoryFunc;
 }
 
 void Factory::bind(const std::string & name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
@@ -370,7 +357,7 @@ void Factory::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & 
                    const FactoryBindInfos & bindInfos)
 {
     bind(targetComponentUUID, interfaceUUID, bindInfos);
-    m_factoryMethods[bindInfos.componentUUID] = factoryFunc;
+    m_context->factoryMethods[bindInfos.componentUUID] = factoryFunc;
 }
 
 void Factory::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
@@ -386,7 +373,7 @@ void Factory::bind(const uuids::uuid & targetComponentUUID, const std::string & 
                    const FactoryBindInfos & bindInfos)
 {
     bind(targetComponentUUID, name, interfaceUUID, bindInfos);
-    m_factoryMethods[bindInfos.componentUUID] = factoryFunc;
+    m_context->factoryMethods[bindInfos.componentUUID] = factoryFunc;
 }
 
 void Factory::bind(const uuids::uuid & targetComponentUUID, const std::string & name, const uuids::uuid & interfaceUUID,
@@ -401,10 +388,10 @@ void Factory::bind(const uuids::uuid & targetComponentUUID, const std::string & 
 void Factory::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & interfaceUUID,
                    const FactoryBindInfos & bindInfos)
 {
-    if (mapContains(m_specificBindings,targetComponentUUID)) {
+    if (mapContains(m_context->specificBindings,targetComponentUUID)) {
         // bind already exists : error ???
     }
-    (*m_specificBindings)[targetComponentUUID][interfaceUUID] = bindInfos;
+    m_context->specificBindings[targetComponentUUID][interfaceUUID] = bindInfos;
 }
 
 
@@ -418,10 +405,10 @@ void Factory::bind(const uuids::uuid & targetComponentUUID, const uuids::uuid & 
 void Factory::bind(const uuids::uuid & targetComponentUUID, const std::string & name,
                    const uuids::uuid & interfaceUUID, const FactoryBindInfos & bindInfos)
 {
-    if (mapContains(m_specificNamedBindings,targetComponentUUID)) {
+    if (mapContains(m_context->specificNamedBindings,targetComponentUUID)) {
         // bind already exists : error ???
     }
-    (*m_specificNamedBindings)[targetComponentUUID][ make_pair(interfaceUUID,name)] = bindInfos;
+    m_context->specificNamedBindings[targetComponentUUID][ make_pair(interfaceUUID,name)] = bindInfos;
 }
 
 void Factory::bind(const uuids::uuid & targetComponentUUID, const std::string & name,
@@ -439,9 +426,9 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
     for (auto [contextType,contextValue] : contextLevels) {
         if (contextType == ContextType::Component) {
             auto componentUUID = contextValue.componentUUID;
-            if (mapContains(m_specificBindings, componentUUID)) {
-                if (mapContains((*m_specificBindings)[componentUUID], interfaceUUID)) {
-                    FactoryBindInfos bindInfos = (*m_specificBindings)[componentUUID][interfaceUUID];
+            if (mapContains(m_context->specificBindings, componentUUID)) {
+                if (mapContains(m_context->specificBindings[componentUUID], interfaceUUID)) {
+                    FactoryBindInfos bindInfos = m_context->specificBindings[componentUUID][interfaceUUID];
                     return bindInfos;
                 }
             }
@@ -459,16 +446,16 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
     // no specific binding found for this interface in contexts : search for a default binding
     if (contextLevels.empty() ||
             contextLevels.back().second.bindingRangeMask & (BindingRange::Default |BindingRange::All)) {
-        if (mapContains(m_defaultBindings, interfaceUUID)) {
-            FactoryBindInfos bindInfos = m_defaultBindings->at(interfaceUUID);
+        if (mapContains(m_context->defaultBindings, interfaceUUID)) {
+            FactoryBindInfos bindInfos = m_context->defaultBindings.at(interfaceUUID);
             return bindInfos;
         }
     }
     // no default binding found for this interface : search for an autobinding
     if (contextLevels.empty() ||
             contextLevels.back().second.bindingRangeMask & BindingRange::All) {
-        if (mapContains(m_autoBindings,interfaceUUID)) {
-            return m_autoBindings->at(interfaceUUID);
+        if (mapContains(m_context->autoBindings,interfaceUUID)) {
+            return m_context->autoBindings.at(interfaceUUID);
         }
     }
     throw InjectableNotFoundException("No [auto|default|named] binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID));
@@ -482,9 +469,9 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
     for (auto [contextType,contextValue] : contextLevels) {
         if (contextType == ContextType::Component) {
             auto componentUUID = contextValue.componentUUID;
-            if (mapContains(m_specificNamedBindings, componentUUID)) {
-                if (mapContains((*m_specificNamedBindings)[componentUUID], key)) {
-                    FactoryBindInfos bindInfos = (*m_specificNamedBindings)[componentUUID][key];
+            if (mapContains(m_context->specificNamedBindings, componentUUID)) {
+                if (mapContains(m_context->specificNamedBindings[componentUUID], key)) {
+                    FactoryBindInfos bindInfos = m_context->specificNamedBindings[componentUUID][key];
                     return bindInfos;
                 }
             }
@@ -502,8 +489,8 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
     // no specific named binding found for this interface in contexts : search for a default named binding
     if (contextLevels.empty() ||
             contextLevels.back().second.bindingRangeMask & (BindingRange::Named |BindingRange::Default|BindingRange::All)) {
-        if (mapContains(m_namedBindings,key)) {
-            FactoryBindInfos bindInfos = m_namedBindings->at(key);
+        if (mapContains(m_context->namedBindings,key)) {
+            FactoryBindInfos bindInfos = m_context->namedBindings.at(key);
             return bindInfos;
         }
     }
@@ -555,8 +542,8 @@ SRef<IComponentIntrospect> Factory::resolveComponent(const FactoryBindInfos & bi
         return resolveFromModule(componentUUID);
     };
 
-    if (mapContains(m_factoryMethods, componentUUID)) {
-        createComponent =  m_factoryMethods[componentUUID];
+    if (mapContains(m_context->factoryMethods, componentUUID)) {
+        createComponent =  m_context->factoryMethods[componentUUID];
     }
 
     SRef<IComponentIntrospect> componentRef = createComponent();
@@ -630,14 +617,14 @@ const SRef<IEnumerable<SRef<IComponentIntrospect>>> Factory::resolveAll(const uu
                                                                         std::deque<BindContext> contextLevels)
 {
     SRef<ICollection<SRef<IComponentIntrospect>>> componentSet = utils::make_shared<Collection<SRef<IComponentIntrospect>,std::vector>>();
-    if (!mapContains(m_multiBindings,interfaceUUID)) {
+    if (!mapContains(m_context->multiBindings,interfaceUUID)) {
         //no explicit multibind : resolve any existing single bind default or explicit
         componentSet->add(resolve(interfaceUUID, contextLevels));
         return componentSet;
     }
 
     //multibind declared !
-    for (auto bindInfos : m_multiBindings->at(interfaceUUID)) {
+    for (auto bindInfos : m_context->multiBindings.at(interfaceUUID)) {
         contextLevels.push_front({ContextType::Component, bindInfos});
         if (bindInfos.scope == BindingScope::Singleton) {
             if (! mapContains(m_singletonInstances, bindInfos.componentUUID)) {

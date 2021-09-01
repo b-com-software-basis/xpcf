@@ -1,7 +1,8 @@
 #include "GRPCProtoGenerator.h"
-
+#include "RemakenPathHelper.h"
 #include <boost/process.hpp>
 #include <boost/predef.h>
+#include <boost/predef/os.h>
 
 namespace bp = boost::process;
 
@@ -287,8 +288,39 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateIm
 
 void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
-    fs::path toolPath = bp::search_path("protoc");
-    fs::path pluginPath = bp::search_path("grpc_cpp_plugin");
+    fs::path remakenGrpcRoot = RemakenPathHelper::getRemakenRoot();
+    std::vector<fs::path> envPath = boost::this_process::path();
+    remakenGrpcRoot /= "grpc/1.37.1";
+    fs::path remakenGrpcBin = remakenGrpcRoot;
+    remakenGrpcBin /= "/bin/x86_64/shared/release/";
+    fs::path remakenGrpcLibs = remakenGrpcRoot;
+    remakenGrpcLibs /= "/lib/x86_64/shared/release/";
+    std::string SharedLibraryPathEnvName(RemakenPathHelper::sharedLibraryPathEnvName());
+
+    auto env = boost::this_process::environment();
+    bp::environment runEnv = env;
+    fs::detail::utf8_codecvt_facet utf8;
+
+    if (fs::exists(remakenGrpcBin)) {
+        envPath.push_back(remakenGrpcBin);
+        runEnv[SharedLibraryPathEnvName] += remakenGrpcLibs.generic_string(utf8);
+    }
+
+    // else search in brew paths on unixes, what about win ?
+#ifdef BOOST_OS_MACOS_AVAILABLE
+    else if (fs::exists("/usr/local/bin/protoc") && fs::exists("/usr/local/bin/grpc_cpp_plugin")) {
+        envPath.push_back("/usr/local/bin");
+        runEnv[SharedLibraryPathEnvName] += "/usr/local/lib";
+    }
+#endif
+#ifdef BOOST_OS_LINUX_AVAILABLE
+    else if (fs::exists("/home/linuxbrew/.linuxbrew/bin/protoc") && fs::exists("/home/linuxbrew/.linuxbrew/bin/grpc_cpp_plugin")) {
+        envPath.push_back("/home/linuxbrew/.linuxbrew/bin");
+        runEnv[SharedLibraryPathEnvName] += "/home/linuxbrew/.linuxbrew/lib";
+    }
+#endif
+    fs::path toolPath = bp::search_path("protoc", envPath);
+    fs::path pluginPath = bp::search_path("grpc_cpp_plugin", envPath);
     if (toolPath.empty()) {
         std::cerr<<"Error grpc protoc compiler not found : check your grpc installation !"<<std::endl;
         return;
@@ -297,8 +329,9 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
         std::cerr<<"Error grpc cpp plugin not found : check your grpc installation !"<<std::endl;
         return;
     }
+
+
     int result = -1;
-    fs::detail::utf8_codecvt_facet utf8;
     for (auto [name, protoFile] : m_protoNameFilesPathMap) {
         std::cout << "generating grpc service and messages for " << name << " from .proto "<< protoFile.generic_string(utf8) << std::endl;
         std::string protoPath = "--proto_path=";
@@ -313,7 +346,7 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
         std::string plugin = "--plugin=protoc-gen-grpc=";
         plugin += pluginPath.generic_string(utf8).c_str();
 
-        result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destGrpc.c_str(), plugin.c_str());
+        result = bp::system(toolPath, protoPath.c_str(), protoFile.generic_string(utf8).c_str(), destGrpc.c_str(), plugin.c_str(), runEnv, env);
     }
     m_protoFilesPath.clear();
 }

@@ -64,6 +64,7 @@ HEADERS += \ \
     GRPCProtoGenerator.h \
     ProjectGenerator.h \
     ProxyGenerator.h \
+    RemakenPathHelper.h \
     RemoteServiceGenerator.h \
     ServerGenerator.h \
     TypeDescriptor.h \
@@ -84,6 +85,7 @@ SOURCES += \
     MockGenerator.cpp \
     ProjectGenerator.cpp \
     ProxyGenerator.cpp \
+    RemakenPathHelper.cpp \
     RemoteServiceGenerator.cpp \
     ServerGenerator.cpp \
     TypeDescriptor.cpp \
