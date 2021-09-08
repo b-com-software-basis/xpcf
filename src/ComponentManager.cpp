@@ -259,6 +259,9 @@ XPCFErrorCode ComponentManager::loadModules(const char * folderPathStr, bool bRe
 
 SRef<IComponentIntrospect> ComponentManager::create(const uuids::uuid & componentUUID)
 {
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::create uuid="<<uuids::to_string(componentUUID);
+#endif
     SPtr<ModuleMetadata> moduleInfos = findModuleMetadata(getModuleUUID(componentUUID));
     SRef<IComponentIntrospect> componentRef = getModuleManagerInstance()->createComponent(moduleInfos, componentUUID);
     return componentRef;
@@ -266,6 +269,9 @@ SRef<IComponentIntrospect> ComponentManager::create(const uuids::uuid & componen
 
 SRef<IComponentIntrospect> ComponentManager::createComponent(const uuids::uuid & componentUUID)
 {
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::createComponent uuid="<<uuids::to_string(componentUUID);
+#endif
     SRef<IComponentIntrospect> componentRef = create(componentUUID);
     m_factory->inject(componentRef->bindTo<IInjectable>());
 
@@ -280,6 +286,9 @@ SRef<IComponentIntrospect> ComponentManager::createComponent(const uuids::uuid &
 
 SRef<IComponentIntrospect> ComponentManager::createComponent(const char * instanceName, const uuids::uuid & componentUUID)
 {
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::createComponent name="<<instanceName<<" uuid="<<uuids::to_string(componentUUID);
+#endif
     SRef<IComponentIntrospect> componentRef = create(componentUUID);
     m_factory->inject(componentRef->bindTo<IInjectable>());
 

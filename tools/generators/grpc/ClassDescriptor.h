@@ -36,8 +36,8 @@
 // [[xpcf::serverUUID(uuid_string)]] : can be used at class level only : used to specify the xpcf remoting server UUID
 // -> uuid_string is a uuid formed string without quotes !!
 // side note : there will be a need to differentiate between grpc protobuf UUIDs vs flatbuffers UUIDs vs another rpc layer UUIDs ?
-// message receive size can be specified with [[ggrpc::client_receiveSize("size")]] where -1 is unlimited size
-// message send size can be specified with [[ggrpc::client_sendSize("size")]] where -1 is unlimited size
+// message receive size can be specified with [[grpc::client_receiveSize("size")]] where -1 is unlimited size
+// message send size can be specified with [[grpc::client_sendSize("size")]] where -1 is unlimited size
 
 class ClassDescriptor
 {

@@ -49,9 +49,9 @@ public:
     virtual void declareAliases(tinyxml2::XMLElement * xmlModuleElt) = 0;
     virtual bool aliasExists(Type type, const std::string & name) = 0;
     virtual void declareAlias(Type type, const std::string & name, const uuids::uuid & uuid) = 0;
-    virtual const uuids::uuid & resolveComponentAlias(const std::string & name) const = 0;
-    virtual const uuids::uuid & resolveInterfaceAlias(const std::string & name) const = 0;
-    virtual const uuids::uuid & resolveModuleAlias(const std::string & name)const = 0;
+    virtual const uuids::uuid & resolveComponentAlias(const std::string & name) = 0;
+    virtual const uuids::uuid & resolveInterfaceAlias(const std::string & name) = 0;
+    virtual const uuids::uuid & resolveModuleAlias(const std::string & name) = 0;
 };
 
 template <> struct InterfaceTraits<IAliasManager>
@@ -71,18 +71,23 @@ public:
     void declareAliases(tinyxml2::XMLElement * xmlModuleElt) override;
     bool aliasExists(Type type, const std::string & name) override;
     void declareAlias(Type type, const std::string & name, const uuids::uuid & uuid) override;
-    const uuids::uuid & resolveComponentAlias(const std::string & name) const override;
-    const uuids::uuid & resolveInterfaceAlias(const std::string & name) const override;
-    const uuids::uuid & resolveModuleAlias(const std::string & name)const override;
+    const uuids::uuid & resolveComponentAlias(const std::string & name) override;
+    const uuids::uuid & resolveInterfaceAlias(const std::string & name) override;
+    const uuids::uuid & resolveModuleAlias(const std::string & name) override;
     void unloadComponent () override final;
 
 private:
     void declareExplicitAlias(Type type, const std::string & name, const uuids::uuid & uuid);
     void declareAliasNode(tinyxml2::XMLElement * xmlAliasElt);
+    const uuids::uuid & resolveAlias(const std::string & name, const std::map<std::string, uuids::uuid> & elementMap);
+
     std::map<std::string, uuids::uuid> m_componentResolverMap;
     std::map<std::string, uuids::uuid> m_interfaceResolverMap;
     std::map<std::string, uuids::uuid> m_moduleResolverMap;
     std::map<Type,std::function<void(const std::string & name, const uuids::uuid & uuid,bool)>> m_addAliasFunction;
+#ifdef XPCF_WITH_LOGS
+    boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+#endif
 };
 
 template <> struct ComponentTraits<AliasManager>

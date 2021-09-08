@@ -29,6 +29,10 @@
 using namespace std;
 using std::placeholders::_1;
 
+#ifdef XPCF_WITH_LOGS
+namespace logging = boost::log;
+#endif
+
 XPCF_DEFINE_FACTORY_CREATE_INSTANCE(org::bcom::xpcf::AliasManager);
 
 namespace org { namespace bcom { namespace xpcf {
@@ -70,6 +74,10 @@ AliasManager::AliasManager():ComponentBase(toUUID<AliasManager>())
     m_addAliasFunction[AliasManager::Type::Module] = [&](const std::string & name, const uuids::uuid & uuid, bool forceReplace) {
         ::org::bcom::xpcf::addAlias(m_moduleResolverMap, name, uuid, forceReplace);
     };
+#ifdef XPCF_WITH_LOGS
+    m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("AliasManager"));
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor AliasManager::AliasManager () called!";
+#endif
 }
 
 void AliasManager::clear()
@@ -91,7 +99,7 @@ void AliasManager::declareExplicitAlias(Type type, const std::string & name, con
 
 bool AliasManager::aliasExists(Type type, const std::string & name)
 {
-    switch(type) {
+    switch (type) {
         case IAliasManager::Type::Interface :
             return aliasExistsIn(m_interfaceResolverMap,name);
         case IAliasManager::Type::Component :
@@ -125,27 +133,36 @@ void AliasManager::declareAliases(tinyxml2::XMLElement * xmlAliasManagerElt)
     processXmlNode(xmlAliasManagerElt, XMLALIASNODE, std::bind(&AliasManager::declareAliasNode, this, _1));
 }
 
-const uuids::uuid & resolveAlias(const std::string & name, const std::map<std::string, uuids::uuid> & elementMap)
+const uuids::uuid & AliasManager::resolveAlias(const std::string & name, const std::map<std::string, uuids::uuid> & elementMap)
 {
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"AliasManager::resolveAlias name="<<name;
+#endif
     if (elementMap.find(name) == elementMap.end()) {
+#ifdef XPCF_WITH_LOGS
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"AliasManager::resolveAlias no alias found for "<<name;
+#endif
         throw Exception("Unknown alias : no alias found for name " + name);
     }
+#ifdef XPCF_WITH_LOGS
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"AliasManager::resolveAlias name='"<<name<<"' resolved to uuid='"<<uuids::to_string(elementMap.at(name))<<"'";
+#endif
     return elementMap.at(name);
 }
 
-const uuids::uuid & AliasManager::resolveComponentAlias(const std::string & name) const
+const uuids::uuid & AliasManager::resolveComponentAlias(const std::string & name)
 {
-    return ::org::bcom::xpcf::resolveAlias(name, m_componentResolverMap);
+    return resolveAlias(name, m_componentResolverMap);
 }
 
-const uuids::uuid & AliasManager::resolveInterfaceAlias(const std::string & name) const
+const uuids::uuid & AliasManager::resolveInterfaceAlias(const std::string & name)
 {
-    return ::org::bcom::xpcf::resolveAlias(name, m_interfaceResolverMap);
+    return resolveAlias(name, m_interfaceResolverMap);
 }
 
-const uuids::uuid & AliasManager::resolveModuleAlias(const std::string & name) const
+const uuids::uuid & AliasManager::resolveModuleAlias(const std::string & name)
 {
-    return ::org::bcom::xpcf::resolveAlias(name, m_moduleResolverMap);
+    return resolveAlias(name, m_moduleResolverMap);
 }
 
 

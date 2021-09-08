@@ -54,6 +54,8 @@ private:
     #define XPCF_GRPC_STREAMING [[grpc::streaming]]
     #define XPCF_GRPC_CLIENT_STREAMING [[grpc::client_streaming]]
     #define XPCF_GRPC_SERVER_STREAMING [[grpc::server_streaming]]
+    #define XPCF_GRPC_CLIENT_RECV_SIZE(size) [[grpc::client_receiveSize(size)]]
+    #define XPCF_GRPC_CLIENT_SEND_SIZE(size) [[grpc::client_sendSize(size)]]
 #else
     #define ATTRIBUTE(X)
     #define ATTRIB_1ARG(X, ARG)
@@ -69,6 +71,8 @@ private:
     #define XPCF_GRPC_STREAMING
     #define XPCF_GRPC_CLIENT_STREAMING
     #define XPCF_GRPC_SERVER_STREAMING
+    #define XPCF_GRPC_CLIENT_RECV_SIZE(size)
+    #define XPCF_GRPC_CLIENT_SEND_SIZE(size)
 #endif
 
 #endif // HELPERS_H

@@ -214,6 +214,7 @@ private:
     FactoryBindInfos resolveBind(const uuids::uuid & interfaceUUID, const std::string & name,  std::deque<BindContext> contextLevels );
 #ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
+    std::stringstream log(const FactoryBindInfos & bindInfos);
 #endif
     // The factory context contains every declared bind
     SRef<FactoryContext> m_context;

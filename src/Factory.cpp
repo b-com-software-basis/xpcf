@@ -33,6 +33,10 @@ using placeholders::_2;
 
 XPCF_DEFINE_FACTORY_CREATE_INSTANCE(org::bcom::xpcf::Factory);
 
+#ifdef XPCF_WITH_LOGS
+namespace logging = boost::log;
+#endif
+
 namespace org { namespace bcom { namespace xpcf {
 
 constexpr const char * XMLBINDINGSNODE = "bindings";
@@ -86,12 +90,63 @@ Factory::Factory():ComponentBase(toUUID<Factory>())
         autobind(interfaceUUID,componentUUID);
     };
     m_resolver->setBinder(bindFunc);
+#ifdef XPCF_WITH_LOGS
+    m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("Factory"));
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor Factory::Factory () called!";
+#endif
 }
 
+#ifdef XPCF_WITH_LOGS
+std::stringstream Factory::log(const FactoryBindInfos & bindInfos)
+{
+    std::string scope,range;
+    range = "|";
+    scope = "Transient";
+    if (bindInfos.bindingRangeMask & BindingRange::Explicit) {
+        range += " Explicit |";
+    }
+    if (bindInfos.bindingRangeMask & BindingRange::WithParents) {
+        range += " WithParents |";
+    }
+    if (bindInfos.bindingRangeMask & BindingRange::Named) {
+        range += " Named |";
+    }
+    if (bindInfos.bindingRangeMask & BindingRange::Default) {
+        range += " Default |";
+    }
+    if (bindInfos.bindingRangeMask & BindingRange::All) {
+        range += " All |";
+    }
+    if (bindInfos.scope == BindingScope::Singleton) {
+        scope = "Singleton";
+    }
+    std::stringstream result;
+    result << "Bind infos:"<<std::endl;
+    result << "=> component uuid= '" << uuids::to_string(bindInfos.componentUUID)<<"'"<<std::endl;
+    result << "=> scope         = "<<scope<<std::endl;
+    result << "=> range         = "<<range<<std::endl;
+    result << "=> properties    = "<<bindInfos.properties<<std::endl;
+    return result;
+}
+#endif
 // the context can be shared from xpcf main factory, or dedicated to this new factory context and in this case empty
 // however, if the context is empty, how can the user populate the registry, aliases, props as the factory has no load method and for the moment doesn't provide access to its inner components ..?
 SRef<IFactory> Factory::createNewFactoryContext(ContextMode ctxMode)
 {
+#ifdef XPCF_WITH_LOGS
+    std::string mode;
+    switch (ctxMode) {
+    case ContextMode::Empty : mode = "empty";
+        break;
+    case ContextMode::Cloned : mode = "cloned";
+        break;
+    case ContextMode::Shared : mode = "shared";
+        break;
+    default:
+        break;
+    }
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::createNewFactoryContext with mode="<<mode;
+#endif
     Factory * f = ComponentFactory::createInstance<Factory>();
     if (ctxMode == ContextMode::Cloned) {
         // TODO clone alias, props informations
@@ -515,6 +570,9 @@ uuids::uuid Factory::getComponentUUID(const uuids::uuid & interfaceUUID, const s
 
 void Factory::inject(SRef<IInjectable> component, std::deque<BindContext> contextLevels)
 {
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::inject";
+#endif
     for (auto injectable : component->getInjectables()) {
         try {
             if (!injectable->isMulti()) {
@@ -545,7 +603,9 @@ SRef<IComponentIntrospect> Factory::resolveComponent(const FactoryBindInfos & bi
     if (mapContains(m_context->factoryMethods, componentUUID)) {
         createComponent =  m_context->factoryMethods[componentUUID];
     }
-
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolveComponent component uuid="<<uuids::to_string(componentUUID);
+#endif
     SRef<IComponentIntrospect> componentRef = createComponent();
     inject(componentRef->bindTo<IInjectable>(), contextLevels);
     if (componentRef->implements<IConfigurable>()) {
@@ -570,7 +630,10 @@ SRef<IComponentIntrospect> Factory::resolveComponent(const FactoryBindInfos & bi
 SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, std::deque<BindContext> contextLevels)
 {
     FactoryBindInfos bindInfos = resolveBind(interfaceUUID, contextLevels);
-
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolve interface uuid="<<uuids::to_string(interfaceUUID);
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<log(bindInfos).str();
+#endif
     contextLevels.push_front({ContextType::Component, bindInfos});
     if (bindInfos.scope == BindingScope::Singleton) {
         if (! mapContains(m_singletonInstances, bindInfos.componentUUID)) {

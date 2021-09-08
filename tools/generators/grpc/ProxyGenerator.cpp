@@ -175,7 +175,7 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
             blockMgr.out() << "if (!grpcRemoteStatus.ok())";
             {
                 block_guard condBlk(blockMgr);
-                blockMgr.out() << "std::cout << \"" + m->m_rpcName + "rpc failed.\" << std::endl;\n";
+                blockMgr.out() << "std::cout << \"" + m->m_rpcName + " rpc failed.\" << std::endl;\n";
                 blockMgr.out() << "throw xpcf::RemotingException(\"" << m_grpcClassName <<"\",\""<< m->m_rpcName <<"\",static_cast<uint32_t>(grpcRemoteStatus.error_code()));\n";//TODO : differentiate semantic return type from status return type : provide status type name ?
             }
             if (m->hasOutputs())  {
@@ -268,6 +268,7 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
             blockMgr.out() << "return;\n";
         }
         blockMgr.newline();
+        // grpc channel is opened once in onConfigured, as opening the channel has some overhead, it should be maintain as long as possible
         blockMgr.out() << "XPCFErrorCode " + m_className +"::onConfigured()\n";
         {
             block_guard methodBlk(blockMgr);
@@ -280,14 +281,14 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
                      blockMgr.out() << "ch_args.SetMaxSendMessageSize("<<c->getClientSendSize()<<");\n";
                 }
                 blockMgr.out() << "m_channel = ::grpc::CreateCustomChannel(m_channelUrl,\n";
-                blockMgr.out() << "xpcf::GrpcHelper::getCredentials(static_castxpcf::grpcCredentials(m_channelCredentials)),\n";
+                blockMgr.out() << "xpcf::GrpcHelper::getCredentials(static_cast<xpcf::grpcCredentials>(m_channelCredentials)),\n";
                 blockMgr.out() << "ch_args);\n";
             }
             else {
                 blockMgr.out() << "m_channel = ::grpc::CreateChannel(m_channelUrl, xpcf::GrpcHelper::getCredentials(static_cast<xpcf::grpcCredentials>(m_channelCredentials)));\n";
-                blockMgr.out() << "m_grpcStub = ::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::NewStub(m_channel);\n";
-                blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
             }
+            blockMgr.out() << "m_grpcStub = ::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::NewStub(m_channel);\n";
+            blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
         }
         blockMgr.newline();
         processBodyMethods(c, blockMgr);
