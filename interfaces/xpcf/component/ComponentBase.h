@@ -52,7 +52,7 @@ public:
     const char* getDescription(const uuids::uuid& interfaceUUID) const final;
     const InterfaceMetadata & getMetadata(const uuids::uuid& interfaceUUID) const final;
 
-    inline virtual void onInjected() override {}
+    virtual void onInjected() override;
     // It is the component that decides if it must or must not unload when all
     // refs are out
     virtual void unloadComponent() = 0;

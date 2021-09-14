@@ -18,6 +18,8 @@ macx {
 
 DEFINES += WITHREMOTING
 DEFINES += XPCF_USE_BOOST
+#DEFINES += XPCF_WITH_LOGS
+
 staticlib {
     DEFINES += XPCF_STATIC
     DEPENDENCIESCONFIG = staticlib
@@ -99,6 +101,8 @@ HEADERS += \
     interfaces/swig/xpcf_properties.i \
     interfaces/swig/xpcf_threading.i \
     interfaces/swig/xpcf_traits.i \
+    interfaces/xpcf/api/IAliasManager.h \
+    interfaces/xpcf/api/IRegistryManager.h \
     interfaces/xpcf/api/InjectableMetadata.h \
     interfaces/xpcf/core/helpers.h \
     interfaces/xpcf/remoting/BaseBuffer.h \

@@ -613,7 +613,7 @@ BOOST_FIXTURE_TEST_CASE( test_factory_clonedcontext,XpcfFixture,* boost::unit_te
     SRef<IGuitarist> rIGuitaristClonedFactory1 = clonedFactory->resolve<IGuitarist>();
 
     auto guitar = rIGuitaristXpcf1->getGuitar(IGuitar::GuitarType::Acoustic);
-    BOOST_TEST_REQUIRE(guitar->getGuitarBrand() == "Takamine", "xpcf factory VirtualGuitarist created before modified bind guitar brand:" << guitar->getGuitarBrand());
+    BOOST_TEST_REQUIRE(guitar->getGuitarBrand() == "Jackson", "xpcf factory VirtualGuitarist created before modified bind guitar brand:" << guitar->getGuitarBrand());
     guitar = rIGuitaristClonedFactory1->getGuitar(IGuitar::GuitarType::Acoustic);
     BOOST_TEST_REQUIRE(guitar->getGuitarBrand() == "Ibanez", "cloned factory VirtualGuitarist guitar brand:" << guitar->getGuitarBrand());
 

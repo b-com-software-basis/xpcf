@@ -52,8 +52,6 @@ class IPropertyManager : virtual public IComponentIntrospect {
     virtual XPCFErrorCode configure(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) = 0;
     virtual XPCFErrorCode configure(const char * instanceName, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) = 0;
     virtual XPCFErrorCode serialize(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath, uint32_t mode) = 0;
-    virtual void declareConfiguration(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) = 0;
-    virtual void declareProperties(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) = 0;
     virtual fs::path getConfigPath(uuids::uuid componentUUID) const = 0;
 };
 
@@ -65,10 +63,36 @@ template <> struct InterfaceTraits<IPropertyManager>
     static constexpr const char * DESCRIPTION = "Configuration and serialization functionality for component properties";
 };
 
+struct PropertyContext {
+    std::map<uuids::uuid, fs::path> moduleConfigMap;
+    std::map<uuids::uuid, fs::path> componentConfigMap;
+    void clear();
+};
+
+
+class AbstractPropertyManager : virtual public IPropertyManager {
+  public:
+    virtual ~AbstractPropertyManager() override = default;
+    virtual void declareConfiguration(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) = 0;
+    virtual void declareProperties(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) = 0;
+    virtual SRef<PropertyContext> getContext() const = 0;
+    virtual SRef<PropertyContext> context() = 0;
+    virtual void setContext(SRef<PropertyContext> context) = 0;
+};
+
+
+template <> struct InterfaceTraits<AbstractPropertyManager>
+{
+    static constexpr const char * UUID = "A92925F0-CA11-4A2D-AB84-B1A39511841F";
+    static constexpr const char * NAME = "XPCF::AbstractPropertyManager";
+    static constexpr const char * DESCRIPTION = "Configuration and serialization functionality for component properties";
+};
+
 class XPCF_EXPORT_API PropertyManager : public ComponentBase,
-        virtual public IPropertyManager {
+        virtual public AbstractPropertyManager {
 public:
-    static PropertyManager* instance();
+    PropertyManager();
+    ~PropertyManager() override = default;
     void unloadComponent () final;
     void clear() final;
     XPCFErrorCode configure(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath) final;
@@ -77,12 +101,11 @@ public:
     void declareConfiguration(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) override;
     void declareProperties(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath) override;
     fs::path getConfigPath(uuids::uuid componentUUID) const final;
+    SRef<PropertyContext> getContext() const final;
+    SRef<PropertyContext> context() override { return m_context; }
+    void setContext(SRef<PropertyContext> context) final;
 
 private:
-    PropertyManager();
-    ~PropertyManager() override = default;
-    PropertyManager(const PropertyManager&)= delete;
-    PropertyManager& operator=(const PropertyManager&)= delete;
     XPCFErrorCode configure(std::function<bool(tinyxml2::XMLElement *)> xmlNodePredicate, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath);
     void declareComponent(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath);
     void declareConfigure(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath);
@@ -90,12 +113,8 @@ private:
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 #endif
     SRef<IAliasManager> m_aliasManager;
-    SRef<IRegistry> m_registry;
-    std::map<uuids::uuid, fs::path> m_moduleConfigMap;
-    std::map<uuids::uuid, fs::path> m_componentConfigMap;
-    static std::atomic<PropertyManager*> m_instance;
-    static std::mutex m_mutex;
-
+    SRef<IRegistryManager> m_registry;
+    SRef<PropertyContext> m_context;
 };
 
 template <> struct ComponentTraits<PropertyManager>
@@ -104,12 +123,6 @@ template <> struct ComponentTraits<PropertyManager>
     static constexpr const char * NAME = "XPCF::PropertyManager";
     static constexpr const char * DESCRIPTION = "Property manager component";
 };
-
-/**
- * Retrieve the property manager instance.
- * @return the smart reference on the PropertyManager interface
- */
-XPCF_EXPORT_API SRef<IPropertyManager> getPropertyManagerInstance();
 
 }}} //namespace org::bcom::xpcf
 

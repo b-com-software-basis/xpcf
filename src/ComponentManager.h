@@ -81,16 +81,12 @@ private:
     ComponentManager& operator=(const ComponentManager&)= delete;
     static std::atomic<ComponentManager*> m_instance;
     static std::mutex m_mutex;
-
-    template <class T> XPCFErrorCode load(fs::path folderPath);
-    template <class T> XPCFErrorCode loadModules(fs::path folderPath);
-    XPCFErrorCode loadLibrary(fs::path aPath);
     SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
 #ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 #endif
     SRef<AbstractFactory> m_factory;
-    SRef<IRegistry> m_registry;
+    SRef<IRegistryManager> m_registry;
     SRef<IAliasManager> m_aliasManager;
     SRef<IPropertyManager> m_propertyManager;
 

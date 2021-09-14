@@ -26,6 +26,7 @@
 #include <xpcf/core/Exception.h>
 #include <xpcf/core/helpers.h>
 #include <boost/algorithm/string.hpp>
+#include "PathBuilder.h"
 
 using namespace std;
 using placeholders::_1;
@@ -80,16 +81,19 @@ Factory::Factory():ComponentBase(toUUID<Factory>())
 
     declareInterface<IFactory>(this);
     declareInterface<AbstractFactory>(this);
-    IFactory::bindLocal<IAliasManager,AliasManager,BindingScope::Singleton>();
-    IFactory::bindLocal<IRegistry,Registry,BindingScope::Singleton>();
-    bind(toUUID<IPropertyManager>(), toUUID<PropertyManager>(), &getPropertyManagerInstance, BindingScope::Singleton, BindingRange::Default);
-    m_propertyManager = IFactory::resolve<IPropertyManager>();
-    m_aliasManager = IFactory::resolve<IAliasManager>();
-    m_resolver = IFactory::resolve<IRegistry>();
+    declareInterface<IAliasManager>(this);
+    declareInterface<IRegistryManager>(this);
+
+    Factory::bindCore<IAliasManager,AliasManager,BindingScope::Singleton>();
+    Factory::bindCore<IRegistryManager,Registry,BindingScope::Singleton>();
+    Factory::bindCore<IPropertyManager,PropertyManager,BindingScope::Singleton>();
+    m_propertyManager = IFactory::resolve<IPropertyManager>()->bindTo<AbstractPropertyManager>();
+    m_aliasManager = IFactory::resolve<IAliasManager>()->bindTo<AbstractAliasManager>();
+    m_resolver = IFactory::resolve<IRegistryManager>()->bindTo<AbstractRegistry>();
     std::function<void(const uuids::uuid &, const uuids::uuid &)> bindFunc = [&] (const uuids::uuid & interfaceUUID, const uuids::uuid & componentUUID) -> void {
         autobind(interfaceUUID,componentUUID);
     };
-    m_resolver->setBinder(bindFunc);
+    m_resolver->bindTo<AbstractRegistry>()->setBinder(bindFunc);
 #ifdef XPCF_WITH_LOGS
     m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("Factory"));
     BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor Factory::Factory () called!";
@@ -151,16 +155,15 @@ SRef<IFactory> Factory::createNewFactoryContext(ContextMode ctxMode)
     if (ctxMode == ContextMode::Cloned) {
         // TODO clone alias, props informations
         // for the moment, the propertymanager & alias mgr are shared between factories when context is cloned.
-        f->m_aliasManager = m_aliasManager;
-        f->m_propertyManager = m_propertyManager;
-        f->m_resolver = m_resolver;
-
+        *(f->m_propertyManager->context()) = *(m_propertyManager->getContext());
+        *(f->m_aliasManager->context()) = *(m_aliasManager->getContext());
+        *(f->m_resolver->context()) = *(m_resolver->getContext());
         *(f->m_context) = *m_context;
     }
     if (ctxMode == ContextMode::Shared) {
-        f->m_propertyManager = m_propertyManager;
-        f->m_aliasManager = m_aliasManager;
-        f->m_resolver = m_resolver;
+        f->m_propertyManager->setContext(m_propertyManager->getContext());
+        f->m_aliasManager->setContext(m_aliasManager->getContext());
+        f->m_resolver->setContext(m_resolver->getContext());
 
         f->m_context = m_context;
     }
@@ -172,6 +175,220 @@ void Factory::clear()
     m_context->clear();
     m_singletonInstances.clear();
     m_namedSingletonInstances.clear();
+    m_propertyManager->clear();
+    m_aliasManager->clear();
+    m_resolver->clear();
+}
+
+XPCFErrorCode Factory::loadModuleMetadata(const char * moduleName,
+                                          const char * moduleFilePath)
+{
+    SRef<ModuleMetadata> moduleInfos = getModuleManagerInstance()->introspectModule(moduleName, moduleFilePath);
+    m_resolver->declareModuleMetadata(moduleInfos);
+    return XPCFErrorCode::_SUCCESS;
+}
+
+template <class T> XPCFErrorCode Factory::loadModules(fs::path folderPath)
+{
+    //TODO : what strategy to report error of load for a dedicated file but load others ?
+    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
+    static_assert(std::is_same<T,fs::directory_iterator>::value || std::is_same<T,fs::recursive_directory_iterator>::value,
+            "Type passed to ComponentManager::load is neither a directory_iterator nor a recursive_directory_iterator");
+    for (fs::directory_entry& x : T(folderPath)) {
+        if (PathBuilder::is_shared_library(x.path())) {
+            fs::path modulePath = x.path().parent_path();
+            fs::path moduleName = x.path().filename();
+            fs::detail::utf8_codecvt_facet utf8;
+            result = loadModuleMetadata(moduleName.string(utf8).c_str(),modulePath.string(utf8).c_str());
+        }
+    }
+    return result;
+}
+
+XPCFErrorCode Factory::loadModules(const char * folderPathStr, bool bRecurse)
+{
+    if (folderPathStr == nullptr) {
+        return XPCFErrorCode::_ERROR_NULL_POINTER;
+    }
+
+    fs::path folderPath = PathBuilder::buildModuleFolderPath(folderPathStr);
+
+    if ( ! fs::exists(folderPath)) {
+        return XPCFErrorCode::_FAIL;
+    }
+
+    if ( !fs::is_directory(folderPath)) {
+        return XPCFErrorCode::_FAIL;
+    }
+    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
+
+    if (bRecurse) {
+        result = loadModules<fs::recursive_directory_iterator>(folderPath);
+    }
+    else {
+        result = loadModules<fs::directory_iterator>(folderPath);
+    }
+    return result;
+}
+
+XPCFErrorCode Factory::load()
+{
+    const char * registryPath = getenv( "XPCF_REGISTRY_PATH" );
+    if (registryPath != nullptr) {
+        load(registryPath);
+    }
+    return load<fs::recursive_directory_iterator>(PathBuilder::getXPCFHomePath());
+}
+
+XPCFErrorCode Factory::load(const char* libraryFilePath)
+{
+    if (libraryFilePath == nullptr) {
+        return XPCFErrorCode::_ERROR_NULL_POINTER;
+    }
+
+    fs::path libraryConfigFilePath = PathBuilder::replaceRootEnvVars(libraryFilePath);
+    if (libraryConfigFilePath.is_relative()) {
+        // relative file should exists from the current process working dir
+        if (!fs::exists(libraryConfigFilePath)) {
+            // relative file is not found from the cwd : search in xpcf home dir
+            libraryConfigFilePath = PathBuilder::getXPCFHomePath() / libraryConfigFilePath;
+        }
+    }
+    return loadLibrary(libraryConfigFilePath);
+}
+
+template <class T> XPCFErrorCode Factory::load(fs::path folderPath)
+{
+    //TODO : what strategy to report error of load for a dedicated file but load others ?
+    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
+    static_assert(std::is_same<T,fs::directory_iterator>::value || std::is_same<T,fs::recursive_directory_iterator>::value,
+            "Type passed to ComponentManager::load is neither a directory_iterator nor a recursive_directory_iterator");
+    for (fs::directory_entry& x : T(folderPath)) {
+        if (is_regular_file(x.path())) {
+            if (x.path().extension() == ".xml") {
+                loadLibrary(x.path());
+            }
+        }
+    }
+    return result;
+}
+
+XPCFErrorCode Factory::load(const char* folderPathStr, bool bRecurse)
+{
+    if (folderPathStr == nullptr) {
+        return XPCFErrorCode::_ERROR_NULL_POINTER;
+    }
+
+    fs::path folderPath = PathBuilder::replaceRootEnvVars(folderPathStr);
+
+    if ( ! fs::exists(folderPath)) {
+        return XPCFErrorCode::_FAIL;
+    }
+
+    if (fs::is_directory(folderPath)) {
+        if (bRecurse) {
+            load<fs::recursive_directory_iterator>(folderPath);
+        }
+        else {
+            load<fs::directory_iterator>(folderPath);
+        }
+    }
+    else {
+        loadLibrary(folderPath);
+    }
+    return XPCFErrorCode::_SUCCESS;
+}
+
+
+// Load the library from the file given
+// by <modulePath>
+//
+/********* The library file looks like this*************************************************
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xpcf-registry>
+    <module uuid="E8CFAED2-1D86-4A5E-BDC9-389CFB9C38FA" name="xpcftest01" path="folderpath/">
+        <component uuid="097fee80-7bd4-47c2-9cc7-c1750e7beb2a" description="C0 component">
+                TOADD: <constructor arg-0=UUIDOTHERCOMPONENT , arg-1=configoptions/>
+                <interface uuid="87fb1573-defe-4c8f-8cba-304b888639cc" description="IComponentIntrospect"/>
+                <interface uuid="c3eb5521-16ee-458e-9e77-157827753e46" description="I0 openCV scale interface"/>
+                <interface uuid="e0b0a9af-a941-408e-aa10-cac5055af75a" description="I1 openCV rotate interface"/>
+            </component>
+    </module>
+    <module uuid="7c8f9f3a-33f6-11d5-bc7f-00d0b7a62da9" name="xpcftest02" path="folderpath2/">
+        <component uuid="cf0f569a-2f66-11d5-bc7f-00d0b7a62da9" description="xxx">
+                <interface uuid="5f7c9b5e-ee9f-11d3-8010-000629ee2d57" description="IComponentIntrospect"/>
+                <interface uuid="9db144b8-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
+                <interface uuid="c5d2b99a-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
+        </component>
+    </module>
+    <module uuid="b89994bc-3424-11d5-bc7f-00d0b7a62da9" name="xpcftest03" path="folderpath3/">
+        <component uuid="cf0f569a-2f66-11d5-bc7f-00d0b7a62da9" description="xxx">
+                <interface uuid="5f7c9b5e-ee9f-11d3-8010-000629ee2d57" description="IComponentIntrospect"/>
+                <interface uuid="9db144b8-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
+                <interface uuid="c5d2b99a-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
+        </component>
+        <component uuid="c2095c04-2f69-11d5-bc7f-00d0b7a62da9" description="xxx">
+                <interface uuid="5f7c9b5e-ee9f-11d3-8010-000629ee2d57" description="IComponentIntrospect"/>
+                <interface uuid="c5d2b99a-2f67-11d5-bc7f-00d0b7a62da9" description="xxx"/>
+        </component>
+    </module>
+</xpcf-library>
+
+*********************************************************************************************/
+XPCFErrorCode Factory::loadLibrary(fs::path configurationFilePath)
+{
+    if ( ! fs::exists(configurationFilePath)) {
+        return XPCFErrorCode::_FAIL;
+    }
+    if ( configurationFilePath.extension() != ".xml") {
+        return XPCFErrorCode::_FAIL;
+    }
+
+    XPCFErrorCode result = XPCFErrorCode::_FAIL;
+    tinyxml2::XMLDocument doc;
+    enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
+    if (loadOkay == 0) {
+        try {
+#ifdef XPCF_WITH_LOGS
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<configurationFilePath<<" config file";
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
+#endif
+            //TODO : check each element exists before using it !
+            // a check should be performed upon announced module uuid and inner module uuid
+            // check xml node is xpcf-registry first !
+            tinyxml2::XMLElement * rootElt = doc.RootElement();
+            string rootName = rootElt->Value();
+            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
+                return XPCFErrorCode::_ERROR_RANGE;
+            }
+            result = XPCFErrorCode::_SUCCESS;
+            const char * autoAliasProp = rootElt->Attribute("autoAlias");
+            m_resolver->enableAutoAlias(false);
+            if (autoAliasProp != nullptr) {
+                const string autoAliasStr(autoAliasProp);
+                if (autoAliasStr == "true") {
+                    m_resolver->enableAutoAlias(true);
+                }
+            }
+            processXmlNode(rootElt, "module", std::bind(&AbstractRegistry::declareModule, m_resolver->bindTo<AbstractRegistry>().get(), _1));
+            processXmlNode(rootElt, "aliases", std::bind(&AbstractAliasManager::declareAliases, m_aliasManager->bindTo<AbstractAliasManager>().get(), _1));
+            processXmlNode(rootElt, "factory", std::bind(&AbstractFactory::declareFactory, this, _1));
+            std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareConfigureFunc = std::bind(&AbstractPropertyManager::declareConfiguration,  m_propertyManager->bindTo<AbstractPropertyManager>().get(), _1,_2);
+            processXmlNode<const fs::path &>(rootElt, "configuration", declareConfigureFunc, configurationFilePath);
+            std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declarePropertiesFunc = std::bind(&AbstractPropertyManager::declareProperties,  m_propertyManager->bindTo<AbstractPropertyManager>().get(), _1,_2);
+            processXmlNode<const fs::path &>(rootElt, "properties", declarePropertiesFunc, configurationFilePath);
+        }
+        catch (const xpcf::Exception & e) {
+            return e.getErrorCode();
+        }
+        catch (const std::runtime_error & e) {
+#ifdef XPCF_WITH_LOGS
+            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<configurationFilePath<<" failed with error : "<<e.what();
+#endif
+            return XPCFErrorCode::_FAIL;
+        }
+    }
+    return result;
 }
 
 FactoryBindInfos Factory::getComponentBindingInfos(tinyxml2::XMLElement * xmlBindElt)
@@ -337,6 +554,22 @@ void Factory::autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & in
     }
 }
 
+void Factory::bindCore(const uuids::uuid & interfaceUUID, const FactoryBindInfos & bindInfos)
+{
+    if (mapContains(m_coreBindings,interfaceUUID)) {
+        // bind already exists : error ???
+        // should we return or update the bind ?
+    }
+    m_coreBindings[interfaceUUID] = bindInfos;
+}
+
+template < typename I, typename C, BindingScope scope> void Factory::bindCore()
+{
+    uuids::uuid componentUUID = toUUID<C>();
+    bindCore(toUUID<I>(),FactoryBindInfos{ componentUUID, scope, BindingRange_Core, ""});
+    m_coreFactoryMethods[componentUUID] = &ComponentFactory::create<C>;
+}
+
 void Factory::bind(const uuids::uuid & interfaceUUID, const FactoryBindInfos & bindInfos)
 {
     if (mapContains(m_context->defaultBindings,interfaceUUID)) {
@@ -488,6 +721,10 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
                 }
             }
             if (contextValue.bindingRangeMask == BindingRange::Explicit) {
+                // if the interface exists in core bindings, return the component
+                if (mapContains (m_coreBindings, interfaceUUID)) {
+                    return m_coreBindings.at(interfaceUUID);
+                }
                 // when current context binding range is explicit only, do not search forward when explicit bind isn't found
                 throw InjectableNotFoundException("No explicit binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID)
                                                   + " to inject to " +  uuids::to_string(componentUUID));
@@ -512,6 +749,10 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
         if (mapContains(m_context->autoBindings,interfaceUUID)) {
             return m_context->autoBindings.at(interfaceUUID);
         }
+    }
+    // no binding found, is it a core binding ?
+    if (mapContains (m_coreBindings, interfaceUUID)) {
+        return m_coreBindings.at(interfaceUUID);
     }
     throw InjectableNotFoundException("No [auto|default|named] binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID));
 }
@@ -550,7 +791,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
         }
     }
     if (!contextLevels.empty() &&
-           !(contextLevels.back().second.bindingRangeMask & (BindingRange::Default|BindingRange::All))) {
+            !(contextLevels.back().second.bindingRangeMask & (BindingRange::Default|BindingRange::All))) {
         throw InjectableNotFoundException("No default named binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID) + " named " + name);
     }
     return resolveBind(interfaceUUID, contextLevels);
@@ -603,6 +844,9 @@ SRef<IComponentIntrospect> Factory::resolveComponent(const FactoryBindInfos & bi
     if (mapContains(m_context->factoryMethods, componentUUID)) {
         createComponent =  m_context->factoryMethods[componentUUID];
     }
+    if (bindInfos.bindingRangeMask == BindingRange_Core) {
+        createComponent =  m_coreFactoryMethods[componentUUID];
+    }
 #ifdef XPCF_WITH_LOGS
     BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolveComponent component uuid="<<uuids::to_string(componentUUID);
 #endif
@@ -636,11 +880,20 @@ SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, s
 #endif
     contextLevels.push_front({ContextType::Component, bindInfos});
     if (bindInfos.scope == BindingScope::Singleton) {
-        if (! mapContains(m_singletonInstances, bindInfos.componentUUID)) {
-            SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
-            m_singletonInstances[bindInfos.componentUUID] = componentRef;
+        if (bindInfos.bindingRangeMask != BindingRange_Core) {
+            if (! mapContains(m_singletonInstances, bindInfos.componentUUID)) {
+                SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
+                m_singletonInstances[bindInfos.componentUUID] = componentRef;
+            }
+            return m_singletonInstances.at(bindInfos.componentUUID);
         }
-        return m_singletonInstances.at(bindInfos.componentUUID);
+        else {
+            if (! mapContains(m_coreInstances, bindInfos.componentUUID)) {
+                SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
+                m_coreInstances[bindInfos.componentUUID] = componentRef;
+            }
+            return m_coreInstances.at(bindInfos.componentUUID);
+        }
     }
     return resolveComponent(bindInfos, contextLevels);
 }

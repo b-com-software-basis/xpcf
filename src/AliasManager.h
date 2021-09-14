@@ -26,9 +26,15 @@
 //#define BOOST_ALL_DYN_LINK 1
 
 
-#include <xpcf/api/IComponentManager.h>
+#include <xpcf/api/IAliasManager.h>
 #include <xpcf/component/ComponentBase.h>
 #include "tinyxmlhelper.h"
+
+#ifdef XPCF_WITH_LOGS
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/attributes.hpp>
+#endif
 
 #include <thread>
 #include <vector>
@@ -36,34 +42,33 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
-class IAliasManager : virtual public IComponentIntrospect {
-public:
-    typedef enum {
-        Interface,
-        Component,
-        Module
-    } Type;
-
-    virtual ~IAliasManager() override = default;
-    virtual void clear() = 0;
-    virtual void declareAliases(tinyxml2::XMLElement * xmlModuleElt) = 0;
-    virtual bool aliasExists(Type type, const std::string & name) = 0;
-    virtual void declareAlias(Type type, const std::string & name, const uuids::uuid & uuid) = 0;
-    virtual const uuids::uuid & resolveComponentAlias(const std::string & name) = 0;
-    virtual const uuids::uuid & resolveInterfaceAlias(const std::string & name) = 0;
-    virtual const uuids::uuid & resolveModuleAlias(const std::string & name) = 0;
+struct AliasContext {
+    std::map<std::string, uuids::uuid> componentResolverMap;
+    std::map<std::string, uuids::uuid> interfaceResolverMap;
+    std::map<std::string, uuids::uuid> moduleResolverMap;
+    void clear();
 };
 
-template <> struct InterfaceTraits<IAliasManager>
+class AbstractAliasManager : virtual public IAliasManager {
+public:
+    virtual ~AbstractAliasManager() override = default;
+    virtual void clear() = 0;
+    virtual void declareAliases(tinyxml2::XMLElement * xmlModuleElt) = 0;
+    virtual SRef<AliasContext> getContext() const = 0;
+    virtual SRef<AliasContext> context() = 0;
+    virtual void setContext(SRef<AliasContext> context) = 0;
+};
+
+template <> struct InterfaceTraits<AbstractAliasManager>
 {
-    static constexpr const char * UUID = "2855F879-52AA-42F6-A84A-D9D3FD37D28F";
-    static constexpr const char * NAME = "XPCF::IAliasManager";
-    static constexpr const char * DESCRIPTION = "Alias manager interface.\nProvides named alias handling towards uuids (component, interface or module uuid) ";
+    static constexpr const char * UUID = "A05EB0B3-682E-4FAB-82B7-A3CBCAADE866";
+    static constexpr const char * NAME = "XPCF::AbstractAliasManager";
+    static constexpr const char * DESCRIPTION = "AbstractAliasManager interface.\nProvides named alias handling towards uuids (component, interface or module uuid) ";
 };
 
 
 class AliasManager : public ComponentBase,
-        virtual public IAliasManager {
+        virtual public AbstractAliasManager {
 public:
     AliasManager();
     ~AliasManager() override = default;
@@ -74,6 +79,9 @@ public:
     const uuids::uuid & resolveComponentAlias(const std::string & name) override;
     const uuids::uuid & resolveInterfaceAlias(const std::string & name) override;
     const uuids::uuid & resolveModuleAlias(const std::string & name) override;
+    SRef<AliasContext> getContext() const override;
+    SRef<AliasContext> context() override { return m_context; }
+    void setContext(SRef<AliasContext> context) override;
     void unloadComponent () override final;
 
 private:
@@ -81,9 +89,7 @@ private:
     void declareAliasNode(tinyxml2::XMLElement * xmlAliasElt);
     const uuids::uuid & resolveAlias(const std::string & name, const std::map<std::string, uuids::uuid> & elementMap);
 
-    std::map<std::string, uuids::uuid> m_componentResolverMap;
-    std::map<std::string, uuids::uuid> m_interfaceResolverMap;
-    std::map<std::string, uuids::uuid> m_moduleResolverMap;
+    SRef<AliasContext> m_context;
     std::map<Type,std::function<void(const std::string & name, const uuids::uuid & uuid,bool)>> m_addAliasFunction;
 #ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;

@@ -25,6 +25,9 @@
 
 //#define BOOST_ALL_DYN_LINK 1
 #include <xpcf/api/IFactory.h>
+#include <xpcf/component/ComponentFactory.h>
+
+#include <deque>
 #include "AliasManager.h"
 #include "Registry.h"
 #include "PropertyManager.h"
@@ -50,6 +53,8 @@ struct FactoryBindInfos {
     uint8_t bindingRangeMask = 0;
     std::string properties;
 };
+
+constexpr uint8_t BindingRange_Core = 0;
 
 struct FactoryContext {
     // interface Uuid resolves to [ component Uuid , scope ]
@@ -100,7 +105,12 @@ public:
     virtual ~AbstractFactory() override = default;
     virtual void autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID) = 0;
     virtual void inject(SRef<IInjectable> component, std::deque<BindContext> contextLevels = {}) = 0;
-
+    virtual XPCFErrorCode load()  = 0;
+    virtual XPCFErrorCode load(const char* libraryFilePath) = 0;
+    virtual XPCFErrorCode load(const char* folderPathStr, bool bRecurse) = 0;
+    virtual XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) = 0;
+    virtual XPCFErrorCode loadModuleMetadata(const char* moduleName,
+                                     const char* moduleFilePath) = 0;
     virtual void declareFactory(tinyxml2::XMLElement * xmlModuleElt) = 0;
 };
 
@@ -112,7 +122,7 @@ template <> struct InterfaceTraits<AbstractFactory>
 };
 
 class Factory : public ComponentBase,
-        virtual public AbstractFactory {
+        virtual public AbstractFactory, virtual public IAliasManager, virtual public IRegistryManager {
 public:
     Factory();
     ~Factory() override = default;
@@ -165,6 +175,13 @@ public:
                    const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
                    const FactoryBindInfos & bindInfos);
 
+    XPCFErrorCode load() override;
+    XPCFErrorCode load(const char* libraryFilePath) override;
+    XPCFErrorCode load(const char* folderPathStr, bool bRecurse) override;
+    XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) override;
+    XPCFErrorCode loadModuleMetadata(const char* moduleName,
+                                     const char* moduleFilePath) override;
+
     void declareFactory(tinyxml2::XMLElement * xmlModuleElt) override;
     SRef<IComponentIntrospect> resolve(const SPtr<InjectableMetadata> & injectableInfo) override
         { return resolve(injectableInfo, {}); }
@@ -191,9 +208,50 @@ public:
     uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID, const std::string & name) override;
 
     SRef<IFactory> createNewFactoryContext(ContextMode ctxMode) override;
+
+    // IAliasManager methods
+    bool aliasExists(Type type, const std::string & name) override
+        { return m_aliasManager->aliasExists(type, name); }
+
+    void declareAlias(Type type, const std::string & name, const uuids::uuid & uuid) override
+        { return m_aliasManager->declareAlias(type, name, uuid); }
+
+    const uuids::uuid & resolveComponentAlias(const std::string & name) override
+        { return m_aliasManager->resolveComponentAlias(name); }
+
+    const uuids::uuid & resolveInterfaceAlias(const std::string & name) override
+         { return m_aliasManager->resolveInterfaceAlias(name); }
+
+    const uuids::uuid & resolveModuleAlias(const std::string & name) override
+        { return m_aliasManager->resolveModuleAlias(name); }
+
+    // IRegistryManager methods
+    const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const override
+        { return m_resolver->getModulesMetadata(); }
+
+    SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid & componentUUID) const override
+        { return m_resolver->findComponentMetadata(componentUUID); }
+
+    uuids::uuid getModuleUUID(const uuids::uuid & componentUUID) const override
+        { return m_resolver->getModuleUUID(componentUUID); }
+
+    SPtr<ModuleMetadata> findModuleMetadata(const uuids::uuid & moduleUUID) const override
+        { return m_resolver->findModuleMetadata(moduleUUID); }
+
+    const IEnumerable<SPtr<InterfaceMetadata>> & getInterfacesMetadata() const override
+        { return m_resolver->getInterfacesMetadata(); }
+
+    SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid & interfaceUUID) const override
+        { return m_resolver->findInterfaceMetadata(interfaceUUID); }
+
+    void enableAutoAlias(bool enabled) override
+         { return m_resolver->enableAutoAlias(enabled); }
+
     void unloadComponent () override final;
 
 private:
+    template < typename I, typename C, BindingScope scope = BindingScope::Transient > void bindCore();
+    void bindCore(const uuids::uuid & interfaceUUID, const FactoryBindInfos & bindInfos);
     void declareBindings(tinyxml2::XMLElement * xmlModuleElt);
     void declareInjects(tinyxml2::XMLElement * xmlModuleElt);
     void declareBind(tinyxml2::XMLElement * xmlBindElt);
@@ -202,6 +260,9 @@ private:
     void declareInject(tinyxml2::XMLElement * xmlBindElt);
     void declareSpecificBind(tinyxml2::XMLElement * xmlBindElt, const uuids::uuid & targetComponentUUID);
     FactoryBindInfos getComponentBindingInfos(tinyxml2::XMLElement * xmlBindElt);
+    XPCFErrorCode loadLibrary(fs::path configurationFilePath);
+    template <class T> XPCFErrorCode load(fs::path folderPath);
+    template <class T> XPCFErrorCode loadModules(fs::path folderPath);
     SRef<IComponentIntrospect> resolveFromModule(const uuids::uuid & componentUUID);
     SRef<IComponentIntrospect> resolveComponent(const FactoryBindInfos & bindInfos,
                                                 std::deque<BindContext> contextLevels);
@@ -225,9 +286,14 @@ private:
     // [component Uuid, name] resolves to IComponentIntrospect reference
     std::map<std::pair<uuids::uuid,std::string>,SRef<IComponentIntrospect> > m_namedSingletonInstances;
 
-    SRef<IRegistry> m_resolver;
-    SRef<IAliasManager> m_aliasManager;
-    SRef<IPropertyManager> m_propertyManager;
+    std::map<uuids::uuid, FactoryBindInfos> m_coreBindings;
+    std::map<uuids::uuid,SRef<IComponentIntrospect> > m_coreInstances;
+    // component UUID resolves to create function
+    std::map<uuids::uuid, std::function<SRef<IComponentIntrospect>(void)>> m_coreFactoryMethods;
+
+    SRef<AbstractRegistry> m_resolver;
+    SRef<AbstractAliasManager> m_aliasManager;
+    SRef<AbstractPropertyManager> m_propertyManager;
 };
 
 template <> struct ComponentTraits<Factory>

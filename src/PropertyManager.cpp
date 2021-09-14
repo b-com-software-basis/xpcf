@@ -41,59 +41,32 @@ namespace fs = boost::filesystem;
 namespace logging = boost::log;
 #endif
 
+XPCF_DEFINE_FACTORY_CREATE_INSTANCE(org::bcom::xpcf::PropertyManager);
+
 namespace org { namespace bcom { namespace xpcf {
-
-std::atomic<PropertyManager*> PropertyManager::m_instance;
-std::mutex PropertyManager::m_mutex;
-
-PropertyManager * PropertyManager::instance()
-{
-
-    PropertyManager* compMgrInstance= m_instance.load(std::memory_order_acquire);
-    if ( !compMgrInstance ){
-        std::lock_guard<std::mutex> myLock(m_mutex);
-        compMgrInstance = m_instance.load(std::memory_order_relaxed);
-        if ( !compMgrInstance ){
-            compMgrInstance= new PropertyManager();
-            m_instance.store(compMgrInstance, std::memory_order_release);
-        }
-    }
-    return compMgrInstance;
-}
-
-
-SRef<IPropertyManager> getPropertyManagerInstance()
-{
-    SRef<xpcf::IComponentIntrospect> lrIComponentIntrospect = xpcf::ComponentFactory::create<PropertyManager>();
-    return lrIComponentIntrospect->bindTo<IPropertyManager>();
-}
-
-template<> PropertyManager* ComponentFactory::createInstance()
-{
-    return PropertyManager::instance();
-}
 
 constexpr const char * XMLCOMPONENTNODE = "component";
 constexpr const char * XMLCONFIGURENODE = "configure";
 
+void PropertyContext::clear()
+{
+    moduleConfigMap.clear();
+    componentConfigMap.clear();
+}
+
+
 PropertyManager::PropertyManager():ComponentBase(toUUID<PropertyManager>())
 {
+    m_context = utils::make_shared<PropertyContext>();
     declareInterface<IPropertyManager>(this);
+    declareInterface<AbstractPropertyManager>(this);
     declareInjectable<IAliasManager>(m_aliasManager);
-    declareInjectable<IRegistry>(m_registry);
+    declareInjectable<IRegistryManager>(m_registry);
 #ifdef XPCF_WITH_LOGS
     m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("PropertyManager"));
     BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Constructor PropertyManager::PropertyManager () called!";
 #endif
 }
-
-void PropertyManager::unloadComponent ()
-{
-#ifdef XPCF_WITH_LOGS
-    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"PropertyManager::unload () called!";
-#endif
-}
-
 
 map<IProperty::PropertyType, std::string> propertyTypeToStrMap = {
     {IProperty::IProperty_NONE,""},
@@ -116,8 +89,17 @@ map<IProperty::AccessSpecifier, std::string> propertyAccessToStrMap = {
 
 void PropertyManager::clear()
 {
-    m_moduleConfigMap.clear();
-    m_componentConfigMap.clear();
+    m_context->clear();
+}
+
+SRef<PropertyContext> PropertyManager::getContext() const
+{
+    return m_context;
+}
+
+void PropertyManager::setContext(SRef<PropertyContext> context)
+{
+    m_context = context;
 }
 
 void PropertyManager::declareComponent(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
@@ -126,20 +108,20 @@ void PropertyManager::declareComponent(tinyxml2::XMLElement * xmlElt, const fs::
     uuids::uuid componentUuid = toUUID(componentUuidStr);
     try {
         uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
-        if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
-            m_moduleConfigMap[moduleUuid] = configFilePath;
+        if (m_context->moduleConfigMap.find(moduleUuid) == m_context->moduleConfigMap.end()) {
+            m_context->moduleConfigMap[moduleUuid] = configFilePath;
         }
         else {
-            fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
+            fs::path & moduleConfigurationPath = m_context->moduleConfigMap[moduleUuid];
             if (moduleConfigurationPath != configFilePath) {
-                m_componentConfigMap[componentUuid] = configFilePath;
+                m_context->componentConfigMap[componentUuid] = configFilePath;
             }
         }
     }
     catch (const ModuleNotFoundException & e) {
         // no associated module in current configuration :
         // add config path to component configuration as the component can be declared from bindLocal
-        m_componentConfigMap[componentUuid] = configFilePath;
+        m_context->componentConfigMap[componentUuid] = configFilePath;
     }
 }
 
@@ -155,20 +137,20 @@ void PropertyManager::declareConfigure(tinyxml2::XMLElement * xmlElt, const fs::
     }
     try {
         uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
-        if (m_moduleConfigMap.find(moduleUuid) == m_moduleConfigMap.end()) {
-            m_moduleConfigMap[moduleUuid] = configFilePath;
+        if (m_context->moduleConfigMap.find(moduleUuid) == m_context->moduleConfigMap.end()) {
+            m_context->moduleConfigMap[moduleUuid] = configFilePath;
         }
         else {
-            fs::path & moduleConfigurationPath = m_moduleConfigMap[moduleUuid];
+            fs::path & moduleConfigurationPath = m_context->moduleConfigMap[moduleUuid];
             if (moduleConfigurationPath != configFilePath) {
-                m_componentConfigMap[componentUuid] = configFilePath;
+                m_context->componentConfigMap[componentUuid] = configFilePath;
             }
         }
     }
     catch (const ModuleNotFoundException & e) {
         // no associated module in current configuration :
         // add config path to component configuration as the component can be declared from bindLocal
-        m_componentConfigMap[componentUuid] = configFilePath;
+        m_context->componentConfigMap[componentUuid] = configFilePath;
     }
 }
 
@@ -186,17 +168,17 @@ void PropertyManager::declareProperties(tinyxml2::XMLElement * xmlElt, const fs:
 
 fs::path PropertyManager::getConfigPath(uuids::uuid componentUUID) const
 {
-    if (m_componentConfigMap.find(componentUUID) != m_componentConfigMap.end()) {
-        return m_componentConfigMap.at(componentUUID);
+    if (m_context->componentConfigMap.find(componentUUID) != m_context->componentConfigMap.end()) {
+        return m_context->componentConfigMap.at(componentUUID);
     }
     try {
         uuids::uuid moduleUUID = m_registry->getModuleUUID(componentUUID);
-        if (m_moduleConfigMap.find(moduleUUID) == m_moduleConfigMap.end()) {
+        if (m_context->moduleConfigMap.find(moduleUUID) == m_context->moduleConfigMap.end()) {
             //log("No configuration path found for module "+uuids::to_string(moduleUUID));
             // return empty path
             return fs::path();
         }
-        return m_moduleConfigMap.at(moduleUUID);
+        return m_context->moduleConfigMap.at(moduleUUID);
     }
     catch (...) { // no module associated with componentUUID : componentUUID can be declared from bindLocal
         //log("No module neither configuration path found for component "+uuids::to_string(componentUUID));

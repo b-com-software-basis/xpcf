@@ -47,29 +47,48 @@ XPCF_DEFINE_FACTORY_CREATE_INSTANCE(org::bcom::xpcf::Registry);
 
 namespace org { namespace bcom { namespace xpcf {
 
+
+void RegistryContext::clear()
+{
+    modulesVector.clear();
+    interfacesVector.clear();
+    componentModuleUUIDMap.clear();
+    interfacesMap.clear();
+    modulesMap.clear();
+}
+
 Registry::Registry():ComponentBase (toUUID<Registry>())
 {
-    declareInterface<IRegistry>(this);
+    m_context = utils::make_shared<RegistryContext>();
+    declareInterface<IRegistryManager>(this);
+    declareInterface<AbstractRegistry>(this);
     declareInjectable<IAliasManager>(m_aliasManager);
 }
 
 uuids::uuid Registry::getModuleUUID(const uuids::uuid & componentUUID) const
 {
-    if (! mapContains(m_componentModuleUUIDMap,componentUUID)) {
+    if (! mapContains(m_context->componentModuleUUIDMap,componentUUID)) {
         throw ModuleNotFoundException("No module UUID found for component "+uuids::to_string(componentUUID));
     }
-    return m_componentModuleUUIDMap.at(componentUUID);
+    return m_context->componentModuleUUIDMap.at(componentUUID);
 }
 
 void Registry::clear()
 {
-    m_modulesVector.clear();
-    m_interfacesVector.clear();
-    m_componentModuleUUIDMap.clear();
-    m_interfacesMap.clear();
-    m_modulesMap.clear();
+    m_context->clear();
     m_libraryLoaded = false;
 }
+
+SRef<RegistryContext> Registry::getContext() const
+{
+    return m_context;
+}
+
+void Registry::setContext(SRef<RegistryContext> context)
+{
+    m_context = context;
+}
+
 
 template <class T>
 SPtr<T> findMetadata(const uuids::uuid & elementUUID, const std::map<uuids::uuid, SPtr<T>> & elementMap)
@@ -120,7 +139,7 @@ bool isXpcfFrameworkInterface(const uuids::uuid & interfaceUUID)
 
 SPtr<ModuleMetadata> Registry::findModuleMetadata(const uuids::uuid & moduleUUID) const
 {
-    return safeFindMetadata(moduleUUID, m_modulesMap);
+    return safeFindMetadata(moduleUUID, m_context->modulesMap);
 }
 
 SPtr<ComponentMetadata> Registry::findComponentMetadata(const uuids::uuid & componentUUID) const
@@ -131,7 +150,7 @@ SPtr<ComponentMetadata> Registry::findComponentMetadata(const uuids::uuid & comp
 
 SPtr<InterfaceMetadata> Registry::findInterfaceMetadata(const uuids::uuid& interfaceUUID) const
 {
-    return findMetadata(interfaceUUID, m_interfacesMap);
+    return findMetadata(interfaceUUID, m_context->interfacesMap);
 }
 
 // add metadata if not already present, otherwise does nothing
@@ -151,25 +170,25 @@ void addMetadata(SPtr<T> metadata, Collection<SPtr<T>,std::vector> & targetConta
 
 void Registry::addModuleMetadata(SPtr<ModuleMetadata> metadata)
 {
-    addMetadata<ModuleMetadata>(metadata, m_modulesVector, m_modulesMap);
+    addMetadata<ModuleMetadata>(metadata, m_context->modulesVector, m_context->modulesMap);
 }
 
 void Registry::addInterfaceMetadata(SPtr<InterfaceMetadata> metadata)
 {
-    addMetadata<InterfaceMetadata>(metadata, m_interfacesVector, m_interfacesMap);
+    addMetadata<InterfaceMetadata>(metadata, m_context->interfacesVector, m_context->interfacesMap);
 }
 
 void Registry::declareModuleMetadata(SPtr<ModuleMetadata> moduleInfos)
 {
     addModuleMetadata(moduleInfos);
     for (SRef<ComponentMetadata> componentInfo : moduleInfos->getComponentsMetadata()) {
-        if (! mapContains(m_componentModuleUUIDMap, componentInfo->getUUID()) ) {
-            m_componentModuleUUIDMap[componentInfo->getUUID()] = moduleInfos->getUUID();
+        if (! mapContains(m_context->componentModuleUUIDMap, componentInfo->getUUID()) ) {
+            m_context->componentModuleUUIDMap[componentInfo->getUUID()] = moduleInfos->getUUID();
         }
         if (m_autoAlias) {
-             if (!m_aliasManager->aliasExists(IAliasManager::Type::Component, componentInfo->name())) {
+            if (!m_aliasManager->aliasExists(IAliasManager::Type::Component, componentInfo->name())) {
                 m_aliasManager->declareAlias(IAliasManager::Type::Component, componentInfo->name(), componentInfo->getUUID());
-             }
+            }
         }
         std::vector<SRef<InterfaceMetadata>> interfaceVector;
         SRef<xpcf::IComponentIntrospect> rIntrospect = getModuleManagerInstance()->createComponent(moduleInfos, componentInfo->getUUID());
@@ -177,9 +196,9 @@ void Registry::declareModuleMetadata(SPtr<ModuleMetadata> moduleInfos)
             autobind(interfaceUUID,componentInfo->getUUID());
             SRef<InterfaceMetadata> interfaceInfo = utils::make_shared<InterfaceMetadata>(rIntrospect->getMetadata(interfaceUUID));
             if (m_autoAlias) {
-                 if (!m_aliasManager->aliasExists(IAliasManager::Type::Interface, interfaceInfo->name())) {
+                if (!m_aliasManager->aliasExists(IAliasManager::Type::Interface, interfaceInfo->name())) {
                     m_aliasManager->declareAlias(IAliasManager::Type::Interface, interfaceInfo->name(), interfaceInfo->getUUID());
-                 }
+                }
             }
             componentInfo->addInterface(interfaceInfo->getUUID());
             addInterfaceMetadata(interfaceInfo);
@@ -195,7 +214,7 @@ void Registry::declareInterfaceNode(SRef<ComponentMetadata>  componentInfo, tiny
     uuids::uuid interfaceUuid = toUUID(interfaceUuidStr);
     componentInfo->addInterface(interfaceUuid);
     autobind(interfaceUuid,componentInfo->getUUID());
-    if (! mapContains(m_interfacesMap,interfaceUuid)) {
+    if (! mapContains(m_context->interfacesMap,interfaceUuid)) {
         string interfaceName = interfaceElt->Attribute("name");
         string interfaceDescription = interfaceElt->Attribute("description");
         if (m_autoAlias) {
@@ -212,15 +231,15 @@ void Registry::declareComponent(SRef<ModuleMetadata> moduleInfo, tinyxml2::XMLEl
 {
     string componentUuidStr = componentElt->Attribute("uuid");
     uuids::uuid componentUuid = toUUID(componentUuidStr);
-    if (! mapContains(m_componentModuleUUIDMap,componentUuid)) {
-        m_componentModuleUUIDMap[componentUuid] = moduleInfo->getUUID();
+    if (! mapContains(m_context->componentModuleUUIDMap,componentUuid)) {
+        m_context->componentModuleUUIDMap[componentUuid] = moduleInfo->getUUID();
         string name = componentElt->Attribute("name");
         string description = componentElt->Attribute("description");
         SPtr<ComponentMetadata> componentInfo = utils::make_shared<ComponentMetadata>(name.c_str(), componentUuid, description.c_str());
         if (m_autoAlias) {
-             if (!m_aliasManager->aliasExists(IAliasManager::Type::Component, name)) {
+            if (!m_aliasManager->aliasExists(IAliasManager::Type::Component, name)) {
                 m_aliasManager->declareAlias(IAliasManager::Type::Component, name, componentUuid);
-             }
+            }
         }
         moduleInfo->addComponent(componentInfo);
         tinyxml2::XMLElement *interfaceElt = componentElt->FirstChildElement("interface");
@@ -250,7 +269,7 @@ void Registry::declareModule(tinyxml2::XMLElement * xmlModuleElt)
         return XPCFErrorCode::_FAIL;
     }*/
 
-    if (! mapContains(m_modulesMap, moduleUuid)) {
+    if (! mapContains(m_context->modulesMap, moduleUuid)) {
         addModuleMetadata(moduleInfo);
     }
     // Add components to module even if there was a previous module declaration
@@ -264,12 +283,12 @@ void Registry::declareModule(tinyxml2::XMLElement * xmlModuleElt)
 
 const IEnumerable<SPtr<ModuleMetadata>> & Registry::getModulesMetadata() const
 {
-    return m_modulesVector;
+    return m_context->modulesVector;
 }
 
 const IEnumerable<SPtr<InterfaceMetadata>> & Registry::getInterfacesMetadata() const
 {
-    return m_interfacesVector;
+    return m_context->interfacesVector;
 }
 
 }}} //namespace org::bcom::xpcf

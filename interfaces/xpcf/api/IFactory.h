@@ -24,16 +24,8 @@
 #define ORG_BCOM_XPCF_IFACTORY_H
 
 //#define BOOST_ALL_DYN_LINK 1
-#include <xpcf/api/IInjectable.h>
+#include <xpcf/api/IInjectable.h>i
 #include <xpcf/component/ComponentFactory.h>
-
-#ifdef XPCF_WITH_LOGS
-#include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/attributes.hpp>
-#endif
-
-#include <deque>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -64,6 +56,13 @@ public:
     virtual ~IFactory() override = default;
     virtual void clear() = 0;
     virtual SRef<IFactory> createNewFactoryContext(ContextMode ctxMode = ContextMode::Empty) = 0;
+
+    virtual XPCFErrorCode load()  = 0;
+    virtual XPCFErrorCode load(const char* libraryFilePath) = 0;
+    virtual XPCFErrorCode load(const char* folderPathStr, bool bRecurse) = 0;
+    virtual XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) = 0;
+    virtual XPCFErrorCode loadModuleMetadata(const char* moduleName,
+                                     const char* moduleFilePath) = 0;
     /**
      * Declare a binding from the service identified with @p interfaceUUID to the concrete component identified with @p instanceUUID.
      * @param [in] interfaceUUID : the interface identifier

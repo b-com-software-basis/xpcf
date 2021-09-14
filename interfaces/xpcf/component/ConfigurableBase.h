@@ -52,6 +52,8 @@ public:
     SRef<IEnumerator<SRef<IProperty>>> getPropertiesEnumerator() const final;
     bool hasProperties() const final;
 
+    virtual void onInjected() override;
+
 protected:
     XPCFErrorCode addProperty(SRef<IProperty> property) override final;
     void declarePropertyNode(const char * name, SRef<IPropertyMap> & wrappedValue, IProperty::AccessSpecifier iotype = IProperty::AccessSpecifier::IProperty_INOUT) override final;

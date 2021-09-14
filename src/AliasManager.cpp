@@ -60,19 +60,29 @@ bool aliasExistsIn(std::map<std::string, uuids::uuid> & elementMap, const std::s
     return (elementMap.find(name) != elementMap.end());
 }
 
+void AliasContext::clear()
+{
+    componentResolverMap.clear();
+    interfaceResolverMap.clear();
+    moduleResolverMap.clear();
+}
+
+
 AliasManager::AliasManager():ComponentBase(toUUID<AliasManager>())
 {
+    m_context = utils::make_shared<AliasContext>();
     declareInterface<IAliasManager>(this);
+    declareInterface<AbstractAliasManager>(this);
     m_addAliasFunction[AliasManager::Type::Interface] = [&](const std::string & name, const uuids::uuid & uuid, bool forceReplace) {
-        ::org::bcom::xpcf::addAlias(m_interfaceResolverMap, name, uuid, forceReplace);
+        ::org::bcom::xpcf::addAlias(m_context->interfaceResolverMap, name, uuid, forceReplace);
     };
 
     m_addAliasFunction[AliasManager::Type::Component] = [&](const std::string & name, const uuids::uuid & uuid, bool forceReplace) {
-        ::org::bcom::xpcf::addAlias(m_componentResolverMap, name, uuid, forceReplace);
+        ::org::bcom::xpcf::addAlias(m_context->componentResolverMap, name, uuid, forceReplace);
     };
 
     m_addAliasFunction[AliasManager::Type::Module] = [&](const std::string & name, const uuids::uuid & uuid, bool forceReplace) {
-        ::org::bcom::xpcf::addAlias(m_moduleResolverMap, name, uuid, forceReplace);
+        ::org::bcom::xpcf::addAlias(m_context->moduleResolverMap, name, uuid, forceReplace);
     };
 #ifdef XPCF_WITH_LOGS
     m_logger.add_attribute("ClassName", boost::log::attributes::constant<std::string>("AliasManager"));
@@ -82,9 +92,17 @@ AliasManager::AliasManager():ComponentBase(toUUID<AliasManager>())
 
 void AliasManager::clear()
 {
-    m_moduleResolverMap.clear();
-    m_interfaceResolverMap.clear();
-    m_componentResolverMap.clear();
+    m_context->clear();
+}
+
+SRef<AliasContext> AliasManager::getContext() const
+{
+    return m_context;
+}
+
+void AliasManager::setContext(SRef<AliasContext> context)
+{
+    m_context = context;
 }
 
 void AliasManager::declareAlias(Type type, const std::string & name, const uuids::uuid & uuid)
@@ -100,12 +118,12 @@ void AliasManager::declareExplicitAlias(Type type, const std::string & name, con
 bool AliasManager::aliasExists(Type type, const std::string & name)
 {
     switch (type) {
-        case IAliasManager::Type::Interface :
-            return aliasExistsIn(m_interfaceResolverMap,name);
-        case IAliasManager::Type::Component :
-            return aliasExistsIn(m_componentResolverMap,name);
-        case IAliasManager::Type::Module :
-            return aliasExistsIn(m_moduleResolverMap,name);
+    case IAliasManager::Type::Interface :
+        return aliasExistsIn(m_context->interfaceResolverMap,name);
+    case IAliasManager::Type::Component :
+        return aliasExistsIn(m_context->componentResolverMap,name);
+    case IAliasManager::Type::Module :
+        return aliasExistsIn(m_context->moduleResolverMap,name);
     }
     // should never happen !!!
     return false;
@@ -145,24 +163,24 @@ const uuids::uuid & AliasManager::resolveAlias(const std::string & name, const s
         throw Exception("Unknown alias : no alias found for name " + name);
     }
 #ifdef XPCF_WITH_LOGS
-        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"AliasManager::resolveAlias name='"<<name<<"' resolved to uuid='"<<uuids::to_string(elementMap.at(name))<<"'";
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"AliasManager::resolveAlias name='"<<name<<"' resolved to uuid='"<<uuids::to_string(elementMap.at(name))<<"'";
 #endif
     return elementMap.at(name);
 }
 
 const uuids::uuid & AliasManager::resolveComponentAlias(const std::string & name)
 {
-    return resolveAlias(name, m_componentResolverMap);
+    return resolveAlias(name, m_context->componentResolverMap);
 }
 
 const uuids::uuid & AliasManager::resolveInterfaceAlias(const std::string & name)
 {
-    return resolveAlias(name, m_interfaceResolverMap);
+    return resolveAlias(name, m_context->interfaceResolverMap);
 }
 
 const uuids::uuid & AliasManager::resolveModuleAlias(const std::string & name)
 {
-    return resolveAlias(name, m_moduleResolverMap);
+    return resolveAlias(name, m_context->moduleResolverMap);
 }
 
 
