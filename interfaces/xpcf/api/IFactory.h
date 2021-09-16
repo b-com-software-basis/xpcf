@@ -24,7 +24,7 @@
 #define ORG_BCOM_XPCF_IFACTORY_H
 
 //#define BOOST_ALL_DYN_LINK 1
-#include <xpcf/api/IInjectable.h>i
+#include <xpcf/api/IInjectable.h>
 #include <xpcf/component/ComponentFactory.h>
 
 namespace org { namespace bcom { namespace xpcf {
