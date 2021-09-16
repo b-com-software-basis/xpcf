@@ -56,9 +56,7 @@ public:
     XPCFErrorCode load() override;
     XPCFErrorCode load(const char* libraryFilePath) override;
     XPCFErrorCode load(const char* folderPathStr, bool bRecurse) override;
-    XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) override;
-    XPCFErrorCode loadModuleMetadata(const char* moduleName,
-                                     const char* moduleFilePath) override;
+
     void clear() override;
     SRef<IComponentIntrospect> createComponent(const uuids::uuid & componentUUID) final;
     SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid& componentUUID) override;
@@ -81,13 +79,10 @@ private:
     ComponentManager& operator=(const ComponentManager&)= delete;
     static std::atomic<ComponentManager*> m_instance;
     static std::mutex m_mutex;
-    SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
 #ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 #endif
     SRef<AbstractFactory> m_factory;
-    SRef<IRegistryManager> m_registry;
-    SRef<IAliasManager> m_aliasManager;
     SRef<IPropertyManager> m_propertyManager;
 
     bool m_libraryLoaded;

@@ -57,12 +57,48 @@ public:
     virtual void clear() = 0;
     virtual SRef<IFactory> createNewFactoryContext(ContextMode ctxMode = ContextMode::Empty) = 0;
 
-    virtual XPCFErrorCode load()  = 0;
+
+    /**
+     *
+     * @param [in] componentUUID
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    virtual SRef<IComponentIntrospect> createComponent(const uuids::uuid & componentUUID) = 0;
+
+    /**
+     *
+     * @note with @fn createComponent()
+     * @param [in]
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    virtual SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid & componentUUID) = 0;
+
+    /**
+     * Search the registry file and load it with all the components
+     * The method tries to read the "XPCF_REGISTRY_PATH" environment variable
+     * It loads the file provided in the variable when it exists.
+     * Otherwise, the method loads all xpcf compatible xml files recursively found in xpcf home path (%USERPROFILE%/.xpcf on windows, $HOME/.xpcf on other platforms).
+     * @return
+     */
+    virtual XPCFErrorCode load() = 0;
+
+    /**
+     * Search the registry file and load it with all the components
+     * @return
+     */
     virtual XPCFErrorCode load(const char* libraryFilePath) = 0;
+
+    /**
+     * Find registry files from a root folder and load each registry file with its components
+     * @param [in] folderPathStr : the root path to search xml registry's file for
+     * @param [in] bRecurse : indicates to search recursively in subfolder [true] or only in @p folderPathStr [false]
+     * @return
+     */
     virtual XPCFErrorCode load(const char* folderPathStr, bool bRecurse) = 0;
-    virtual XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) = 0;
-    virtual XPCFErrorCode loadModuleMetadata(const char* moduleName,
-                                     const char* moduleFilePath) = 0;
+
     /**
      * Declare a binding from the service identified with @p interfaceUUID to the concrete component identified with @p instanceUUID.
      * @param [in] interfaceUUID : the interface identifier
@@ -126,6 +162,41 @@ public:
     virtual uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID) = 0;
     virtual uuids::uuid getComponentUUID(const uuids::uuid & interfaceUUID, const std::string & name) = 0;
 
+    /**
+     *
+     * @note with @fn createComponent()
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename I> SRef<I> createComponent(const uuids::uuid & componentUUID);
+
+    /**
+     *
+     * @note with @fn createComponent()
+     * @param [in]
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename I> SRef<I> createComponent(const char * instanceName, const uuids::uuid & componentUUID);
+    /**
+     *
+     * @note with @fn resolve()
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename C> SRef<IComponentIntrospect> create();
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename C> SRef<IComponentIntrospect> create(const char * instanceName);
+
     template <typename I> SRef<I> resolve();
     template <typename I> SRef<I> resolve(const std::string & name);
     template < typename I> const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll();
@@ -164,6 +235,32 @@ public:
 
 };
 
+
+template < typename I >
+SRef<I> IFactory::createComponent(const uuids::uuid& componentUUID)
+{
+    SRef<IComponentIntrospect> rICIntrospect = createComponent(componentUUID);
+    return rICIntrospect->bindTo<I>();
+}
+
+template < typename C >
+SRef<IComponentIntrospect> IFactory::create()
+{
+    return createComponent(toUUID<C>());
+}
+
+template < typename I >
+SRef<I> IFactory::createComponent(const char * instanceName, const uuids::uuid & componentUUID)
+{
+    SRef<IComponentIntrospect> rICIntrospect = createComponent(instanceName,componentUUID);
+    return rICIntrospect->bindTo<I>();
+}
+
+template < typename C >
+SRef<IComponentIntrospect> IFactory::create(const char * instanceName)
+{
+    return createComponent(instanceName,toUUID<C>());
+}
 
 template <typename I>
 SRef<I> IFactory::resolve()

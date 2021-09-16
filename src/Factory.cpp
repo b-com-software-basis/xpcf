@@ -180,55 +180,47 @@ void Factory::clear()
     m_resolver->clear();
 }
 
-XPCFErrorCode Factory::loadModuleMetadata(const char * moduleName,
-                                          const char * moduleFilePath)
+SRef<IComponentIntrospect> Factory::create(const uuids::uuid & componentUUID)
 {
-    SRef<ModuleMetadata> moduleInfos = getModuleManagerInstance()->introspectModule(moduleName, moduleFilePath);
-    m_resolver->declareModuleMetadata(moduleInfos);
-    return XPCFErrorCode::_SUCCESS;
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::create uuid="<<uuids::to_string(componentUUID);
+#endif
+    SPtr<ModuleMetadata> moduleInfos = findModuleMetadata(getModuleUUID(componentUUID));
+    SRef<IComponentIntrospect> componentRef = getModuleManagerInstance()->createComponent(moduleInfos, componentUUID);
+    return componentRef;
 }
 
-template <class T> XPCFErrorCode Factory::loadModules(fs::path folderPath)
+SRef<IComponentIntrospect> Factory::createComponent(const uuids::uuid & componentUUID)
 {
-    //TODO : what strategy to report error of load for a dedicated file but load others ?
-    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
-    static_assert(std::is_same<T,fs::directory_iterator>::value || std::is_same<T,fs::recursive_directory_iterator>::value,
-            "Type passed to ComponentManager::load is neither a directory_iterator nor a recursive_directory_iterator");
-    for (fs::directory_entry& x : T(folderPath)) {
-        if (PathBuilder::is_shared_library(x.path())) {
-            fs::path modulePath = x.path().parent_path();
-            fs::path moduleName = x.path().filename();
-            fs::detail::utf8_codecvt_facet utf8;
-            result = loadModuleMetadata(moduleName.string(utf8).c_str(),modulePath.string(utf8).c_str());
-        }
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::createComponent uuid="<<uuids::to_string(componentUUID);
+#endif
+    SRef<IComponentIntrospect> componentRef = create(componentUUID);
+    inject(componentRef->bindTo<IInjectable>());
+
+    fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
+    if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
+        SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
+        iconf->configure(configFilePath.string().c_str());
     }
-    return result;
+    return componentRef;
 }
 
-XPCFErrorCode Factory::loadModules(const char * folderPathStr, bool bRecurse)
+
+SRef<IComponentIntrospect> Factory::createComponent(const char * instanceName, const uuids::uuid & componentUUID)
 {
-    if (folderPathStr == nullptr) {
-        return XPCFErrorCode::_ERROR_NULL_POINTER;
-    }
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::createComponent name="<<instanceName<<" uuid="<<uuids::to_string(componentUUID);
+#endif
+    SRef<IComponentIntrospect> componentRef = create(componentUUID);
+    inject(componentRef->bindTo<IInjectable>());
 
-    fs::path folderPath = PathBuilder::buildModuleFolderPath(folderPathStr);
-
-    if ( ! fs::exists(folderPath)) {
-        return XPCFErrorCode::_FAIL;
+    fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
+    if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
+        SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
+        iconf->configure(configFilePath.string().c_str(), instanceName);
     }
-
-    if ( !fs::is_directory(folderPath)) {
-        return XPCFErrorCode::_FAIL;
-    }
-    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
-
-    if (bRecurse) {
-        result = loadModules<fs::recursive_directory_iterator>(folderPath);
-    }
-    else {
-        result = loadModules<fs::directory_iterator>(folderPath);
-    }
-    return result;
+    return componentRef;
 }
 
 XPCFErrorCode Factory::load()

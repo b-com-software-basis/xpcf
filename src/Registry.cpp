@@ -79,6 +79,57 @@ void Registry::clear()
     m_libraryLoaded = false;
 }
 
+XPCFErrorCode Registry::loadModuleMetadata(const char * moduleName,
+                                          const char * moduleFilePath)
+{
+    SRef<ModuleMetadata> moduleInfos = getModuleManagerInstance()->introspectModule(moduleName, moduleFilePath);
+    declareModuleMetadata(moduleInfos);
+    return XPCFErrorCode::_SUCCESS;
+}
+
+template <class T> XPCFErrorCode Registry::loadModules(fs::path folderPath)
+{
+    //TODO : what strategy to report error of load for a dedicated file but load others ?
+    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
+    static_assert(std::is_same<T,fs::directory_iterator>::value || std::is_same<T,fs::recursive_directory_iterator>::value,
+            "Type passed to ComponentManager::load is neither a directory_iterator nor a recursive_directory_iterator");
+    for (fs::directory_entry& x : T(folderPath)) {
+        if (PathBuilder::is_shared_library(x.path())) {
+            fs::path modulePath = x.path().parent_path();
+            fs::path moduleName = x.path().filename();
+            fs::detail::utf8_codecvt_facet utf8;
+            result = loadModuleMetadata(moduleName.string(utf8).c_str(),modulePath.string(utf8).c_str());
+        }
+    }
+    return result;
+}
+
+XPCFErrorCode Registry::loadModules(const char * folderPathStr, bool bRecurse)
+{
+    if (folderPathStr == nullptr) {
+        return XPCFErrorCode::_ERROR_NULL_POINTER;
+    }
+
+    fs::path folderPath = PathBuilder::buildModuleFolderPath(folderPathStr);
+
+    if ( ! fs::exists(folderPath)) {
+        return XPCFErrorCode::_FAIL;
+    }
+
+    if ( !fs::is_directory(folderPath)) {
+        return XPCFErrorCode::_FAIL;
+    }
+    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
+
+    if (bRecurse) {
+        result = loadModules<fs::recursive_directory_iterator>(folderPath);
+    }
+    else {
+        result = loadModules<fs::directory_iterator>(folderPath);
+    }
+    return result;
+}
+
 SRef<RegistryContext> Registry::getContext() const
 {
     return m_context;

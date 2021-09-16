@@ -44,6 +44,8 @@
 #include <thread>
 #include <vector>
 
+namespace fs = boost::filesystem;
+
 namespace org { namespace bcom { namespace xpcf {
 
 struct RegistryContext {
@@ -62,6 +64,7 @@ public:
     virtual void setBinder(const std::function<void(const uuids::uuid &, const uuids::uuid &)> & bindFunc) = 0;
     virtual void declareModule(tinyxml2::XMLElement * xmlModuleElt) = 0;
     virtual void declareModuleMetadata(SPtr<ModuleMetadata> moduleInfos) = 0;
+    virtual void enableAutoAlias(bool enabled) = 0;
     virtual SRef<RegistryContext> getContext() const = 0;
     virtual SRef<RegistryContext> context() = 0;
     virtual void setContext(SRef<RegistryContext> context) = 0;
@@ -82,6 +85,9 @@ public:
     ~Registry() override = default;
     void clear() override;
 
+    XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) override;
+    XPCFErrorCode loadModuleMetadata(const char* moduleName,
+                                     const char* moduleFilePath) override;
     void declareModuleMetadata(SPtr<ModuleMetadata> moduleInfos) override;
     const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const  override;
     SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid & componentUUID) const  override;
@@ -99,6 +105,8 @@ public:
     void unloadComponent () override final;
 
 private:
+    template <class T> XPCFErrorCode load(fs::path folderPath);
+    template <class T> XPCFErrorCode loadModules(fs::path folderPath);
     void addModuleMetadata(SPtr<ModuleMetadata> metadata);
     void addInterfaceMetadata(SPtr<InterfaceMetadata> metadata);
     void declareInterfaceNode(SRef<ComponentMetadata> componentInfo, tinyxml2::XMLElement *interfaceElt);

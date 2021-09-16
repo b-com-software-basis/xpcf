@@ -145,59 +145,14 @@ XPCFErrorCode ComponentManager::load(const char* folderPathStr, bool bRecurse)
     return m_factory->load(folderPathStr, bRecurse);
 }
 
-XPCFErrorCode ComponentManager::loadModuleMetadata(const char * moduleName,
-                                                   const char * moduleFilePath)
-{
-    return m_factory->loadModuleMetadata(moduleName, moduleFilePath);
-}
-
-
-XPCFErrorCode ComponentManager::loadModules(const char * folderPathStr, bool bRecurse)
-{
-    return m_factory->loadModules(folderPathStr, bRecurse);
-}
-
-SRef<IComponentIntrospect> ComponentManager::create(const uuids::uuid & componentUUID)
-{
-#ifdef XPCF_WITH_LOGS
-    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::create uuid="<<uuids::to_string(componentUUID);
-#endif
-    SPtr<ModuleMetadata> moduleInfos = findModuleMetadata(getModuleUUID(componentUUID));
-    SRef<IComponentIntrospect> componentRef = getModuleManagerInstance()->createComponent(moduleInfos, componentUUID);
-    return componentRef;
-}
-
 SRef<IComponentIntrospect> ComponentManager::createComponent(const uuids::uuid & componentUUID)
 {
-#ifdef XPCF_WITH_LOGS
-    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::createComponent uuid="<<uuids::to_string(componentUUID);
-#endif
-    SRef<IComponentIntrospect> componentRef = create(componentUUID);
-    m_factory->inject(componentRef->bindTo<IInjectable>());
-
-    fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
-    if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
-        SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
-        iconf->configure(configFilePath.string().c_str());
-    }
-    return componentRef;
+    return m_factory->createComponent(componentUUID);
 }
-
 
 SRef<IComponentIntrospect> ComponentManager::createComponent(const char * instanceName, const uuids::uuid & componentUUID)
 {
-#ifdef XPCF_WITH_LOGS
-    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"ComponentManager::createComponent name="<<instanceName<<" uuid="<<uuids::to_string(componentUUID);
-#endif
-    SRef<IComponentIntrospect> componentRef = create(componentUUID);
-    m_factory->inject(componentRef->bindTo<IInjectable>());
-
-    fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
-    if (componentRef->implements<IConfigurable>() && ! configFilePath.empty()) {
-        SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
-        iconf->configure(configFilePath.string().c_str(), instanceName);
-    }
-    return componentRef;
+    return m_factory->createComponent(instanceName, componentUUID);
 }
 
 // Given a UUID, we return a ComponentMetadata

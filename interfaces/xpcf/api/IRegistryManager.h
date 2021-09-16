@@ -27,20 +27,73 @@
 #include <xpcf/api/InterfaceMetadata.h>
 #include <xpcf/api/ComponentMetadata.h>
 #include <xpcf/api/ModuleMetadata.h>
+#include <xpcf/core/XPCFErrorCode.h>
 
 namespace org { namespace bcom { namespace xpcf {
 
 class IRegistryManager  : virtual public IComponentIntrospect {
 public:
     ~IRegistryManager() override  = default;
+
+    /**
+     * Read a module metadata and add the metadata to the componentmanager registry
+     * @param [in] the module name
+     * @param [in] the module file path
+     * @return
+     */
+    virtual XPCFErrorCode loadModuleMetadata(const char* moduleName,
+                                             const char* moduleFilePath) = 0;
+
+    /**
+     * Find module files from a root folder and load each module metadata in XPCF registry
+     * @param [in] folderPathStr : the root path to search module files' for
+     * @param [in] bRecurse : indicates to search recursively in subfolder [true] or only in @p folderPathStr [false]
+     * @return
+     */
+    virtual XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse = false) = 0;
+
+    /**
+     * Retrieve every module metadata registered in the ComponentManager
+     * @return the collection of modules metadata
+     */
     virtual const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const = 0;
+
+    /**
+     * Search a component metadata.
+     * @param [in] the component UUID to search for
+     * @throws ComponentNotFoundException
+     * @return the component metadata for the component UUID provided
+     */
     virtual SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid & componentUUID) const = 0;
+
+    /**
+     * Search the module containing the component provided.
+     * @param [in] the component UUID
+     * @throws ComponentNotFoundException
+     * @return the module UUID containing the component provided
+     */
     virtual uuids::uuid getModuleUUID(const uuids::uuid & componentUUID) const = 0;
+
+    /**
+     * Search a module metadata.
+     * @param [in] the module UUID to search for
+     * @throws ModuleNotFoundException
+     * @return the module metadata for the module UUID provided
+     */
     virtual SPtr<ModuleMetadata> findModuleMetadata(const uuids::uuid & moduleUUID) const = 0;
 
+    /**
+     * Retrieve every interface metadata registered in the ComponentManager
+     * @return the collection of interfaces metadata
+     */
     virtual const IEnumerable<SPtr<InterfaceMetadata>> & getInterfacesMetadata() const = 0;
+
+    /**
+     * deprecatd ?? TODO : check
+     * @param [in]
+     * @return
+     */
     virtual SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid & interfaceUUID) const = 0;
-    virtual void enableAutoAlias(bool enabled) = 0;
 
     template <typename I> SPtr<InterfaceMetadata> findInterfaceMetadata();
     template <typename I> SPtr<ComponentMetadata> findComponentMetadata();

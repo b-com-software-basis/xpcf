@@ -32,6 +32,7 @@
 #include <xpcf/threading/SharedBuffer.h>
 #include <xpcf/threading/BaseTask.h>
 #include <xpcf/api/IModuleManager.h>
+#include <xpcf/api/IRegistryManager.h>
 #include <xpcf/api/IInjectable.h>
 #include <boost/filesystem.hpp>
 
@@ -97,7 +98,7 @@ BOOST_FIXTURE_TEST_CASE( test_load_module_metadata,XpcfFixture,* boost::unit_tes
     SRef<xpcf::IModuleManager> xpcfModuleManager = xpcf::getModuleManagerInstance();
     std::string xpcfVersion = xpcfModuleManager->getXpcfVersion(moduleName.c_str(),path);
     BOOST_TEST_MESSAGE("Module "<<moduleName<<" was built with xpcf version "<<xpcfVersion);
-    BOOST_TEST_REQUIRE(xpcf::XPCFErrorCode::_SUCCESS == xpcfComponentManager->loadModuleMetadata(moduleName.c_str(),path)," failed to load module from moduleMetadata");
+    BOOST_TEST_REQUIRE(xpcf::XPCFErrorCode::_SUCCESS == xpcfComponentManager->getFactory()->bindTo<xpcf::IRegistryManager>()->loadModuleMetadata(moduleName.c_str(),path)," failed to load module from moduleMetadata");
     SPtr<xpcf::InterfaceMetadata> pI = xpcfComponentManager->findInterfaceMetadata(iid_IHuman);
     BOOST_TEST_REQUIRE(pI,"ERROR Cannot find interface iid_IHuman !");
     SPtr<xpcf::ComponentMetadata> cmpMetadata= xpcfComponentManager->findComponentMetadata(clsid_HumanMusician);
@@ -129,7 +130,7 @@ BOOST_FIXTURE_TEST_CASE( test_load_modules,XpcfFixture,* boost::unit_test::depen
     xpcfComponentManager->load();
     SPtr<xpcf::ModuleMetadata> modMdata = xpcfComponentManager->findModuleMetadata(sampleComponentModuleUUID);
     xpcfComponentManager->clear();
-    BOOST_TEST_REQUIRE(xpcf::XPCFErrorCode::_SUCCESS == xpcfComponentManager->loadModules(modMdata->getPath())," failed to load modules from moduleMetadata");
+    BOOST_TEST_REQUIRE(xpcf::XPCFErrorCode::_SUCCESS == xpcfComponentManager->getFactory()->bindTo<xpcf::IRegistryManager>()->loadModules(modMdata->getPath())," failed to load modules from moduleMetadata");
     SPtr<xpcf::InterfaceMetadata> pI = xpcfComponentManager->findInterfaceMetadata(iid_IHuman);
     BOOST_TEST_REQUIRE(pI,"ERROR Cannot find interface iid_IHuman !");
     SPtr<xpcf::ComponentMetadata> cmpMetadata= xpcfComponentManager->findComponentMetadata(clsid_HumanMusician);
@@ -542,6 +543,47 @@ BOOST_FIXTURE_TEST_CASE( test_component_multibind,XpcfFixture,* boost::unit_test
     xpcfComponentManager->clear();
 }
 
+
+BOOST_FIXTURE_TEST_CASE( test_factory_createcomponent,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
+{
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+
+    auto emptyFactory = xpcfComponentManager->getFactory()->createNewFactoryContext(xpcf::ContextMode::Empty);
+    // Change specific bind for virtual guitarist for IGuitar to Ibanez electric guitar in cloned factory.
+
+    BOOST_TEST_REQUIRE(emptyFactory->bindTo<xpcf::IRegistryManager>()->getInterfacesMetadata().size() == 0, "Empty factory is empty");
+    emptyFactory->load(confPath.generic_string(utf8).c_str());
+
+    SRef<xpcf::IComponentIntrospect> rIComponentIntrospect=   emptyFactory->createComponent(clsid_HumanMusician);
+    SRef<IHuman> rIHuman = rIComponentIntrospect->queryInterface<IHuman>(iid_IHuman);
+    BOOST_TEST_REQUIRE(rIHuman,"HumanMusician component is ready");
+    SRef<IGuitarist> rIGuitarist=   emptyFactory->createComponent<IGuitarist>(xpcf::toUUID<component::VirtualGuitarist>());
+    BOOST_TEST_REQUIRE(rIGuitarist,"VirtualGuitarist component is ready");
+    SRef<IGuitar> folkGuitar =  emptyFactory->create<component::TakamineFolkGuitar>()->bindTo<IGuitar>();
+    BOOST_TEST_REQUIRE(folkGuitar,"Takamine folk guitar component is ready");
+
+    BOOST_TEST_MESSAGE( "Guitar brand name: " << folkGuitar->getGuitarBrand());
+    BOOST_TEST_MESSAGE( "Guitar strings number: " << folkGuitar->getNbStrings());
+
+    MusicScore score;
+    score.add("C",0.5);
+    score.add("C",0.5);
+    score.add("D",0.5);
+    score.add("E",0.5);
+    BOOST_TEST_MESSAGE("Calling methods of IMusician on component VirtualGuitarist through IGuitarist SRef");
+    rIGuitarist->learn();
+    rIGuitarist->playMusic(score);
+    rIGuitarist->listen();
+    rIGuitarist->practice();
+
+    BOOST_TEST_MESSAGE("OK Calling methods of IGuitarist on component VirtualGuitarist");
+    rIGuitarist->playSolo(score);
+    rIGuitarist->playRhythm();
+    xpcfComponentManager->clear();
+    emptyFactory->clear();
+}
+
 BOOST_FIXTURE_TEST_CASE( test_factory_sharedcontext,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
 {
     fs::path confPath = "xpcf_registry_test.xml";
@@ -618,6 +660,42 @@ BOOST_FIXTURE_TEST_CASE( test_factory_clonedcontext,XpcfFixture,* boost::unit_te
     BOOST_TEST_REQUIRE(guitar->getGuitarBrand() == "Ibanez", "cloned factory VirtualGuitarist guitar brand:" << guitar->getGuitarBrand());
 
     xpcfComponentManager->clear();
+}
+
+BOOST_FIXTURE_TEST_CASE( test_factory_emptycontext,XpcfFixture,* boost::unit_test::depends_on("test_library_component_metadata/test_load_library"))
+{
+    fs::path confPath = "xpcf_registry_test.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+
+    auto emptyFactory = xpcfComponentManager->getFactory()->createNewFactoryContext(xpcf::ContextMode::Empty);
+    // Change specific bind for virtual guitarist for IGuitar to Ibanez electric guitar in cloned factory.
+
+    BOOST_TEST_REQUIRE(emptyFactory->bindTo<xpcf::IRegistryManager>()->getInterfacesMetadata().size() == 0, "Empty factory is empty");
+    emptyFactory->load(confPath.generic_string(utf8).c_str());
+
+    BOOST_TEST_MESSAGE("Change empty factory IGuitarist default guitar bind to Ibanez");
+
+    emptyFactory->bind(xpcf::toUUID("63ff193d-93e6-4ede-9947-22f864ac843f"),
+                       xpcf::toUUID<IGuitar>(),
+                       xpcf::toUUID("{ED894181-0FDC-4326-A068-CB2A5899CB13}"),
+                       xpcf::BindingScope::Transient,
+                       xpcf::BindingRange::All);
+
+    BOOST_TEST_MESSAGE("Resolve IGuitarist xpcf binding");
+    SRef<IGuitarist> rIGuitaristXpcf1 = xpcfComponentManager->resolve<IGuitarist>();
+
+    BOOST_TEST_MESSAGE("Resolve IGuitarist empty factory binding");
+    SRef<IGuitarist> rIGuitaristEmptyFactory1 = emptyFactory->resolve<IGuitarist>();
+    BOOST_TEST_MESSAGE("xpcf VirtualGuitarist adress=" << rIGuitaristXpcf1.get()<<" | empty factory VirtualGuitarist adresses: 1=" << rIGuitaristEmptyFactory1.get());
+
+    auto guitar = rIGuitaristXpcf1->getGuitar(IGuitar::GuitarType::Acoustic);
+    BOOST_TEST_REQUIRE(guitar->getGuitarBrand() == "Jackson", "xpcf factory VirtualGuitarist created before modified bind guitar brand:" << guitar->getGuitarBrand());
+    guitar = rIGuitaristEmptyFactory1->getGuitar(IGuitar::GuitarType::Acoustic);
+    BOOST_TEST_REQUIRE(guitar->getGuitarBrand() == "Ibanez", "empty factory loaded : VirtualGuitarist guitar brand:" << guitar->getGuitarBrand());
+
+    xpcfComponentManager->clear();
+    emptyFactory->clear();
 }
 BOOST_AUTO_TEST_SUITE_END()
 

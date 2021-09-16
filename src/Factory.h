@@ -105,12 +105,6 @@ public:
     virtual ~AbstractFactory() override = default;
     virtual void autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID) = 0;
     virtual void inject(SRef<IInjectable> component, std::deque<BindContext> contextLevels = {}) = 0;
-    virtual XPCFErrorCode load()  = 0;
-    virtual XPCFErrorCode load(const char* libraryFilePath) = 0;
-    virtual XPCFErrorCode load(const char* folderPathStr, bool bRecurse) = 0;
-    virtual XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) = 0;
-    virtual XPCFErrorCode loadModuleMetadata(const char* moduleName,
-                                     const char* moduleFilePath) = 0;
     virtual void declareFactory(tinyxml2::XMLElement * xmlModuleElt) = 0;
 };
 
@@ -178,9 +172,6 @@ public:
     XPCFErrorCode load() override;
     XPCFErrorCode load(const char* libraryFilePath) override;
     XPCFErrorCode load(const char* folderPathStr, bool bRecurse) override;
-    XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) override;
-    XPCFErrorCode loadModuleMetadata(const char* moduleName,
-                                     const char* moduleFilePath) override;
 
     void declareFactory(tinyxml2::XMLElement * xmlModuleElt) override;
     SRef<IComponentIntrospect> resolve(const SPtr<InjectableMetadata> & injectableInfo) override
@@ -209,6 +200,10 @@ public:
 
     SRef<IFactory> createNewFactoryContext(ContextMode ctxMode) override;
 
+    // IComponentManager methods
+    SRef<IComponentIntrospect> createComponent(const uuids::uuid & componentUUID) override;
+    SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid & componentUUID) override;
+
     // IAliasManager methods
     bool aliasExists(Type type, const std::string & name) override
         { return m_aliasManager->aliasExists(type, name); }
@@ -226,6 +221,14 @@ public:
         { return m_aliasManager->resolveModuleAlias(name); }
 
     // IRegistryManager methods
+
+    XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) override
+        { return m_resolver->loadModules(folderPathStr, bRecurse); }
+
+    XPCFErrorCode loadModuleMetadata(const char* moduleName,
+                                     const char* moduleFilePath) override
+        { return m_resolver->loadModuleMetadata(moduleName, moduleFilePath); }
+
     const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const override
         { return m_resolver->getModulesMetadata(); }
 
@@ -244,9 +247,6 @@ public:
     SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid & interfaceUUID) const override
         { return m_resolver->findInterfaceMetadata(interfaceUUID); }
 
-    void enableAutoAlias(bool enabled) override
-         { return m_resolver->enableAutoAlias(enabled); }
-
     void unloadComponent () override final;
 
 private:
@@ -260,14 +260,14 @@ private:
     void declareInject(tinyxml2::XMLElement * xmlBindElt);
     void declareSpecificBind(tinyxml2::XMLElement * xmlBindElt, const uuids::uuid & targetComponentUUID);
     FactoryBindInfos getComponentBindingInfos(tinyxml2::XMLElement * xmlBindElt);
+    SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
     XPCFErrorCode loadLibrary(fs::path configurationFilePath);
     template <class T> XPCFErrorCode load(fs::path folderPath);
-    template <class T> XPCFErrorCode loadModules(fs::path folderPath);
     SRef<IComponentIntrospect> resolveFromModule(const uuids::uuid & componentUUID);
     SRef<IComponentIntrospect> resolveComponent(const FactoryBindInfos & bindInfos,
                                                 std::deque<BindContext> contextLevels);
     void inject(SRef<IInjectable> component,
-                std::deque<BindContext> contextLevels) final;
+                std::deque<BindContext> contextLevels={}) final;
     SPtr<ModuleMetadata> resolveMetadataFromComponentUUID(const uuids::uuid & componentUUID) {
         return m_resolver->findModuleMetadata(m_resolver->getModuleUUID(componentUUID));
     }
