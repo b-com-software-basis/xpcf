@@ -7,7 +7,7 @@ XPCF is a lightweight cross platform component framework (it is similar to the w
 
 It is designed to provide dependency injection, with clarity, simplicity and light code base in mind.
 
-It implements the abstractfactory and the factory design patterns (through the ComponentManager and ComponentFactory classes).
+It implements the abstractfactory and the factory design patterns (through the ComponentManager and ComponentFactory classes, and through IFactory interface).
 
 It also provides a safe toolkit to avoid common c++ design issues such as :
 
@@ -15,6 +15,8 @@ It also provides a safe toolkit to avoid common c++ design issues such as :
 - ensure correct memory handling (avoid memory leaks)
 - provide parallel helpers such as tasks, fifo, circular buffers, delays..
 - a common configuration design : configuring a component doesn't require to write serialization code
+
+XPCF also provides remoting automation by generating grpc remoting code from XPCF interfaces, using a dedicated DSL (Domain Specific Language) - see [XPCF remoting architecture](#xpcf-remoting-architecture) chapter.
 
 ## Changelog
 
@@ -180,7 +182,16 @@ Note: Autobinding ignores ```IComponentIntrospect```, ```IConfigurable``` and ``
 Upon creation of the concrete instance injection of the component injectables is made when needed through "resolve" methods, and each injectable is configured.
 Finally the concrete instance is configured and returned to the caller.
 
-## Xpcf remoting architecture
+## XPCF Factories
+From 2.5.0, XPCF now supports several creation contexts through the "IFactory" concept.
+The IComponentManager interface provides access to its inner Factory.
+From this factory, it is possible to create new factories.
+New factories are created with a context mode within :
+- Empty: creates a new and empty factory
+- Cloned: creates a factory with a copy of bindings existing in the original factory. Later bindings, configuration ... will only be valid within this cloned factory.
+- Shared: creates a factory that shares the bindings, configuration definition. Only component instances are local to the factory. Any later bind or configuration update will be share between the new and the original factory.
+
+## XPCF remoting architecture
 A new feature in xpcf 2.5.0 version is the ability to get remote versions of components almost "out of the box".
 
 The remoting functionality works for any xpcf interface that :
@@ -211,7 +222,7 @@ xpcf provides a Domain specific language through the use of c++ user defined att
 
 xpcf provides several tools to ease the remoting of components :
 
-1. xpcf\_grpc\_gen  : parses the IF and generates the needed remoting code for each inteface in a project.
+1. xpcf\_grpc\_gen  : parses the interfaces and generates the needed remoting code for each inteface in a project.
     - From an interface, the tool creates : 
         - grpc request and response messages with each input/output type translated to grpc types
         - a grpc service containing rpc : one for each method of the interface
