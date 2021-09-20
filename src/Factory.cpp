@@ -151,7 +151,7 @@ SRef<IFactory> Factory::createNewFactoryContext(ContextMode ctxMode)
     }
     BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::createNewFactoryContext with mode="<<mode;
 #endif
-    Factory * f = ComponentFactory::createInstance<Factory>();
+    Factory * f = new Factory();
     if (ctxMode == ContextMode::Cloned) {
         // TODO clone alias, props informations
         // for the moment, the propertymanager & alias mgr are shared between factories when context is cloned.
