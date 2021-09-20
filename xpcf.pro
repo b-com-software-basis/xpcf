@@ -8,9 +8,13 @@ VERSION=2.5.0
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
-CONFIG += shared
+CONFIG -= shared
 #CONFIG += verbose
-CONFIG -= staticlib
+CONFIG += staticlib
+
+# Uncomment following line to prepare remaken package
+#CONFIG += package_remaken
+
 macx {
     #CONFIG += use_brew_llvm
     # howto setup conan to use brew llvm ?
@@ -23,24 +27,29 @@ DEFINES += XPCF_USE_BOOST
 staticlib {
     DEFINES += XPCF_STATIC
     DEPENDENCIESCONFIG = staticlib
-    #INSTALLSUBDIR=static
+    REMAKEN_PKGSUBDIR=static
 } else {
     DEFINES += XPCF_SHARED
     DEFINES += BOOST_ALL_DYN_LINK
     DEPENDENCIESCONFIG = sharedlib
-    #INSTALLSUBDIR=shared
+    REMAKEN_PKGSUBDIR=shared
 }
 
 CONFIG(debug,debug|release) {
 #    DEFINES += XPCF_WITH_LOGS
     DEFINES += "XPCFDEBUG"
     DEFINES += XPCFSUBDIRSEARCH=\\\"debug\\\"
-    #INSTALLSUBDIR=$${INSTALLSUBDIR}/debug
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
 }
 
 CONFIG(release,debug|release) {
-    #INSTALLSUBDIR=$${INSTALLSUBDIR}/release
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
     DEFINES += XPCFSUBDIRSEARCH=\\\"release\\\"
+}
+
+package_remaken {
+    message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
+    INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
 }
 
 message("CONFIG="$${CONFIG})
