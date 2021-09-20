@@ -1,4 +1,3 @@
-//grpc|1.33.2|grpc++%WITHREMOTING|brew@system|
 //grpc|1.34.1|grpc++%WITHREMOTING|conan|conan-center|
 //grpc|1.36.4|grpc++%WITHREMOTING|brew@system|
 grpc|1.37.1|grpc++%WITHREMOTING|http|https://artifact.b-com.com/thirdparties-generic-virtual

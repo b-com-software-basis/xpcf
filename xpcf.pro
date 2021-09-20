@@ -226,6 +226,7 @@ contains(DEFINES, "WITHREMOTING") {
 DISTFILES += \
     Makefile \
     doc/xpcf-registry-sample.xml \
+    packagedependencies-android.txt \
     packagedependencies-linux.txt \
     packagedependencies-mac.txt \
     packagedependencies-win.txt \
