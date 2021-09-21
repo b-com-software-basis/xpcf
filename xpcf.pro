@@ -12,8 +12,10 @@ CONFIG -= staticlib
 
 !staticlib {
     CONFIG += shared
+} else {
+    CONFIG -= shared
 }
-
+#message($${CONFIG})
 #CONFIG += verbose
 
 # Uncomment following line to prepare remaken package
