@@ -8,9 +8,13 @@ VERSION=2.5.0
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
-CONFIG += shared
-#CONFIG += verbose
 CONFIG -= staticlib
+
+!staticlib {
+    CONFIG += shared
+}
+
+#CONFIG += verbose
 
 # Uncomment following line to prepare remaken package
 #CONFIG += package_remaken
