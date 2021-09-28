@@ -1,34 +1,85 @@
 #!/bin/bash
-QMAKE_PATH=$HOME/Qt/5.15.2/gcc_64/bin
+
+QTVERSION=5.15.2
 XPCFROOT=..
-if [ $# -eq 1 ]; then
+
+display_usage() { 
+	echo "This script builds testxpcf."
+    echo "It can receive two optional arguments." 
+	echo -e "\nUsage: \$0 [path to xpcf project root | default='${XPCFROOT}'] [Qt kit version to use | default='${QTVERSION}'] \n" 
+} 
+
+if [  $# -lt 1 ] 
+then 
+    display_usage
+    exit 1
+fi 
+
+# check whether user had supplied -h or --help . If yes display usage 
+if [[ ( $1 == "--help") ||  $1 == "-h" ]] 
+then 
+    display_usage
+    exit 0
+fi 
+
+if [ $# -ge 1 ]; then
 	XPCFROOT=$1
 fi
+if [ $# -eq 2 ]; then
+	QTVERSION=$2
+fi
+# default linux values
+
+QMAKE_PATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
+QMAKE_SPEC=linux-g++
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+# overload for mac values
+	QMAKE_PATH=/Applications/Qt/${QTVERSION}/clang_64/bin
+	QMAKE_SPEC=macx-clang
+fi
+
+if [ ! -d ${QMAKE_PATH} ]; then
+	echo "Qt path '${QMAKE_PATH}' doesn't exist : check your Qt installation and kits"
+	exit 2
+fi
+
 if [ ! -d ${XPCFROOT} ]; then
 	echo "XPCF project root path '${XPCFROOT}' doesn't exist"
 	exit 2
 fi
 echo "XPCF project root path used is : ${XPCFROOT}"
-mkdir -p build/testxpcf
-mkdir -p build/samplecomponent
+
+if [ -d build-xpcf/testxpcf ]; then
+	rm -rf build-xpcf/testxpcf
+fi
+if [ -d build-xpcf/samplecomponent ]; then
+	rm -rf build-xpcf/samplecomponent
+fi
+mkdir -p build-xpcf/testxpcf/debug
+mkdir -p build-xpcf/testxpcf/release
+mkdir -p build-xpcf/samplecomponent/debug
+mkdir -p build-xpcf/samplecomponent/release
 
 echo "===========> building XPCF sample component <==========="
-pushd build/samplecomponent
-`${QMAKE_PATH}/qmake ../../${XPCFROOT}/samples/sample_component/xpcfSampleComponent.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug && /usr/bin/make qmake_all`
+pushd build-xpcf/samplecomponent/debug
+`${QMAKE_PATH}/qmake ../../../${XPCFROOT}/samples/sample_component/xpcfSampleComponent.pro -spec ${QMAKE_SPEC} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
-rm *
-`${QMAKE_PATH}/qmake ../../${XPCFROOT}/samples/sample_component/xpcfSampleComponent.pro -spec linux-g++ CONFIG+=qml_debug && /usr/bin/make qmake_all`
+popd
+pushd build-xpcf/samplecomponent/release
+`${QMAKE_PATH}/qmake ../../../${XPCFROOT}/samples/sample_component/xpcfSampleComponent.pro -spec ${QMAKE_SPEC} CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
 popd
 echo "===========> building testxpcf <==========="
-pushd build/testxpcf
-`${QMAKE_PATH}/qmake ../../${XPCFROOT}/test/testxpcf.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug && /usr/bin/make qmake_all`
+pushd build-xpcf/testxpcf/debug
+`${QMAKE_PATH}/qmake ../../../${XPCFROOT}/test/testxpcf.pro -spec ${QMAKE_SPEC} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
-rm *
-`${QMAKE_PATH}/qmake ../../${XPCFROOT}/test/testxpcf.pro -spec linux-g++ CONFIG+=qml_debug && /usr/bin/make qmake_all`
+popd
+pushd build-xpcf/testxpcf/release
+`${QMAKE_PATH}/qmake ../../../${XPCFROOT}/test/testxpcf.pro -spec ${QMAKE_SPEC} CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
 popd
