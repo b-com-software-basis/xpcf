@@ -8,7 +8,7 @@ VERSION=2.5.0
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
-CONFIG -= staticlib
+#CONFIG += staticlib
 
 !staticlib {
     CONFIG += shared
