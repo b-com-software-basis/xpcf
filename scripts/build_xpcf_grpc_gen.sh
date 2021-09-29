@@ -53,19 +53,19 @@ echo "XPCF project root path used is : ${XPCFROOT}"
 if [ -d build-xpcf_grpc_gen ]; then
 	rm -rf build-xpcf_grpc_gen
 fi
-mkdir -p build-xpcf_grpc_gen/debug
-mkdir -p build-xpcf_grpc_gen/release
+mkdir -p build-xpcf_grpc_gen/static/debug
+mkdir -p build-xpcf_grpc_gen/static/release
 echo "===========> building cppast <==========="
 pushd ${XPCFROOT}/libs
 ./build_cppast.sh
 popd
 echo "===========> building xpcf_grpc_gen <==========="
-pushd build-xpcf_grpc_gen/debug
+pushd build-xpcf_grpc_gen/static/debug
 `${QMAKE_PATH}/qmake ../../../${XPCFROOT}/tools/generators/grpc/xpcf_grpc_gen.pro -spec ${QMAKE_SPEC} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
 popd
-pushd build-xpcf_grpc_gen/release
+pushd build-xpcf_grpc_gen/static/release
 `${QMAKE_PATH}/qmake ../../../${XPCFROOT}/tools/generators/grpc/xpcf_grpc_gen.pro -spec ${QMAKE_SPEC} CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
