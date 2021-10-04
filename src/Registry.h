@@ -27,10 +27,7 @@
 
 #include <xpcf/collection/Collection.h>
 #include "tinyxmlhelper.h"
-#include <xpcf/api/InterfaceMetadata.h>
-#include <xpcf/api/ComponentMetadata.h>
-#include <xpcf/api/ModuleMetadata.h>
-#include <xpcf/api/IComponentIntrospect.h>
+#include <xpcf/api/IRegistryManager.h>
 #include <xpcf/component/ComponentBase.h>
 #include "AliasManager.h"
 
@@ -47,59 +44,71 @@
 #include <thread>
 #include <vector>
 
+namespace fs = boost::filesystem;
+
 namespace org { namespace bcom { namespace xpcf {
 
-class IRegistry  : virtual public IComponentIntrospect {
-public:
-    ~IRegistry() override  = default;
-    virtual void clear() = 0;
-
-    virtual void setBinder(const std::function<void(const uuids::uuid &, const uuids::uuid &)> & bindFunc) = 0;
-
-    virtual void addModuleMetadata(SPtr<ModuleMetadata> metadata) = 0;
-    virtual void declareModuleMetadata(SPtr<ModuleMetadata> moduleInfos) = 0;
-    virtual const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const = 0;
-    virtual SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid & componentUUID) const = 0;
-    virtual uuids::uuid getModuleUUID(const uuids::uuid & componentUUID) const = 0;
-    virtual SPtr<ModuleMetadata> findModuleMetadata(const uuids::uuid & moduleUUID) const = 0;
-
-    virtual void addInterfaceMetadata(SPtr<InterfaceMetadata> metadata) = 0;
-    virtual const IEnumerable<SPtr<InterfaceMetadata>> & getInterfacesMetadata() const = 0;
-    virtual SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid & interfaceUUID) const = 0;
-    virtual void declareModule(tinyxml2::XMLElement * xmlModuleElt) = 0;
-    virtual void enableAutoAlias(bool enabled) = 0;
+struct RegistryContext {
+    Collection<SPtr<ModuleMetadata>,std::vector> modulesVector;
+    Collection<SPtr<InterfaceMetadata>,std::vector> interfacesVector;
+    std::map<uuids::uuid, uuids::uuid> componentModuleUUIDMap;
+    std::map<uuids::uuid, SPtr<InterfaceMetadata>> interfacesMap;
+    std::map<uuids::uuid, SPtr<ModuleMetadata>> modulesMap;
+    void clear();
 };
 
-template <> struct InterfaceTraits<IRegistry>
+class AbstractRegistry  : virtual public IRegistryManager {
+public:
+    ~AbstractRegistry() override  = default;
+    virtual void clear() = 0;
+    virtual void setBinder(const std::function<void(const uuids::uuid &, const uuids::uuid &)> & bindFunc) = 0;
+    virtual void declareModule(tinyxml2::XMLElement * xmlModuleElt) = 0;
+    virtual void declareModuleMetadata(SPtr<ModuleMetadata> moduleInfos) = 0;
+    virtual void enableAutoAlias(bool enabled) = 0;
+    virtual SRef<RegistryContext> getContext() const = 0;
+    virtual SRef<RegistryContext> context() = 0;
+    virtual void setContext(SRef<RegistryContext> context) = 0;
+};
+
+template <> struct InterfaceTraits<AbstractRegistry>
 {
-    static constexpr const char * UUID = "3AE3A5D2-F200-4078-89EF-5AE1F5EF1A17";
-    static constexpr const char * NAME = "XPCF::IRegistry";
-    static constexpr const char * DESCRIPTION = "Registry interface.\nProvides components/modules registry";
+    static constexpr const char * UUID = "5FF5FABF-14A6-44A2-9E2A-2D124369FBBF";
+    static constexpr const char * NAME = "XPCF::AbstractRegistry";
+    static constexpr const char * DESCRIPTION = "AbstractRegistry interface.\nProvides components/modules registry";
 };
 
 class Registry : public ComponentBase,
-        virtual public IRegistry {
+        virtual public AbstractRegistry {
 public:
     Registry();
     //Registry(const std::function<void(const uuids::uuid &, const uuids::uuid &)> & bindFunc):m_autobind(bindFunc) {}
     ~Registry() override = default;
     void clear() override;
-    void setBinder(const std::function<void(const uuids::uuid &, const uuids::uuid &)> & bindFunc) override { m_autobind = bindFunc; }
-    void addModuleMetadata(SPtr<ModuleMetadata> metadata) override;
+
+    XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) override;
+    XPCFErrorCode loadModuleMetadata(const char* moduleName,
+                                     const char* moduleFilePath) override;
     void declareModuleMetadata(SPtr<ModuleMetadata> moduleInfos) override;
     const IEnumerable<SPtr<ModuleMetadata>> & getModulesMetadata() const  override;
     SPtr<ComponentMetadata> findComponentMetadata(const uuids::uuid & componentUUID) const  override;
     uuids::uuid getModuleUUID(const uuids::uuid & componentUUID) const  override;
     SPtr<ModuleMetadata> findModuleMetadata(const uuids::uuid & moduleUUID) const  override;
 
-    void addInterfaceMetadata(SPtr<InterfaceMetadata> metadata) override;
     const IEnumerable<SPtr<InterfaceMetadata>> & getInterfacesMetadata() const  override;
     SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid & interfaceUUID) const  override;
-    void declareModule(tinyxml2::XMLElement * xmlModuleElt) override;
     void enableAutoAlias(bool enabled) override { m_autoAlias = enabled; }
+    void setBinder(const std::function<void(const uuids::uuid &, const uuids::uuid &)> & bindFunc) override { m_autobind = bindFunc; }
+    void declareModule(tinyxml2::XMLElement * xmlModuleElt) override;
+    SRef<RegistryContext> getContext() const final;
+    SRef<RegistryContext> context() override { return m_context; }
+    void setContext(SRef<RegistryContext> context) final;
     void unloadComponent () override final;
 
 private:
+    template <class T> XPCFErrorCode load(fs::path folderPath);
+    template <class T> XPCFErrorCode loadModules(fs::path folderPath);
+    void addModuleMetadata(SPtr<ModuleMetadata> metadata);
+    void addInterfaceMetadata(SPtr<InterfaceMetadata> metadata);
     void declareInterfaceNode(SRef<ComponentMetadata> componentInfo, tinyxml2::XMLElement *interfaceElt);
     void declareComponent(SRef<ModuleMetadata> moduleInfo, tinyxml2::XMLElement *componentElt);
     void autobind(const uuids::uuid & interfaceUUID, const uuids::uuid & componentUUID) { m_autobind(interfaceUUID,componentUUID); }
@@ -108,11 +117,7 @@ private:
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 #endif
 
-    Collection<SPtr<ModuleMetadata>,std::vector> m_modulesVector;
-    Collection<SPtr<InterfaceMetadata>,std::vector> m_interfacesVector;
-    std::map<uuids::uuid, uuids::uuid> m_componentModuleUUIDMap;
-    std::map<uuids::uuid, SPtr<InterfaceMetadata>> m_interfacesMap;
-    std::map<uuids::uuid, SPtr<ModuleMetadata>> m_modulesMap;
+    SRef<RegistryContext> m_context;
     std::function<void(const uuids::uuid &, const uuids::uuid &)> m_autobind = [](const uuids::uuid &, const uuids::uuid &) -> void {};
     SRef<IAliasManager> m_aliasManager;
     bool m_libraryLoaded;

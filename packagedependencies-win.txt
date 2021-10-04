@@ -1,0 +1,1 @@
+grpc|1.37.1|grpc++%WITHREMOTING|http|https://artifact.b-com.com/thirdparties-generic-virtual|static

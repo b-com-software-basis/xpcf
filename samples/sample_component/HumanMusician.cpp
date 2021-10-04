@@ -95,11 +95,31 @@ void HumanMusician::learn ()
 
 }
 
-void HumanMusician::playMusic ()
+void HumanMusician::playMusic (const MusicScore & score)
 {
 
     std::cout<<m_name<<"::"<<" HumanMusician::playMusic ()  called!"<<std::endl;
+    for (auto & [key,duration] : score.m_score) {
+        std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
+    }
+}
 
+void HumanMusician::playScore (std::vector<std::pair<std::string, float>> & score)
+{
+
+    std::cout<<m_name<<"::"<<" HumanMusician::playScore ()  called!"<<std::endl;
+    for (auto & [key,duration] : score) {
+        std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
+    }
+}
+
+void HumanMusician::playModifyScore (std::vector<std::pair<std::string, float>> & score)
+{
+
+    std::cout<<m_name<<"::"<<" HumanMusician::playModifyScore ()  called!"<<std::endl;
+    for (auto & [key,duration] : score) {
+        std::cout<<"Playing key = "<< key << " duration = " << duration<<std::endl;
+    }
 }
 
 void HumanMusician::listen ()

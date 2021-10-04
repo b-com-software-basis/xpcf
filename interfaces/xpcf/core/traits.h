@@ -35,7 +35,7 @@ template <typename T> std::map<std::string,std::string> toMap() {
     std::map<std::string,std::string> traitMap;
     if (is_interface<T>::value) {
         traitMap["UUID"] = InterfaceTraits<T>::UUID;
-        traitMap["NAME"] = ComponentTraits<T>::NAME;
+        traitMap["NAME"] = InterfaceTraits<T>::NAME;
         traitMap["DESCRIPTION"] = InterfaceTraits<T>::DESCRIPTION;
     }
     if (is_component<T>::value) {
@@ -44,6 +44,30 @@ template <typename T> std::map<std::string,std::string> toMap() {
         traitMap["DESCRIPTION"] = ComponentTraits<T>::DESCRIPTION;
     }
     return traitMap;
+}
+
+struct Traits {
+    std::string uuid;
+    std::string name;
+    std::string description;
+};
+
+template <typename T> Traits toStruct() {
+    static_assert(is_interface<T>::value || is_component<T>::value,
+                  "Type passed to toMap is neither a component nor an interface "
+                  "or [Interface/Component]Traits not defined for T !!");
+    Traits traits;
+    if (is_interface<T>::value) {
+        traits.uuid = InterfaceTraits<T>::UUID;
+        traits.name = InterfaceTraits<T>::NAME;
+        traits.description = InterfaceTraits<T>::DESCRIPTION;
+    }
+    if (is_component<T>::value) {
+        traits.uuid = ComponentTraits<T>::UUID;
+        traits.name = ComponentTraits<T>::NAME;
+        traits.description = ComponentTraits<T>::DESCRIPTION;
+    }
+    return traits;
 }
 
 }}}

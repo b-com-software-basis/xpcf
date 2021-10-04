@@ -1,11 +1,12 @@
 TARGET = xpcfcli
-VERSION=1.0.0
+VERSION=2.5.0
 
 CONFIG += c++17
 CONFIG += console
 CONFIG -= qt
 
 DEFINES += MYVERSION=$${VERSION}
+DEFINES += MYVERSIONSTRING=\\\"$${VERSION}\\\"
 
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
@@ -17,12 +18,12 @@ CONFIG(release,debug|release) {
 }
 
 DEFINES += BOOST_ALL_NO_LIB
-DEFINES += BOOST_ALL_DYN_LINK
+#DEFINES += BOOST_ALL_DYN_LINK
 
 win32:CONFIG -= static
 win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
-DEPENDENCIESCONFIG = sharedlib recurse
+DEPENDENCIESCONFIG = staticlib recurse
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (../builddefs/qmake/templateappconfig.pri)
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <xpcf-registry autoAlias="true">
-    <module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.4.0/lib/x86_64/shared">
+    <module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.5.0/lib/x86_64/shared">
     <component uuid="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" name="HumanMusician component - not configurable" description="HumanMusician is not Configurable, it implements I0 and I1 interfaces">
         <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
         <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" name="IHuman" description="provides human related methods"/>
@@ -32,6 +32,7 @@
     </component>
     </module>
     <aliases>
+            <alias name="IGuitarist" type="interface" uuid="41348765-1017-47a7-ab9f-6b59d39e4b95"/>
             <alias name="JacksonDinky6ElectricGuitar" type="component" uuid="7cc64f89-9a81-4fc8-9695-fde123fae225"/>
             <alias name="TakamineFolkGuitar" type="component" uuid="04E2254F-3349-4DC1-8EED-86835315FB6B"/>
             <alias name="VirtualGuitarist" type="component" uuid="63ff193d-93e6-4ede-9947-22f864ac843f"/>
@@ -40,14 +41,15 @@
         <!-- default bindings -->
         <bindings>
             <!--bind interface="41348765-1017-47a7-ab9f-6b59d39e4b95" to="63ff193d-93e6-4ede-9947-22f864ac843f" /-->
-            <bind interface="IGuitar" to="TakamineFolkGuitar" />
-            <bind interface="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" to="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" />
-            <bind name="jacksonGuitar" interface="IElectricGuitar" to="JacksonDinky6ElectricGuitar"/>
-            <bind name="ibanezGuitar" interface="IElectricGuitar" to="Ibanez7ElectricGuitar"/>
+            <bind interface="IGuitar" to="TakamineFolkGuitar" range="all" />
+            <bind interface="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" to="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" range="all"/>
+            <bind name="jacksonGuitar" interface="IElectricGuitar" to="JacksonDinky6ElectricGuitar" range="all"/>
+            <bind name="ibanezGuitar" interface="IElectricGuitar" to="Ibanez7ElectricGuitar" range="all"/>
+            <bind interface="IGuitarist" to="VirtualGuitarist" scope="Singleton" range="all"/>
             <!-- multibind -->
             <bind interface="IElectricGuitar">
-                <component to="JacksonDinky6ElectricGuitar"/>
-                <component to="Ibanez7ElectricGuitar"/>
+                <component to="JacksonDinky6ElectricGuitar" range="all"/>
+                <component to="Ibanez7ElectricGuitar" range="all"/>
             </bind>
         </bindings>
         <!-- custom bindings : explicit injection for a particular component -->
@@ -56,7 +58,7 @@
                     <bind interface="ITuner" to="Tuner" properties="nashville"/>
             </inject>
             <inject to="VirtualGuitarist">
-                    <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" />
+                    <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" range="all" />
             </inject>
             <inject to="TakamineFolkGuitar">
                     <bind interface="ITuner" to="Tuner" properties="DADGAD"/>
@@ -85,7 +87,7 @@
         </component>
     </configuration>
     <properties>
-        <configure component="VirtualGuitarist component">
+        <configure component="VirtualGuitarist">
                 <property name="blurFactor" type="double" value="2.0"/>
                 <property name="blurScale" type="double" access="ro">
                     <value>0.2</value>

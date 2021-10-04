@@ -97,7 +97,7 @@ boost::dll::shared_library validateModule(fs::path modulePath)// validation cach
         shlib.load(modulePath, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path);
     }
     catch (boost::system::system_error & e) {
-        throw ModuleException(e.what());
+        throw ModuleException("Error loading module for file '" + modulePath.generic_string() + "'=> " +e.what());
     }
  //   checkSymbol(shlib, XPCF_GETXPCFVERSION);
     checkSymbol(shlib, XPCF_GETMODULEUUID);

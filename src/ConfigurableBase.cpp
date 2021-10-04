@@ -113,6 +113,7 @@ public:
 
     inline SRef<IPropertyMap> getPropertyRootNode() const { return m_parameters; }
     SRef<PropertyMap> m_parameters = utils::make_shared<PropertyMap>();
+    SRef<IPropertyManager> m_propsMgr;
 
 private:
 #ifdef XPCF_WITH_LOGS
@@ -133,6 +134,7 @@ ConfigurableBase::ConfigurableBase(const uuids::uuid & uuid,
     BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<" ConfigurableBase::ConfigurableBase construction";
 #endif
     declareInterface<IConfigurable>(this);
+    declareInjectable<IPropertyManager>(m_internalImpl->m_propsMgr);
 }
 
 ConfigurableBase::ConfigurableBase(std::map<std::string,std::string> componentTrait,
@@ -144,6 +146,7 @@ ConfigurableBase::ConfigurableBase(std::map<std::string,std::string> componentTr
     BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<" ConfigurableBase::ConfigurableBase construction";
 #endif
     declareInterface<IConfigurable>(this);
+    declareInjectable<IPropertyManager>(m_internalImpl->m_propsMgr);
 }
 
 ConfigurableBase::~ConfigurableBase()
@@ -153,16 +156,21 @@ ConfigurableBase::~ConfigurableBase()
 #endif
 }
 
+void ConfigurableBase::onInjected()
+{
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_internalImpl->getLogger(), logging::trivial::info)<<" ConfigurableBase::onInjected IPropertyManager component address="<<m_internalImpl->m_propsMgr.get();
+#endif
+}
+
 XPCFErrorCode ConfigurableBase::serialize(const char * filepath, uint32_t mode)
 {
-    SRef<xpcf::IPropertyManager> xpcfPropertyManager = xpcf::getPropertyManagerInstance();
-    return xpcfPropertyManager->serialize(getUUID(), this->bindTo<IConfigurable>(), filepath, mode);
+    return m_internalImpl->m_propsMgr->serialize(getUUID(), this->bindTo<IConfigurable>(), filepath, mode);
 }
 
 XPCFErrorCode ConfigurableBase::configure(const char * filepath)
 {
-    SRef<xpcf::IPropertyManager> xpcfPropertyManager = xpcf::getPropertyManagerInstance();
-    XPCFErrorCode result = xpcfPropertyManager->configure(getUUID(), this->bindTo<IConfigurable>(), filepath);
+    XPCFErrorCode result = m_internalImpl->m_propsMgr->configure(getUUID(), this->bindTo<IConfigurable>(), filepath);
     if (result != XPCFErrorCode::_SUCCESS) {
         return result;
     }
@@ -171,8 +179,7 @@ XPCFErrorCode ConfigurableBase::configure(const char * filepath)
 
 XPCFErrorCode ConfigurableBase::configure(const char * filepath, const char * xpath)
 {
-    SRef<xpcf::IPropertyManager> xpcfPropertyManager = xpcf::getPropertyManagerInstance();
-    XPCFErrorCode result = xpcfPropertyManager->configure(xpath, getUUID(), this->bindTo<IConfigurable>(), filepath);
+    XPCFErrorCode result = m_internalImpl->m_propsMgr->configure(xpath, getUUID(), this->bindTo<IConfigurable>(), filepath);
     if (result != XPCFErrorCode::_SUCCESS) {
         return result;
     }

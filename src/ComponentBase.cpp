@@ -107,6 +107,13 @@ ComponentBase::~ComponentBase()
 #endif
 }
 
+void ComponentBase::onInjected()
+{
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_pimpl->getLogger(), logging::trivial::info)<<" ComponentBase::onInjected";
+#endif
+}
+
 void ComponentBase::addComponentRef()
 {
     // NOTE : add/releaseComponentRef not synchronized !

@@ -27,6 +27,14 @@ private:
     XPCFErrorCode m_errCode;
 };
 
+class XPCF_EXPORT_API ConfigurationException : public Exception {
+public:
+    ConfigurationException(XPCFErrorCode errCode);
+    ConfigurationException(const char * what, XPCFErrorCode errCode = XPCFErrorCode::_FAIL);
+    ConfigurationException(const std::string & what, XPCFErrorCode errCode = XPCFErrorCode::_FAIL);
+    virtual ~ConfigurationException() = default;
+};
+
 class XPCF_EXPORT_API AccessDeniedException : public Exception {
 public:
     AccessDeniedException();
@@ -131,6 +139,14 @@ public:
     InjectableDeclarationException(const char * what);
     InjectableDeclarationException(const std::string & what);
     virtual ~InjectableDeclarationException() = default;
+};
+
+class XPCF_EXPORT_API RemotingException : public Exception {
+public:
+    RemotingException(const std::string & componentName, const std::string & rpcName, uint32_t status = 0);
+    RemotingException(const char * what);
+    RemotingException(const std::string & what);
+    virtual ~RemotingException() = default;
 };
 
 }}}

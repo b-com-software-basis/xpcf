@@ -36,15 +36,18 @@
    * @note The InterfaceTraits<IGuitarist> template struct defines the IGuitarist UUID and description.
    * It allows IGuitarist users to use directly the IGuitarist type instead of its UUID to bind the component to this interface.
    */
-class IGuitarist : virtual public IMusician
+
+
+class [[xpcf::clientUUID("824b6642-ad39-476a-80c1-8ee16614f9fc")]] [[xpcf::serverUUID("acacf288-ee43-494b-a4a0-c30737bc150f")]] IGuitarist :
+    virtual public IMusician
 {
 public:
     virtual ~IGuitarist() = default;
-    virtual void playSolo () = 0;
+    virtual void playSolo (MusicScore & score) = 0;
     virtual void playRhythm () = 0;
     virtual SRef<IGuitar> getGuitar() = 0;
     virtual SRef<IGuitar> getGuitar(IGuitar::GuitarType type) = 0;
-    virtual const org::bcom::xpcf::IEnumerable<SRef<IElectricGuitar>> & getGuitarCollection() = 0;
+    virtual std::vector<std::string> getGuitarCollection() = 0;
 };
 
 template <> struct org::bcom::xpcf::InterfaceTraits<IGuitarist>

@@ -3,26 +3,66 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcf
 FRAMEWORK = $${TARGET}
-VERSION=2.4.0
+VERSION=2.5.0
 
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
-CONFIG += shared
-CONFIG -= staticlib
+#CONFIG += staticlib
+
+!staticlib {
+    CONFIG += shared
+} else {
+    CONFIG -= shared
+}
+#message($${CONFIG})
+#CONFIG += verbose
+
+# Uncomment following line to prepare remaken package
+#CONFIG += package_remaken
+
 macx {
     #CONFIG += use_brew_llvm
     # howto setup conan to use brew llvm ?
 }
 
+DEFINES += WITHREMOTING
 DEFINES += XPCF_USE_BOOST
+#DEFINES += XPCF_WITH_LOGS
+
 staticlib {
     DEFINES += XPCF_STATIC
     DEPENDENCIESCONFIG = staticlib
+    REMAKEN_PKGSUBDIR=static
 } else {
     DEFINES += XPCF_SHARED
     DEFINES += BOOST_ALL_DYN_LINK
     DEPENDENCIESCONFIG = sharedlib
+    REMAKEN_PKGSUBDIR=shared
+}
+
+CONFIG(debug,debug|release) {
+#    DEFINES += XPCF_WITH_LOGS
+    DEFINES += "XPCFDEBUG"
+    DEFINES += XPCFSUBDIRSEARCH=\\\"debug\\\"
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
+}
+
+CONFIG(release,debug|release) {
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
+    DEFINES += XPCFSUBDIRSEARCH=\\\"release\\\"
+}
+
+package_remaken {
+    message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
+    INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
+}
+
+message("CONFIG="$${CONFIG})
+
+macx {
+    # EXPERIMENTAL : needs to use remaken configure first
+    # REMAKENCONFIG += use_remaken_parser
 }
 
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
@@ -76,8 +116,12 @@ HEADERS += \
     interfaces/swig/xpcf_properties.i \
     interfaces/swig/xpcf_threading.i \
     interfaces/swig/xpcf_traits.i \
+    interfaces/xpcf/api/IAliasManager.h \
+    interfaces/xpcf/api/IRegistryManager.h \
     interfaces/xpcf/api/InjectableMetadata.h \
     interfaces/xpcf/core/helpers.h \
+    interfaces/xpcf/remoting/BaseBuffer.h \
+    interfaces/xpcf/remoting/ISerializable.h \
     interfaces/xpcf/threading/MultiConsumer.h \
     src/AliasManager.h \
     src/Factory.h \
@@ -107,6 +151,7 @@ HEADERS += \
     interfaces/xpcf/api/ModuleMetadata.h \
     interfaces/xpcf/api/InterfaceMetadata.h \
     interfaces/xpcf/api/IInjectable.h \
+    interfaces/xpcf/api/IFactory.h \
     interfaces/xpcf/component/ComponentBase.h \
     interfaces/xpcf/component/ComponentFactory.h \
     interfaces/xpcf/component/ComponentTraits.h \
@@ -139,11 +184,13 @@ SOURCES += \
 HEADERS += \
     src/GrpcManager.h \
     interfaces/xpcf/remoting/IGrpcServerManager.h \
-    interfaces/xpcf/remoting/IGrpcService.h
+    interfaces/xpcf/remoting/IGrpcService.h \
+    interfaces/xpcf/remoting/GrpcHelper.h
 }
 
 linux {
     QMAKE_LFLAGS += -ldl
+    #LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 macx {
@@ -153,6 +200,7 @@ macx {
     QMAKE_CXXFLAGS += -mmacosx-version-min=10.7  -std=c++17 -fPIC#-x objective-c++
     QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
     LIBS += -lstdc++ -lc -lpthread
+    LIBS += -L/usr/local/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 win32 {
@@ -161,7 +209,7 @@ win32 {
  }
 
 INCLUDEPATH += $${PWD} $${PWD}/interfaces
-#include(builddefs/qmake/bcom_code_scanner.prf)
+#include(builddefs/qmake/code_analysis/bcom_code_scanner.prf)
 
 h_api_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/api
 h_api_files.files = $$files($${PWD}/interfaces/xpcf/api/*)
@@ -184,7 +232,17 @@ qt_wizards.files = $$files($${PWD}/wizards/*,recursive=true)
 qt_wizards.path = $${PROJECTDEPLOYDIR}/wizards
 
 INSTALLS += h_api_files h_collection_files h_component_files h_core_files h_module_files h_properties_files h_threading_files h_xpcf_files  qt_wizards
+contains(DEFINES, "WITHREMOTING") {
+    h_remoting_files.path = $${PROJECTDEPLOYDIR}/interfaces/xpcf/remoting
+    h_remoting_files.files = $$files($${PWD}/interfaces/xpcf/remoting/*)
+    INSTALLS += h_remoting_files
+}
 
 DISTFILES += \
     Makefile \
-    doc/xpcf-registry-sample.xml
+    doc/xpcf-registry-sample.xml \
+    packagedependencies-android.txt \
+    packagedependencies-linux.txt \
+    packagedependencies-mac.txt \
+    packagedependencies-win.txt \
+    packagedependencies.txt

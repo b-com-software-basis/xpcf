@@ -58,15 +58,17 @@ public:
     void unloadComponent () override final;
 
     void learn () override;
-    void playMusic () override;
+    void playMusic (const MusicScore & score) override;
+    void playScore (std::vector<std::pair<std::string, float>> & score) override;
+    void playModifyScore (std::vector<std::pair<std::string, float>> & score) override;
     void listen () override;
     void practice () override;
     void party () override;
     SRef<IGuitar> getGuitar() override { return m_guitar; }
     SRef<IGuitar> getGuitar(IGuitar::GuitarType type) override;
-    const org::bcom::xpcf::IEnumerable<SRef<IElectricGuitar>> & getGuitarCollection() override;
+    std::vector<std::string> getGuitarCollection() override;
 
-    void playSolo () override;
+    void playSolo (MusicScore & score) override;
     void playRhythm () override;
 
     void onInjected() override;

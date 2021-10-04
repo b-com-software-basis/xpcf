@@ -25,8 +25,8 @@
 
 //#define BOOST_ALL_DYN_LINK 1
 
-#include "xpcf/api/IComponentManager.h"
-#include "xpcf/component/ComponentBase.h"
+#include <xpcf/api/IComponentManager.h>
+#include <xpcf/component/ComponentBase.h>
 #include <xpcf/collection/Collection.h>
 #include "tinyxmlhelper.h"
 
@@ -52,26 +52,14 @@ class XPCF_EXPORT_API ComponentManager : public ComponentBase,
         virtual public IComponentManager {
 public:
     static ComponentManager* instance();
+    SRef<IFactory> getFactory() override;
     XPCFErrorCode load() override;
     XPCFErrorCode load(const char* libraryFilePath) override;
     XPCFErrorCode load(const char* folderPathStr, bool bRecurse) override;
-    XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse) override;
-    XPCFErrorCode loadModuleMetadata(const char* moduleName,
-                                     const char* moduleFilePath) override;
+
     void clear() override;
     SRef<IComponentIntrospect> createComponent(const uuids::uuid & componentUUID) final;
     SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid& componentUUID) override;
-    SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID)  override;
-    SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const char * name) override;
-
-    void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
-    void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID, IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
-    void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                   const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                   IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
-    void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                   const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                   IComponentManager::Scope scope = IComponentManager::Scope::Transient) override;
 
     void unloadComponent () override final;
     void releaseComponent(uuids::uuid componentUUID);
@@ -91,18 +79,10 @@ private:
     ComponentManager& operator=(const ComponentManager&)= delete;
     static std::atomic<ComponentManager*> m_instance;
     static std::mutex m_mutex;
-
-    template <class T> XPCFErrorCode load(fs::path folderPath);
-    template <class T> XPCFErrorCode loadModules(fs::path folderPath);
-    XPCFErrorCode loadLibrary(fs::path aPath);
-    SRef<IComponentIntrospect> create(const uuids::uuid& componentUUID);
-    void inject(SRef<IInjectable> component);
 #ifdef XPCF_WITH_LOGS
     boost::log::sources::severity_logger< boost::log::trivial::severity_level > m_logger;
 #endif
-    SRef<IFactory> m_factory;
-    SRef<IRegistry> m_registry;
-    SRef<IAliasManager> m_aliasManager;
+    SRef<AbstractFactory> m_factory;
     SRef<IPropertyManager> m_propertyManager;
 
     bool m_libraryLoaded;

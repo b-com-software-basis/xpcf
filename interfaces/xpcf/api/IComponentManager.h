@@ -24,6 +24,7 @@
 #define ORG_BCOM_XPCF_ICOMPONENTMANAGER_H
 
 #include <xpcf/api/IInjectable.h>
+#include <xpcf/api/IFactory.h>
 #include <xpcf/api/InterfaceMetadata.h>
 #include <xpcf/api/ComponentMetadata.h>
 #include <xpcf/api/ModuleMetadata.h>
@@ -43,49 +44,12 @@ namespace org { namespace bcom { namespace xpcf {
  */
 class IComponentManager : virtual public IComponentIntrospect {
 public:
-
-    typedef enum {
-        Transient,
-        Singleton
-    } Scope;
-
-    /**
-     * Declare a binding from the service identified with @p interfaceUUID to the concrete component identified with @p instanceUUID.
-     * @param [in] interfaceUUID : the interface identifier
-     * @param [in] instanceUUID : the component identifier
-     * @param [in] scope : the creation scope used to determine the lifetime of the object retrieved with resolve
-     * @note bindings can come from in-code calls to bind, from autobinds or bindings declared in an xml configuration file or from autobinds while introspecting a module
-     */
-    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                      IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
-    virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                      IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
-
-    virtual void bind(const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                           IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
-    virtual void bind(const char * name, const uuids::uuid & interfaceUUID, const uuids::uuid & instanceUUID,
-                           const std::function<SRef<IComponentIntrospect>(void)> & factoryFunc,
-                           IComponentManager::Scope scope = IComponentManager::Scope::Transient) = 0;
-
-    template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const uuids::uuid& componentUUID);
-
-    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind();
-
-    template < typename I, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name, const uuids::uuid& componentUUID);
-
-    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bind(const char * name);
-
-    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal();
-
-    template < typename I, typename C, IComponentManager::Scope scope = IComponentManager::Scope::Transient > void bindLocal(const char * name);
-
-
     /**
      * Virtual destructor of IComponentManager
      */
     virtual ~IComponentManager() = default;
 
+    virtual SRef<IFactory> getFactory() = 0;
     /**
      * Clear all previously loaded registries.
      * @note created components are not released, and their module counterparts are still loaded in memory.
@@ -116,78 +80,6 @@ public:
     virtual XPCFErrorCode load(const char* folderPathStr, bool bRecurse) = 0;
 
     /**
-     * Read a module metadata and add the metadata to the componentmanager registry
-     * @param [in] the module name
-     * @param [in] the module file path
-     * @return
-     */
-    virtual XPCFErrorCode loadModuleMetadata(const char* moduleName,
-                                             const char* moduleFilePath) = 0;
-
-    /**
-     * Find module files from a root folder and load each module metadata in XPCF registry
-     * @param [in] folderPathStr : the root path to search module files' for
-     * @param [in] bRecurse : indicates to search recursively in subfolder [true] or only in @p folderPathStr [false]
-     * @return
-     */
-    virtual XPCFErrorCode loadModules(const char* folderPathStr, bool bRecurse = false) = 0;
-
-    /**
-     *
-     * @note with @fn createComponent()
-     * @param [in]
-     * @return
-     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    template < typename I> SRef<I> createComponent(const uuids::uuid & componentUUID);
-
-    /**
-     *
-     * @note with @fn createComponent()
-     * @param [in]
-     * @param [in]
-     * @return
-     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    template < typename I> SRef<I> createComponent(const char * instanceName, const uuids::uuid & componentUUID);
-
-    /**
-     *
-     * @note with @fn resolve()
-     * @return
-     * @throws InjectableNotFoundException when no bind was found to resolve an instance for I
-     * or when the component resolved for I declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    template < typename I> SRef<I> resolve();
-
-    /**
-     *
-     * @note with @fn resolve()
-     * @param [in]
-     * @return
-     * @throws InjectableNotFoundException when no bind was found to resolve an instance for {I, name}
-     * or when the component resolved for {I, name} declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    template < typename I> SRef<I> resolve(const char * name);
-
-    /**
-     *
-     * @note with @fn resolve()
-     * @return
-     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    template < typename C> SRef<IComponentIntrospect> create();
-
-    /**
-     *
-     * @note with @fn resolve()
-     * @param [in]
-     * @return
-     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    template < typename C> SRef<IComponentIntrospect> create(const char * instanceName);
-
-    /**
      *
      * @param [in] componentUUID
      * @return
@@ -204,27 +96,6 @@ public:
      * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
      */
     virtual SRef<IComponentIntrospect> createComponent(const char * instanceName, const uuids::uuid & componentUUID) = 0;
-
-    /**
-     *
-     * @note with @fn resolve()
-     * @param [in]
-     * @return
-     * @throws  InjectableNotFoundExceptionwhen no bind was found to resolve an instance for I
-     * or when the component resolved for I declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID) = 0;
-
-    /**
-     *
-     * @note with @fn resolve()
-     * @param [in]
-     * @param [in]
-     * @return
-     * @throws InjectableNotFoundException when no bind was found to resolve an instance for {I, name}
-     * or when the component resolved for {I, name} declares injectable(s) and there was missing bind(s) to resolve them
-     */
-    virtual SRef<IComponentIntrospect> resolve(const uuids::uuid & interfaceUUID, const char * name) = 0;
 
     /**
      * Retrieve every module metadata registered in the ComponentManager
@@ -272,6 +143,106 @@ public:
 #endif
     virtual SPtr<InterfaceMetadata> findInterfaceMetadata(const uuids::uuid & interfaceUUID) const = 0;
 
+    template < typename I, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bind(const uuids::uuid& componentUUID);
+
+    template < typename T, typename I, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit> void bind(const uuids::uuid& componentUUID);
+
+    template < typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bind();
+
+    template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit> void bind();
+
+    template < typename I, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Named > void bind(const char * name, const uuids::uuid& componentUUID);
+
+    template < typename T, typename I, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit > void bind(const char * name, const uuids::uuid& componentUUID);
+
+    template < typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Named > void bind(const char * name);
+
+    template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit > void bind(const char * name);
+
+    template < typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Default|BindingRange::All > void bindLocal();
+
+    template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit > void bindLocal();
+
+    template < typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Named > void bindLocal(const char * name);
+
+    template < typename T, typename I, typename C, BindingScope scope = BindingScope::Transient,
+               uint8_t bindingRangeMask = BindingRange::Explicit > void bindLocal(const char * name);
+
+    /**
+     *
+     * @note with @fn createComponent()
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename I> SRef<I> createComponent(const uuids::uuid & componentUUID);
+
+    /**
+     *
+     * @note with @fn createComponent()
+     * @param [in]
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename I> SRef<I> createComponent(const char * instanceName, const uuids::uuid & componentUUID);
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @return
+     * @throws InjectableNotFoundException when no bind was found to resolve an instance for I
+     * or when the component resolved for I declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename I> SRef<I> resolve();
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when no bind was found to resolve an instance for {I, name}
+     * or when the component resolved for {I, name} declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename I> SRef<I> resolve(const char * name);
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @return
+     * @throws InjectableNotFoundException when no bind was found to resolve an instance for I
+     * or when the component resolved for I declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename I> const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll();
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename C> SRef<IComponentIntrospect> create();
+
+    /**
+     *
+     * @note with @fn resolve()
+     * @param [in]
+     * @return
+     * @throws InjectableNotFoundException when the component declares injectable(s) and there was missing bind(s) to resolve them
+     */
+    template < typename C> SRef<IComponentIntrospect> create(const char * instanceName);
+
 };
 
 template <> struct InterfaceTraits<IComponentManager>
@@ -296,14 +267,17 @@ SRef<IComponentIntrospect> IComponentManager::create()
 
 template < typename I> SRef<I> IComponentManager::resolve()
 {
-    SRef<IComponentIntrospect> rICIntrospect = resolve(toUUID<I>());
-    return  rICIntrospect->bindTo<I>();
+    return getFactory()->resolve<I>();
+}
+
+template < typename I> const SRef<IEnumerable<SRef<IComponentIntrospect>>> IComponentManager::resolveAll()
+{
+    return getFactory()->resolveAll<I>();
 }
 
 template < typename I> SRef<I> IComponentManager::resolve(const char * name)
 {
-    SRef<IComponentIntrospect> rICIntrospect = resolve(toUUID<I>(), name);
-    return  rICIntrospect->bindTo<I>();
+    return getFactory()->resolve<I>(name);
 }
 
 template < typename I >
@@ -319,35 +293,77 @@ SRef<IComponentIntrospect> IComponentManager::create(const char * instanceName)
     return createComponent(instanceName,toUUID<C>());
 }
 
-template < typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const uuids::uuid & componentUUID)
+template < typename I, BindingScope scope,
+           uint8_t bindingRangeMask> void  IComponentManager::bind(const uuids::uuid & componentUUID)
 {
-    bind(toUUID<I>(),componentUUID,scope);
+    getFactory()->bind(toUUID<I>(), componentUUID, scope, bindingRangeMask);
 }
 
-template < typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind()
+template < typename T, typename I, BindingScope scope,
+           uint8_t bindingRangeMask> void  IComponentManager::bind(const uuids::uuid & componentUUID)
 {
-
-    bind<I,scope>(toUUID<C>());
+    getFactory()->bind(toUUID<T>(), toUUID<I>(), componentUUID, scope, bindingRangeMask);
 }
 
-template < typename I, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
+template < typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void  IComponentManager::bind()
 {
-    bind(name, toUUID<I>(),componentUUID,scope);
+
+    getFactory()->bind<I,C,scope,bindingRangeMask>();
 }
 
-template < typename I, typename C, IComponentManager::Scope scope> void  IComponentManager::bind(const char * name)
+template < typename T, typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask > void IComponentManager::bind()
 {
-    bind<I,scope>(name, toUUID<C>());
+    getFactory()->bind<T,I,C,scope,bindingRangeMask>();
 }
 
-template < typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal()
+template < typename I, BindingScope scope,
+           uint8_t bindingRangeMask> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
 {
-    bind(toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope);
+    getFactory()->bind(name, toUUID<I>(), componentUUID, scope, bindingRangeMask);
 }
 
-template < typename I, typename C, IComponentManager::Scope scope> void IComponentManager::bindLocal(const char * name)
+template < typename T, typename I, BindingScope scope,
+           uint8_t bindingRangeMask> void  IComponentManager::bind(const char * name, const uuids::uuid & componentUUID)
 {
-    bind(name, toUUID<I>(), toUUID<C>(), &ComponentFactory::create<C>, scope);
+    getFactory()->bind(toUUID<T>(), name, toUUID<I>(), componentUUID, scope);
+}
+
+template < typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void  IComponentManager::bind(const char * name)
+{
+    getFactory()->bind<I,C,scope,bindingRangeMask>(name);
+}
+
+template < typename T, typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void  IComponentManager::bind(const char * name)
+{
+    getFactory()->bind<T,I,C,scope,bindingRangeMask>(name);
+}
+
+template < typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void IComponentManager::bindLocal()
+{
+    getFactory()->bindLocal<I,C,scope,bindingRangeMask>();
+}
+
+template < typename T, typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void IComponentManager::bindLocal()
+{
+    getFactory()->bindLocal<T,I,C,scope,bindingRangeMask>();
+}
+
+template < typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void IComponentManager::bindLocal(const char * name)
+{
+    getFactory()->bindLocal<I,C,scope,bindingRangeMask>(name);
+}
+
+template < typename T, typename I, typename C, BindingScope scope,
+           uint8_t bindingRangeMask> void IComponentManager::bindLocal(const char * name)
+{
+    getFactory()->bindLocal<T,I,C,scope,bindingRangeMask>(name);
 }
 
 /**

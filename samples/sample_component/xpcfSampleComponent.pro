@@ -3,17 +3,20 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcfSampleComponent
 FRAMEWORK = $${TARGET}
-VERSION=2.4.0
+VERSION=2.5.0
 DEFINES += MYVERSION=$${VERSION}
 
 CONFIG += c++17
 CONFIG += shared
 #DEFINES += USE_XPCF_STD
-
-DEPENDENCIESCONFIG = sharedlib
+macx {
+    # EXPERIMENTAL : needs to use remaken configure first
+    # REMAKENCONFIG += use_remaken_parser
+}
+DEPENDENCIESCONFIG = shared
 !contains(DEFINES,USE_XPCF_STD) {
    DEFINES += USE_XPCF_BOOST
-   DEPENDENCIESCONFIG += recurse
+   DEPENDENCIESCONFIG += install_recurse
 }
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (../../builddefs/qmake/templatelibconfig.pri)
@@ -49,6 +52,11 @@ HEADERS += \
 unix {
 }
 
+linux {
+    LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
+}
+
+
 macx {
     contains(DEFINES,USE_XPCF_STD) {
         QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.14
@@ -59,6 +67,7 @@ macx {
     QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c++17 -fPIC#-x objective-c++
     QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
     LIBS += -lstdc++ -lc -lpthread
+    LIBS += -L/usr/local/lib
 }
 
 win32 {

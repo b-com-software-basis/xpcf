@@ -1,5 +1,5 @@
 TARGET = testxpcf
-VERSION = 2.4.0
+VERSION=2.5.0
 
 CONFIG += c++1z
 CONFIG += console
@@ -7,7 +7,7 @@ CONFIG -= qt
 
 DEFINES += MYVERSION=$${VERSION}
 
-include(findremakenrules.pri)
+#include(findremakenrules.pri)
 
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
@@ -18,6 +18,10 @@ CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
 }
 
+macx {
+    # EXPERIMENTAL : needs to use remaken configure first
+    # REMAKENCONFIG += use_remaken_parser
+}
 #DEFINES += TEST_XPCF_STD
 !contains(DEFINES,TEST_XPCF_STD) {
    DEFINES += TEST_XPCF_BOOST
@@ -29,9 +33,10 @@ DEFINES += BOOST_ALL_DYN_LINK
 win32:CONFIG -= static
 win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
-DEPENDENCIESCONFIG = sharedlib
+DEPENDENCIESCONFIG = sharedlib recurse
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
-include ($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)
+# include ($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)
+include (../builddefs/qmake/templateappconfig.pri)
 HEADERS += \
     TestDefines.h
 
@@ -58,6 +63,7 @@ macx {
     }
     QMAKE_MAC_SDK= macosx
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17
+    LIBS += -L/usr/local/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 win32 {

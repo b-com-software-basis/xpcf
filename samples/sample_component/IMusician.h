@@ -24,6 +24,33 @@
 #define IMUSICIAN_H 1
 
 #include "xpcf/api/IComponentIntrospect.h"
+
+struct MusicScore {
+    MusicScore() = default;
+    ~MusicScore() = default;
+    void add(std::string key, float duration)
+    {
+        m_score.push_back(std::make_pair(key,duration));
+    }
+    uint32_t m_tempo = 120;
+    std::vector<std::pair<std::string, float>> m_score;
+};
+
+namespace boost { namespace serialization {
+
+template<class Archive>
+inline void serialize(Archive & ar,
+                      MusicScore & score,
+                      const unsigned int version)
+{
+    ar & score.m_tempo;
+    ar & score.m_score;
+}
+
+
+}} // namespace boost::serialization
+
+
 /**
  *  @ingroup interfaces
  */
@@ -35,12 +62,17 @@
    * @note The InterfaceTraits<IMusician> template struct defines the IMusician UUID and description.
    * It allows IMusician users to use directly the I0 type instead of its UUID to bind the component to this interface.
    */
-class IMusician : virtual public org::bcom::xpcf::IComponentIntrospect
+
+
+class [[xpcf::clientUUID("98626b20-3f78-42e0-9891-221be79902cf")]] [[xpcf::serverUUID("eda6836a-6568-4135-b241-5f245574bee9")]] IMusician :
+    virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~IMusician() = default;
     virtual void learn () = 0;
-    virtual void playMusic () = 0;
+    virtual void playMusic (const MusicScore & score) = 0;
+    virtual void playScore (std::vector<std::pair<std::string, float>> & score) = 0;
+    virtual void playModifyScore (std::vector<std::pair<std::string, float>> & score) = 0;
     virtual void listen () = 0;
     virtual void practice () = 0;
     virtual void party () = 0;

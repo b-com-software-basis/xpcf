@@ -4,3 +4,6 @@
 [submodule "libs/stduuid"]
 	path = libs/stduuid
 	url = https://github.com/mariusbancila/stduuid.git
+[submodule "libs/cppast"]
+	path = libs/cppast
+	url = https://github.com/Firefly35/cppast.git

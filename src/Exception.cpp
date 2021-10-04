@@ -52,6 +52,20 @@ Exception::~Exception()
 {
 }
 
+ConfigurationException::ConfigurationException(XPCFErrorCode errCode):
+    Exception(errCode)
+{
+}
+ConfigurationException::ConfigurationException(const char * what, XPCFErrorCode errCode):
+    Exception(what, errCode)
+{
+}
+
+ConfigurationException::ConfigurationException(const std::string & what, XPCFErrorCode errCode):
+    Exception(what, errCode)
+{
+}
+
 AccessDeniedException::AccessDeniedException():
     Exception(XPCFErrorCode::_ERROR_ACCESS_DENIED)
 {
@@ -185,7 +199,6 @@ InterfaceNotImplementedException::InterfaceNotImplementedException(const std::st
 }
 
 
-
 ModuleNotFoundException::ModuleNotFoundException(const uuids::uuid & moduleUUID)
     :ModuleNotFoundException("xpcf::ModuleNotFoundException: " + uuids::to_string(moduleUUID))
 {
@@ -269,5 +282,21 @@ InjectableDeclarationException::InjectableDeclarationException(const std::string
 {
 }
 
+RemotingException::RemotingException(const std::string & componentName,
+                                     const std::string & rpcName,
+                                     uint32_t status)
+    :RemotingException("Error trying to call " + componentName + "::" + rpcName + " status=" + std::to_string(status))
+{
+}
+
+RemotingException::RemotingException(const char * what):
+    Exception(what, XPCFErrorCode::_ERROR_REMOTING)
+{
+}
+
+RemotingException::RemotingException(const std::string & what):
+    Exception(what, XPCFErrorCode::_ERROR_REMOTING)
+{
+}
 
 }}}

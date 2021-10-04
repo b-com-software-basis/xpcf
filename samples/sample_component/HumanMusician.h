@@ -64,7 +64,9 @@ public:
     void work () override;
 
     void learn () override;
-    void playMusic () override;
+    void playMusic (const MusicScore & score) override;
+    void playScore (std::vector<std::pair<std::string, float>> & score) override;
+    void playModifyScore (std::vector<std::pair<std::string, float>> & score) override;
     void listen () override;
     void practice () override;
     void party () override;
