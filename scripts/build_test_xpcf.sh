@@ -8,12 +8,6 @@ display_usage() {
 	echo -e "\nUsage: \$0 [path to xpcf project root | default='${XPCFROOT}'] [Qt kit version to use | default='${QTVERSION}'] \n" 
 } 
 
-if [  $# -lt 1 ] 
-then 
-    display_usage
-    exit 1
-fi 
-
 # check whether user had supplied -h or --help . If yes display usage 
 if [[ ( $1 == "--help") ||  $1 == "-h" ]] 
 then 
