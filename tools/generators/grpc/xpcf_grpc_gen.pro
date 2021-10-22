@@ -42,7 +42,7 @@ exists($${CPPAST_ROOT_BUILD}) {
     LIBS += -L$${CPPAST_ROOT_BUILD}/src -lcppast
     LIBS += -L$${CPPAST_ROOT_BUILD} -l_cppast_tiny_process
 } else {
-    error("cppast root build folder doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd " $${_PRO_FILE_PWD_} "/../../../libs/$$escape_expand(\\n)./build_cppast.sh" )
+    error("cppast root build folder doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd "$${_PRO_FILE_PWD_}"/../../../libs/$$escape_expand(\\n)./build_cppast.sh" )
 }
 win32:CONFIG -= static
 win32:CONFIG += shared
