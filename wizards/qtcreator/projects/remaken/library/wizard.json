@@ -1,22 +1,23 @@
 {
     "version": 1,
-    "supportedProjectTypes": [ "CMakeProjectManager.CMakeProject", "Qbs.QbsProject", "Qt4ProjectManager.Qt4Project" ],
-    "id": "R.RemakeLibrary",
-    "category": "I.Projects",
-    "trDescription": "Creates a simple remake library.",
-    "trDisplayName": "Remake library",
-    "trDisplayCategory": "Non-Qt Project",
-    "icon": "../../global/consoleapplication.png",
+    "supportedProjectTypes": [ "Qt4ProjectManager.Qt4Project" ],
+    "id": "R.RemakenLibrary",
+    "category": "I.RemakenProjects",
+    "trDescription": "Creates a simple remaken C++ template library.",
+    "trDisplayName": "Remaken Library template",
+    "trDisplayCategory": "Remaken Projects",
+    "icon": "library_icon.png",
     "enabled": "%{JS: [ %{Plugins} ].indexOf('CppEditor') >= 0 && ([ %{Plugins} ].indexOf('QmakeProjectManager') >= 0 || [ %{Plugins} ].indexOf('CMakeProjectManager') >= 0)}",
 
     "options":
     [
-        { "key": "ProjectFile", "value": "%{JS: '%{BuildSystem}' === 'qmake' ? '%{ProFile}' : ('%{BuildSystem}' === 'cmake' ? '%{CMakeFile}' : '%{QbsFile}')}" },
+        { "key": "ProjectFile", "value": "%{ProFile}" },
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
-        { "key": "CMakeFile", "value": "%{ProjectDirectory}/CMakeLists.txt" },
-        { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
-        { "key": "ModuleName", "value": "%{ProjectName}"},
-        { "key": "XPCFVersion", "value": "%{JS: Util.fileName(Util.baseName('%{XPCFVersionPath}') , Util.completeSuffix('%{XPCFVersionPath}'))}"}
+        { "key": "LibraryName", "value": "%{ProjectName}"},
+        { "key": "withQTVS","value": "%{UseQTVS}" },
+        { "key": "libraryBuildMode","value": "%{BuildMode}" },
+        { "key": "recurseDependencies","value": "%{RecursiveDeps}" },
+        { "key": "dependenciesInstallMode","value": "%{InstallMode}" }
     ],
 
     "pages":
@@ -27,15 +28,49 @@
             "typeId": "Project"
         },
         {
-            "trDisplayName": "Define Build System",
-            "trShortTitle": "Build System",
+            "trDisplayName": "Define Project Details",
+            "trShortTitle": "Details",
             "typeId": "Fields",
-            "enabled": "%{JS: ! %{IsSubproject}}",
             "data":
             [
                 {
-                    "name": "BuildSystem",
-                    "trDisplayName": "Build system:",
+                    "name": "ProjectPageDescription",
+                    "type": "Label",
+                    "span": true,
+                    "data":
+                    {
+                        "trText": "Specify basic information about the build options to use for the XPCF module.",
+                        "wordWrap": true
+                    }
+                },
+                {
+                    "name": "Sp10",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "Package",
+                    "trDisplayName": "Package name :",
+                    "type": "LineEdit",
+                    "mandatory": true,
+                    "data":
+                    {
+                        "trText": "%{ProjectName}",
+                        "trDisabledText": "%{ProjectName}"
+                    }
+                },
+                {
+                    "name": "PackageDescription",
+                    "type": "Label",
+                    "span": false,
+                    "data":
+                    {
+                        "trText": "-> (used to install several modules in the same package)",
+                        "wordWrap": true
+                    }
+                },
+                {
+                    "name": "BuildMode",
+                    "trDisplayName": "Target type:",
                     "type": "ComboBox",
                     "data":
                     {
@@ -43,41 +78,75 @@
                         "items":
                         [
                             {
-                                "trKey": "qmake",
-                                "value": "qmake",
-                                "condition": "%{JS: [ %{Plugins} ].indexOf('QmakeProjectManager') >= 0}"
+                                "trKey": "Shared Library",
+                                "value": "shared"
                             },
                             {
-                                "trKey": "CMake",
-                                "value": "cmake",
-                                "condition": "%{JS: [ %{Plugins} ].indexOf('CMakeProjectManager') >= 0}"
+                                "trKey": "Statically Linked Library",
+                                "value": "static"
                             }
                         ]
                     }
-                }
-            ]
-        },
-        {
-            "trDisplayName": "Choose XPCF version",
-            "trShortTitle": "XPCF Version",
-            "typeId": "Fields",
-            "enabled": "%{JS: ! %{IsSubproject}}",
-            "data":
-            [
+                },
                 {
-                    "name": "XPCFVersionPath",
-                    "trDisplayName": "XPCF version directory:",
-                    "type": "PathChooser",
-                    "mandatory": true,
+                    "name": "Sp0",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "InstallMode",
+                    "trDisplayName": "Dependencies installation mode:",
+                    "type": "ComboBox",
                     "data":
                     {
-                    "kind": "existingDirectory",
-                    "basePath": "%{InitialPath}",
-                    "path": "%{InitialPath}"
+                        "index": 0,
+                        "items":
+                        [
+                            {
+                                "trKey": "don't install dependencies",
+                                "value": "noinstall"
+                            },
+                            {
+                                "trKey": "install first level dependencies",
+                                "value": "install"
+                            },
+                            {
+                                "trKey": "install recursively all dependencies",
+                                "value": "install_recurse"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Sp1",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "RecursiveDeps",
+                    "trDisplayName": "Recursively find dependencies",
+                    "type": "CheckBox",
+                    "data":
+                    {
+                        "checkedValue": "recurse",
+                        "uncheckedValue": "norecurse",
+                        "checked": "%{JS: value('InstallMode') === 'install_recurse' ? 'true' : 'false'}"                        
+                    }
+                },
+                {
+                    "name": "Sp2",
+                    "type": "Spacer"
+                },
+                {
+                    "name": "UseQTVS",
+                    "trDisplayName": "Use QTVS",
+                    "type": "CheckBox",
+                    "data":
+                    {
+                        "checkedValue": "QTVS",
+                        "uncheckedValue": "noQTVS"
                     }
                 }
             ]
-        },
+        },        
         {
             "trDisplayName": "Kit Selection",
             "trShortTitle": "Kits",
@@ -98,19 +167,26 @@
             "data":
             [
                 {
-                    "source": "module.pro",
+                    "source": "library.pro",
                     "target": "%{ProFile}",
                     "openAsProject": true,
                     "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
                 },
                 {
-                    "source": "CMakeLists.txt",
-                    "openAsProject": true,
-                    "condition": "%{JS: '%{BuildSystem}' === 'cmake'}"
+                    "source": "findremakenrules.pri",
+                    "target": "findremakenrules.pri",
+                    "openAsProject": false,
+                    "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
                 },
                 {
-                    "source": "main.cpp",
-                    "target": "%{CppFileName}",
+                    "source": "remaken-module.pc.in",
+                    "target": "%{JS: 'bcom-' + '%{ProjectName}' + '.pc.in'}",
+                    "openAsProject": false,
+                    "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
+                },
+                {
+                    "source": "library_API.h",
+                    "target": "%{LibraryName}API.h",
                     "openInEditor": true
                 },
                 {
@@ -119,7 +195,7 @@
                     "openInEditor": true
                 },
                 {
-                    "source": "../git.ignore",
+                    "source": "git.ignore",
                     "target": ".gitignore",
                     "condition": "%{JS: ! %{IsSubproject} && '%{VersionControl}' === 'G.Git'}"
                 }
