@@ -67,7 +67,7 @@
                     "type": "LineEdit",
                     "trDisplayName": "Header file:",
                     "mandatory": true,
-                    "data": { "trText": "%{JS: Cpp.classToFileName('%{Class}', '%{JS: Util.preferredSuffix('text/x-c++hdr')}')}" }
+                    "data": { "trText": "%{JS: Util.fileName('%{Class}', '%{JS: Util.preferredSuffix('text/x-c++hdr')}')}" }
                 },
                 {
                     "name": "Path",
