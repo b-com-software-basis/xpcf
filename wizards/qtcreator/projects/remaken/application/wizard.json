@@ -1,12 +1,12 @@
 {
     "version": 1,
     "supportedProjectTypes": [ "CMakeProjectManager.CMakeProject", "Qbs.QbsProject", "Qt4ProjectManager.Qt4Project" ],
-    "id": "R.RemakeApplication",
-    "category": "I.Projects",
-    "trDescription": "Creates a simple remake application.",
-    "trDisplayName": "Remake application",
-    "trDisplayCategory": "Non-Qt Project",
-    "icon": "../../global/consoleapplication.png",
+    "id": "R.RemakenApplication",
+    "category": "I.RemakenProjects",
+    "trDescription": "Creates a simple remaken C++ application.",
+    "trDisplayName": "Remaken Application template",
+    "trDisplayCategory": "Remaken Projects",
+    "icon": "application_icon.png",
     "enabled": "%{JS: [ %{Plugins} ].indexOf('CppEditor') >= 0 && ([ %{Plugins} ].indexOf('QmakeProjectManager') >= 0 || [ %{Plugins} ].indexOf('CMakeProjectManager') >= 0)}",
 
     "options":
@@ -14,9 +14,7 @@
         { "key": "ProjectFile", "value": "%{JS: '%{BuildSystem}' === 'qmake' ? '%{ProFile}' : ('%{BuildSystem}' === 'cmake' ? '%{CMakeFile}' : '%{QbsFile}')}" },
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
         { "key": "CMakeFile", "value": "%{ProjectDirectory}/CMakeLists.txt" },
-        { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
-        { "key": "ModuleName", "value": "%{ProjectName}"},
-        { "key": "XPCFVersion", "value": "%{JS: Util.fileName(Util.baseName('%{XPCFVersionPath}') , Util.completeSuffix('%{XPCFVersionPath}'))}"}
+        { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" }
     ],
 
     "pages":
@@ -58,27 +56,6 @@
             ]
         },
         {
-            "trDisplayName": "Choose XPCF version",
-            "trShortTitle": "XPCF Version",
-            "typeId": "Fields",
-            "enabled": "%{JS: ! %{IsSubproject}}",
-            "data":
-            [
-                {
-                    "name": "XPCFVersionPath",
-                    "trDisplayName": "XPCF version directory:",
-                    "type": "PathChooser",
-                    "mandatory": true,
-                    "data":
-                    {
-                    "kind": "existingDirectory",
-                    "basePath": "%{InitialPath}",
-                    "path": "%{InitialPath}"
-                    }
-                }
-            ]
-        },
-        {
             "trDisplayName": "Kit Selection",
             "trShortTitle": "Kits",
             "typeId": "Kits",
@@ -98,9 +75,15 @@
             "data":
             [
                 {
-                    "source": "module.pro",
+                    "source": "application.pro",
                     "target": "%{ProFile}",
                     "openAsProject": true,
+                    "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
+                },
+                {
+                    "source": "findremakenrules.pri",
+                    "target": "findremakenrules.pri",
+                    "openAsProject": false,
                     "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
                 },
                 {

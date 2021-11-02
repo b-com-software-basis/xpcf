@@ -1,5 +1,3 @@
-%{Cpp:LicenseTemplate}\
-
 #include <xpcf/xpcf.h>
 #include <iostream>
 
@@ -12,9 +10,11 @@ namespace xpcf=org::bcom::xpcf;
 int main(int argc, char ** argv)
 {
     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
-    XPCFErrorCode xpcfComponentManager->loadModuleMetadata(%{moduleName},"./");
-    SRef<%{interfaceName}> component = xpcfComponentManager->create<>(%{componentName})->bindTo<%{interfaceName}>();
-    // call %{interfaceName} methods below
+    xpcf::XPCFErrorCode err = xpcfComponentManager->load();
+    /* sample component resolution
+      SRef<InterfaceType> component = xpcfComponentManager->resolve<InterfaceType>();
+    */
+    // call InterfaceType methods below
     //...
     return 0;
 }

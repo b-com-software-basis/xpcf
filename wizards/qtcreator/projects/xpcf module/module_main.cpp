@@ -1,5 +1,3 @@
-%{Cpp:LicenseTemplate}\
-
 #include <xpcf/module/ModuleFactory.h>
 #include <iostream>
 
@@ -22,10 +20,12 @@ XPCF_DECLARE_MODULE("%{UUID}","%{ModuleNamespace}","%{ModuleName} module descrip
 extern "C" XPCF_MODULEHOOKS_API xpcf::XPCFErrorCode XPCF_getComponent(const xpcf::uuids::uuid& componentUUID,SRef<xpcf::IComponentIntrospect>& interfaceRef)
 {
     xpcf::XPCFErrorCode errCode = xpcf::XPCFErrorCode::_FAIL;
+    /* Sample code to declare components instanciation
     errCode = xpcf::tryCreateComponent<%{ModuleNamespace}::componentType>(componentUUID,interfaceRef);
     if (errCode != xpcf::XPCFErrorCode::_SUCCESS) {
         errCode = xpcf::tryCreateComponent<%{ModuleNamespace}::otherComponentType>(componentUUID,interfaceRef);
     }
+    */
     return errCode;
 }
 
@@ -34,6 +34,8 @@ extern "C" XPCF_MODULEHOOKS_API xpcf::XPCFErrorCode XPCF_getComponent(const xpcf
   * XPCF uses this index to introspect the components available in a module, providing the ability to generate the configuration file skeleton from the code.
   */
 XPCF_BEGIN_COMPONENTS_DECLARATION
+/* sample components declarations
 XPCF_ADD_COMPONENT(%{ModuleNamespace}::componentType)
 XPCF_ADD_COMPONENT(%{ModuleNamespace}::otherComponentType)
+*/
 XPCF_END_COMPONENTS_DECLARATION

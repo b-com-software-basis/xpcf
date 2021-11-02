@@ -179,7 +179,7 @@
                     "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
                 },
                 {
-                    "source": "remaken-module.pc.in",
+                    "source": "remaken-library.pc.in",
                     "target": "%{JS: 'bcom-' + '%{ProjectName}' + '.pc.in'}",
                     "openAsProject": false,
                     "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"

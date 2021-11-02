@@ -1,7 +1,7 @@
 QT       -= core gui
 CONFIG -= app_bundle qt
 
-TARGET = %{ModuleName}
+TARGET = %{ProjectName}
 VERSION=1.0.0
 FRAMEWORK = $${TARGET}
 
@@ -12,18 +12,18 @@ CONFIG += shared
 CONFIG += console
 CONFIG -= qt
 
+include(findremakenrules.pri)
+
 DEPENDENCIESCONFIG = sharedlib recurse
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
-include (builddefs/qmake/templatelibconfig.pri)
+include ($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)
 
 DEFINES += BOOST_ALL_NO_LIB
 DEFINES += BOOST_ALL_DYN_LINK
 
 SOURCES += \
-    main.cpp
+    %{CppFileName}
 
-HEADERS += \
- 
 unix {
 }
 
@@ -50,5 +50,8 @@ win32 {
 INCLUDEPATH += $${PWD}
 
 DISTFILES += \
-    Makefile
+    Makefile 
+    
+OTHER_FILES += \
+    packagedependencies.txt
         

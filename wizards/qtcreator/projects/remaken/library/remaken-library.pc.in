@@ -11,4 +11,3 @@ Requires:
 Libs: -L${libdir} -l${libname}
 Libs.private: ${libdir}/${pfx}${libname}.${lext}
 Cflags: -I${includedir}
-

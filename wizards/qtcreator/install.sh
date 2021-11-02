@@ -14,6 +14,10 @@ cp -r classes/xpcf $HOME/.config/QtProject/qtcreator/templates/wizards/classes/
 
 echo "Copying XPCF projects wizards to: $HOME/.config/QtProject/qtcreator/templates/wizards/projects/"
 cp -r projects/xpcf\ module $HOME/.config/QtProject/qtcreator/templates/wizards/projects
+cp -r projects/xpcf\ application $HOME/.config/QtProject/qtcreator/templates/wizards/projects
+
+echo "Copying REMAKEN projects wizards to: $HOME/.config/QtProject/qtcreator/templates/wizards/projects/"
+cp -r projects/remaken $HOME/.config/QtProject/qtcreator/templates/wizards/projects
 
 if [ ! -d "$HOME/.remaken/rules/" ]; then
     echo "Creating default remaken rules folder: $HOME/.remaken/rules/"
