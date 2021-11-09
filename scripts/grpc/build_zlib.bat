@@ -56,7 +56,7 @@ REM ####################
 REM packaging
 REM ####################
 cd %rootDir%
-set dir=%REMAKEN_PKG_ROOT_WIN%\%compiler%\%product%\%version%
+set dir=%REMAKEN_PKG_ROOT_WIN%\%compiler%\static\%config%\%product%\%version%
 echo "product install dir:%dir%
 
 mkdir %dir%\interfaces
