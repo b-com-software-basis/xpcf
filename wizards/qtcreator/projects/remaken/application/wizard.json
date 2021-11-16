@@ -11,7 +11,7 @@
 
     "options":
     [
-        { "key": "ProjectFile", "value": "%{JS: '%{BuildSystem}' === 'qmake' ? '%{ProFile}' : ('%{BuildSystem}' === 'cmake' ? '%{CMakeFile}' : '%{QbsFile}')}" },
+        { "key": "ProjectFile", "value": "%{ProFile}" },
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
         { "key": "ApplicationName", "value": "%{ProjectName}"},
         { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
@@ -191,11 +191,6 @@
                     "target": "findremakenrules.pri",
                     "openAsProject": false,
                     "condition": "%{JS: '%{BuildSystem}' === 'qmake'}"
-                },
-                {
-                    "source": "CMakeLists.txt",
-                    "openAsProject": true,
-                    "condition": "%{JS: '%{BuildSystem}' === 'cmake'}"
                 },
                 {
                     "source": "main.cpp",
