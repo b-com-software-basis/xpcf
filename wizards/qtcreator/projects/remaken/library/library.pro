@@ -2,44 +2,54 @@ QT       -= core gui
 CONFIG -= app_bundle qt
 
 TARGET = %{LibraryName}
-FRAMEWORK = $${TARGET}
+FRAMEWORK = %{PackageNameKey}
+@if '%{InstallSubDir}'
+INSTALLSUBDIR =  %{InstallSubDir}
+@endif
 VERSION=1.0.0
 DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
+#CONFIG += verbose
+# Uncomment following line to prepare remaken package
+#CONFIG += package_remaken
 
 include(findremakenrules.pri)
 
-@if '%{dependenciesBuildMode}' === 'static'
+@if '%{libraryBuildMode}' === 'static'
 CONFIG += staticlib
 @endif
 
 !staticlib {
     CONFIG += shared
+    REMAKEN_PKGSUBDIR=shared
 } else {
     CONFIG -= shared
-}
-
-#CONFIG += verbose
-# Uncomment following line to prepare remaken package
-#CONFIG += package_remaken
-
-staticlib {
-    DEPENDENCIESCONFIG = staticlib
     REMAKEN_PKGSUBDIR=static
-} else {
-    DEPENDENCIESCONFIG = sharedlib
-    REMAKEN_PKGSUBDIR=shared
 }
 
 CONFIG(debug,debug|release) {
+    DEFINES += _DEBUG=1
+    DEFINES += DEBUG=1
     REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
+}
+
+CONFIG(release,debug|release) {
+    DEFINES += NDEBUG=1
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
 }
 
 package_remaken {
     message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
     INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
 }
+
+
+@if '%{dependenciesBuildMode}' === 'shared'
+DEPENDENCIESCONFIG = sharedlib
+@else
+DEPENDENCIESCONFIG = staticlib
+@endif
 
 @if '%{recurseDependencies}' === 'recurse' && '%{dependenciesInstallMode}' !== 'install_recurse'
 DEPENDENCIESCONFIG += recurse

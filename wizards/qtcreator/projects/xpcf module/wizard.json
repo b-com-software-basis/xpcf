@@ -15,6 +15,8 @@
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
         { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
         { "key": "ModuleName", "value": "%{ProjectName}"},
+        { "key": "PackageNameKey", "value": "%{PackageName}"},
+        { "key": "InstallSubDir", "value": "%{InstallSubFolder}"},
         { "key": "XPCFVersion", "value": "%{JS: Util.fileName(Util.baseName('%{XPCFVersionPath}') , Util.completeSuffix('%{XPCFVersionPath}'))}"},
         { "key": "ModuleNamespace","value": "%{ModuleNamespaceName}" },
         { "key": "withQTVS","value": "%{UseQTVS}" },
@@ -51,7 +53,7 @@
                     "type": "Spacer"
                 },
                 {
-                    "name": "Package",
+                    "name": "PackageName",
                     "trDisplayName": "Package name :",
                     "type": "LineEdit",
                     "mandatory": true,
@@ -72,6 +74,17 @@
                     }
                 },
                 {
+                    "name": "InstallSubFolder",
+                    "trDisplayName": "Package installation sub folder :",
+                    "type": "LineEdit",
+                    "mandatory": false,
+                    "data":
+                    {
+                        "trText": "",
+                        "trDisabledText": ""
+                    }
+                },
+                {
                     "name": "DepsBuildMode",
                     "trDisplayName": "Dependencies type:",
                     "type": "ComboBox",
@@ -81,11 +94,11 @@
                         "items":
                         [
                             {
-                                "trKey": "Shared Library",
+                                "trKey": "Shared libraries",
                                 "value": "shared"
                             },
                             {
-                                "trKey": "Statically Linked Library",
+                                "trKey": "Static libraries",
                                 "value": "static"
                             }
                         ]

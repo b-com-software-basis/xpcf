@@ -14,8 +14,11 @@
         { "key": "ProjectFile", "value": "%{ProFile}" },
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
         { "key": "LibraryName", "value": "%{ProjectName}"},
+        { "key": "PackageNameKey", "value": "%{PackageName}"},
+        { "key": "InstallSubDir", "value": "%{InstallSubFolder}"},
         { "key": "withQTVS","value": "%{UseQTVS}" },
         { "key": "libraryBuildMode","value": "%{BuildMode}" },
+        { "key": "dependenciesBuildMode","value": "%{DepsBuildMode}" },
         { "key": "recurseDependencies","value": "%{RecursiveDeps}" },
         { "key": "dependenciesInstallMode","value": "%{InstallMode}" }
     ],
@@ -48,7 +51,7 @@
                     "type": "Spacer"
                 },
                 {
-                    "name": "Package",
+                    "name": "PackageName",
                     "trDisplayName": "Package name :",
                     "type": "LineEdit",
                     "mandatory": true,
@@ -69,6 +72,17 @@
                     }
                 },
                 {
+                    "name": "InstallSubFolder",
+                    "trDisplayName": "Package installation sub folder :",
+                    "type": "LineEdit",
+                    "mandatory": false,
+                    "data":
+                    {
+                        "trText": "",
+                        "trDisabledText": ""
+                    }
+                },
+                {
                     "name": "BuildMode",
                     "trDisplayName": "Target type:",
                     "type": "ComboBox",
@@ -83,6 +97,26 @@
                             },
                             {
                                 "trKey": "Statically Linked Library",
+                                "value": "static"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "DepsBuildMode",
+                    "trDisplayName": "Dependencies type:",
+                    "type": "ComboBox",
+                    "data":
+                    {
+                        "index": 0,
+                        "items":
+                        [
+                            {
+                                "trKey": "Shared libraries",
+                                "value": "shared"
+                            },
+                            {
+                                "trKey": "Static libraries",
                                 "value": "static"
                             }
                         ]

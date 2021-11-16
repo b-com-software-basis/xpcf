@@ -2,15 +2,42 @@ QT       -= core gui
 CONFIG -= app_bundle qt
 
 TARGET = %{ModuleName}
-FRAMEWORK = $${TARGET}
+FRAMEWORK = %{PackageNameKey}
+@if '%{InstallSubDir}'
+INSTALLSUBDIR =  %{InstallSubDir}
+@endif
+
 VERSION=1.0.0
 DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
+CONFIG += shared
+
+staticlib {
+    DEPENDENCIESCONFIG = staticlib
+    REMAKEN_PKGSUBDIR=static
+} else {
+    DEPENDENCIESCONFIG = sharedlib
+    REMAKEN_PKGSUBDIR=shared
+}
+
+CONFIG(debug,debug|release) {
+    DEFINES += _DEBUG=1
+    DEFINES += DEBUG=1
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
+}
+
+CONFIG(release,debug|release) {
+    DEFINES += NDEBUG=1
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
+}
+
+package_remaken {
+    message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
+    INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
+}
 
 include(findremakenrules.pri)
-
-CONFIG += shared
 
 @if '%{dependenciesBuildMode}' === 'shared'
 DEPENDENCIESCONFIG = sharedlib

@@ -14,9 +14,10 @@
         { "key": "ProjectFile", "value": "%{ProFile}" },
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
         { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
+        { "key": "PackageNameKey", "value": "%{PackageName}"},
+        { "key": "InstallSubDir", "value": "%{InstallSubFolder}"},
         { "key": "ApplicationName", "value": "%{ProjectName}"},
         { "key": "XPCFVersion", "value": "%{JS: Util.fileName(Util.baseName('%{XPCFVersionPath}') , Util.completeSuffix('%{XPCFVersionPath}'))}"},
-        { "key": "remakenRules","value": "%{remakenWizardRules}" },
         { "key": "withQTVS","value": "%{UseQTVS}" },
         { "key": "dependenciesBuildMode","value": "%{DepsBuildMode}" },
         { "key": "recurseDependencies","value": "%{RecursiveDeps}" },
@@ -51,6 +52,38 @@
                     "type": "Spacer"
                 },
                 {
+                    "name": "PackageName",
+                    "trDisplayName": "Package name :",
+                    "type": "LineEdit",
+                    "mandatory": true,
+                    "data":
+                    {
+                        "trText": "%{ProjectName}",
+                        "trDisabledText": "%{ProjectName}"
+                    }
+                },
+                {
+                    "name": "PackageDescription",
+                    "type": "Label",
+                    "span": false,
+                    "data":
+                    {
+                        "trText": "-> (used to install several modules in the same package)",
+                        "wordWrap": true
+                    }
+                },
+                {
+                    "name": "InstallSubFolder",
+                    "trDisplayName": "Package installation sub folder :",
+                    "type": "LineEdit",
+                    "mandatory": false,
+                    "data":
+                    {
+                        "trText": "",
+                        "trDisabledText": ""
+                    }
+                },
+                {
                     "name": "DepsBuildMode",
                     "trDisplayName": "Dependencies type:",
                     "type": "ComboBox",
@@ -60,11 +93,11 @@
                         "items":
                         [
                             {
-                                "trKey": "Shared Library",
+                                "trKey": "Shared libraries",
                                 "value": "shared"
                             },
                             {
-                                "trKey": "Statically Linked Library",
+                                "trKey": "Static libraries",
                                 "value": "static"
                             }
                         ]

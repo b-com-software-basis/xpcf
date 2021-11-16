@@ -2,20 +2,28 @@ QT       -= core gui
 CONFIG -= app_bundle qt
 
 TARGET = %{ApplicationName}
+FRAMEWORK = %{PackageNameKey}
+@if '%{InstallSubDir}'
+INSTALLSUBDIR =  %{InstallSubDir}
+@endif
 VERSION=1.0.0
 DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
 CONFIG += console
+CONFIG += shared
+#CONFIG += verbose
+# Uncomment following line to prepare remaken package
+#CONFIG += package_remaken
 
 include(findremakenrules.pri)
 
-CONFIG += shared
-
 @if '%{dependenciesBuildMode}' === 'shared'
 DEPENDENCIESCONFIG = sharedlib
+REMAKEN_PKGSUBDIR=shared
 @else
 DEPENDENCIESCONFIG = staticlib
+REMAKEN_PKGSUBDIR=static
 @endif
 @if '%{recurseDependencies}' === 'recurse' && '%{dependenciesInstallMode}' !== 'install_recurse'
 DEPENDENCIESCONFIG += recurse
@@ -23,6 +31,22 @@ DEPENDENCIESCONFIG += recurse
 @if '%{dependenciesInstallMode}' !== 'noinstall'
 DEPENDENCIESCONFIG += %{dependenciesInstallMode}
 @endif
+
+CONFIG(debug,debug|release) {
+    DEFINES += _DEBUG=1
+    DEFINES += DEBUG=1
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
+}
+
+CONFIG(release,debug|release) {
+    DEFINES += NDEBUG=1
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
+}
+
+package_remaken {
+    message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
+    INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
+}
 
 ## Configuration for Visual Studio to install binaries and dependencies. Work also for QT Creator by replacing QMAKE_INSTALL
 @if '%{withQTVS}' && '%{withQTVS}' === 'QTVS'
@@ -76,6 +100,6 @@ OTHER_FILES += \
     @if '%{remakenRules}' === 'local'
 include (builddefs/qmake/remaken_install_target.pri)
     @else
-include ($${REMAKEN_RULES_ROOT}/remaken_install_target.pri)
+include ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)
     @endif
 @endif

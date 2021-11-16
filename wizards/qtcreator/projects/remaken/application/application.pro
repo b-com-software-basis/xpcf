@@ -1,20 +1,55 @@
 QT       -= core gui
 CONFIG -= app_bundle qt
 
-TARGET = %{ProjectName}
+TARGET = %{ApplicationName}
+FRAMEWORK = %{PackageNameKey}
+@if '%{InstallSubDir}'
+INSTALLSUBDIR =  %{InstallSubDir}
+@endif
 VERSION=1.0.0
-FRAMEWORK = $${TARGET}
 
-DEFINES += MYVERSION=$${VERSION}
+DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
 CONFIG += shared
 CONFIG += console
 CONFIG -= qt
+#CONFIG += verbose
+# Uncomment following line to prepare remaken package
+#CONFIG += package_remaken
 
 include(findremakenrules.pri)
 
-DEPENDENCIESCONFIG = sharedlib recurse
+@if '%{dependenciesBuildMode}' === 'shared'
+DEPENDENCIESCONFIG = sharedlib
+REMAKEN_PKGSUBDIR=shared
+@else
+DEPENDENCIESCONFIG = staticlib
+REMAKEN_PKGSUBDIR=static
+@endif
+@if '%{recurseDependencies}' === 'recurse' && '%{dependenciesInstallMode}' !== 'install_recurse'
+DEPENDENCIESCONFIG += recurse
+@endif
+@if '%{dependenciesInstallMode}' !== 'noinstall'
+DEPENDENCIESCONFIG += %{dependenciesInstallMode}
+@endif
+
+CONFIG(debug,debug|release) {
+    DEFINES += _DEBUG=1
+    DEFINES += DEBUG=1
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
+}
+
+CONFIG(release,debug|release) {
+    DEFINES += NDEBUG=1
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
+}
+
+package_remaken {
+    message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
+    INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
+}
+
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include ($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)
 
@@ -55,3 +90,11 @@ DISTFILES += \
 OTHER_FILES += \
     packagedependencies.txt
         
+@if '%{withQTVS}' && '%{withQTVS}' === 'QTVS'
+#NOTE : Must be placed at the end of the .pro
+    @if '%{remakenRules}' === 'local'
+include (builddefs/qmake/remaken_install_target.pri)
+    @else
+include ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)
+    @endif
+@endif
