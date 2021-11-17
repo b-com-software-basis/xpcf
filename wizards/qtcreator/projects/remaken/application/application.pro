@@ -14,9 +14,23 @@ CONFIG += c++1z
 CONFIG += shared
 CONFIG += console
 CONFIG -= qt
-#CONFIG += verbose
+
+# Uncomment following line to add more verbose information from builddefs-qmake rules
+# CONFIG += verbose
 # Uncomment following line to prepare remaken package
-#CONFIG += package_remaken
+# CONFIG += package_remaken
+
+## Configuration for Visual Studio to install binaries and dependencies. Work also for QT Creator by replacing QMAKE_INSTALL
+@if '%{withQTVS}' && '%{withQTVS}' === 'QTVS'
+CONFIG += with_qtvs
+@else
+# Uncomment following line to use rules with QTVS plugin mode for visual studio
+# CONFIG += with_qtvs
+@endif
+
+with_qtvs {
+    PROJECTCONFIG = QTVS
+}
 
 include(findremakenrules.pri)
 
@@ -90,11 +104,11 @@ DISTFILES += \
 OTHER_FILES += \
     packagedependencies.txt
         
-@if '%{withQTVS}' && '%{withQTVS}' === 'QTVS'
+with_qtvs {
 #NOTE : Must be placed at the end of the .pro
-    @if '%{remakenRules}' === 'local'
-include (builddefs/qmake/remaken_install_target.pri)
-    @else
-include ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)
-    @endif
+@if '%{remakenRules}' === 'local'
+    include (builddefs/qmake/remaken_install_target.pri)
+@else
+    include ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)
 @endif
+}
