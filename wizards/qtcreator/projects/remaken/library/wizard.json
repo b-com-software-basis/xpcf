@@ -15,6 +15,7 @@
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
         { "key": "LibraryName", "value": "%{ProjectName}"},
         { "key": "PackageNameKey", "value": "%{PackageName}"},
+        { "key": "PackageVersionKey", "value": "%{PackageVersion}"},
         { "key": "InstallSubDir", "value": "%{InstallSubFolder}"},
         { "key": "withQTVS","value": "%{UseQTVS}" },
         { "key": "libraryBuildMode","value": "%{BuildMode}" },
@@ -59,6 +60,17 @@
                     {
                         "trText": "%{ProjectName}",
                         "trDisabledText": "%{ProjectName}"
+                    }
+                },
+                {
+                    "name": "PackageVersion",
+                    "trDisplayName": "Package version :",
+                    "type": "LineEdit",
+                    "mandatory": true,
+                    "data":
+                    {
+                        "trText": "1.0.0",
+                        "trDisabledText": "1.0.0"
                     }
                 },
                 {

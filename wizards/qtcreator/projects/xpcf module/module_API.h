@@ -11,4 +11,4 @@
 #define %{ModuleName}_EXPORT_API
 #endif //!_WIN32
 
-#endif // XPCFSAMPLECOMPONENTAPI_H
+#endif

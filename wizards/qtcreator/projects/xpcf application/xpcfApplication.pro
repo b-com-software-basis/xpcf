@@ -6,7 +6,7 @@ FRAMEWORK = %{PackageNameKey}
 @if '%{InstallSubDir}'
 INSTALLSUBDIR =  %{InstallSubDir}
 @endif
-VERSION=1.0.0
+VERSION=%{PackageVersionKey}
 DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z

@@ -6,6 +6,8 @@ FRAMEWORK = %{PackageNameKey}
 @if '%{InstallSubDir}'
 INSTALLSUBDIR =  %{InstallSubDir}
 @endif
+VERSION=%{PackageVersionKey}
+DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 # Uncomment following line to add more verbose information from builddefs-qmake rules
 # CONFIG += verbose
@@ -22,9 +24,6 @@ CONFIG += with_qtvs
 with_qtvs {
     PROJECTCONFIG = QTVS
 }
-
-VERSION=1.0.0
-DEFINES +=  $${TARGET}VERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
 CONFIG += shared

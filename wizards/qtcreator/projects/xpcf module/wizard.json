@@ -13,12 +13,13 @@
     [
         { "key": "ProjectFile", "value": "%{ProFile}" },
         { "key": "ProFile", "value": "%{JS: Util.fileName('%{ProjectDirectory}/%{ProjectName}', 'pro')}" },
-        { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
         { "key": "ModuleName", "value": "%{ProjectName}"},
         { "key": "PackageNameKey", "value": "%{PackageName}"},
+        { "key": "PackageVersionKey", "value": "%{PackageVersion}"},
         { "key": "InstallSubDir", "value": "%{InstallSubFolder}"},
         { "key": "XPCFVersion", "value": "%{JS: Util.fileName(Util.baseName('%{XPCFVersionPath}') , Util.completeSuffix('%{XPCFVersionPath}'))}"},
         { "key": "ModuleNamespace","value": "%{ModuleNamespaceName}" },
+        { "key": "CppFileName", "value": "%{JS: '%{ProjectName}' + '_main.' + Util.preferredSuffix('text/x-c++src')}" },
         { "key": "withQTVS","value": "%{UseQTVS}" },
         { "key": "dependenciesBuildMode","value": "%{DepsBuildMode}" },
         { "key": "recurseDependencies","value": "%{RecursiveDeps}" },
@@ -61,6 +62,17 @@
                     {
                         "trText": "%{ProjectName}",
                         "trDisabledText": "%{ProjectName}"
+                    }
+                },
+                {
+                    "name": "PackageVersion",
+                    "trDisplayName": "Package version :",
+                    "type": "LineEdit",
+                    "mandatory": true,
+                    "data":
+                    {
+                        "trText": "1.0.0",
+                        "trDisabledText": "1.0.0"
                     }
                 },
                 {
