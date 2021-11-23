@@ -48,8 +48,18 @@
                     }
                 },
                 {
-                    "name": "Sp10",
+                    "name": "Sp1",
                     "type": "Spacer"
+                },
+                {
+                    "name": "PackageDescription",
+                    "type": "Label",
+                    "span": false,
+                    "data":
+                    {
+                        "trText": "-> (used to install several modules in the same package - defaults to the project name)",
+                        "wordWrap": true
+                    }
                 },
                 {
                     "name": "PackageName",
@@ -63,6 +73,10 @@
                     }
                 },
                 {
+                    "name": "Sp2",
+                    "type": "Spacer"
+                },
+                {
                     "name": "PackageVersion",
                     "trDisplayName": "Package version :",
                     "type": "LineEdit",
@@ -73,16 +87,7 @@
                         "trDisabledText": "1.0.0"
                     }
                 },
-                {
-                    "name": "PackageDescription",
-                    "type": "Label",
-                    "span": false,
-                    "data":
-                    {
-                        "trText": "-> (used to install several modules in the same package)",
-                        "wordWrap": true
-                    }
-                },
+            
                 {
                     "name": "InstallSubFolder",
                     "trDisplayName": "Package installation sub folder :",
@@ -135,7 +140,7 @@
                     }
                 },
                 {
-                    "name": "Sp0",
+                    "name": "Sp3",
                     "type": "Spacer"
                 },
                 {
@@ -163,7 +168,7 @@
                     }
                 },
                 {
-                    "name": "Sp1",
+                    "name": "Sp4",
                     "type": "Spacer"
                 },
                 {
@@ -178,7 +183,7 @@
                     }
                 },
                 {
-                    "name": "Sp2",
+                    "name": "Sp5",
                     "type": "Spacer"
                 },
                 {

@@ -2,7 +2,11 @@ QT       -= core gui
 CONFIG -= app_bundle qt
 
 TARGET = %{LibraryName}
+@if '%{LibraryName}' === '%{PackageNameKey}'
+FRAMEWORK = $${TARGET}
+@else
 FRAMEWORK = %{PackageNameKey}
+@endif
 @if '%{InstallSubDir}'
 INSTALLSUBDIR =  %{InstallSubDir}
 @endif
@@ -103,7 +107,7 @@ win32 {
 INCLUDEPATH += $${PWD}
 
 header_files.path = $${PROJECTDEPLOYDIR}/interfaces/
-header_files.files = $$files($${PWD}/I*.h)
+header_files.files = $$files($${PWD}/*.h)
 
 INSTALLS += header_files
 DISTFILES += \

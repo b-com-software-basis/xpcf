@@ -2,7 +2,11 @@ QT       -= core gui
 CONFIG -= app_bundle qt
 
 TARGET = %{ModuleName}
+@if '%{ModuleName}' === '%{PackageNameKey}'
+FRAMEWORK = $${TARGET}
+@else
 FRAMEWORK = %{PackageNameKey}
+@endif
 @if '%{InstallSubDir}'
 INSTALLSUBDIR =  %{InstallSubDir}
 @endif

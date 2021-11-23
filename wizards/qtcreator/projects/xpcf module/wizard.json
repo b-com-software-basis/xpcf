@@ -54,6 +54,16 @@
                     "type": "Spacer"
                 },
                 {
+                    "name": "PackageDescription",
+                    "type": "Label",
+                    "span": false,
+                    "data":
+                    {
+                        "trText": "-> (used to install several modules in the same package - defaults to the project name)",
+                        "wordWrap": true
+                    }
+                },
+                {
                     "name": "PackageName",
                     "trDisplayName": "Package name :",
                     "type": "LineEdit",
@@ -65,6 +75,10 @@
                     }
                 },
                 {
+                    "name": "Sp11",
+                    "type": "Spacer"
+                },
+                {
                     "name": "PackageVersion",
                     "trDisplayName": "Package version :",
                     "type": "LineEdit",
@@ -73,16 +87,6 @@
                     {
                         "trText": "1.0.0",
                         "trDisabledText": "1.0.0"
-                    }
-                },
-                {
-                    "name": "PackageDescription",
-                    "type": "Label",
-                    "span": false,
-                    "data":
-                    {
-                        "trText": "-> (used to install several modules in the same package)",
-                        "wordWrap": true
                     }
                 },
                 {
