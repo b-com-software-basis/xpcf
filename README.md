@@ -311,27 +311,29 @@ The supported xml structure is (in each xml node, **"..."** symbolizes attribute
 
 ### Node description
 
-| Node | Section (parent node) |Attributes | Semantic|
+| Section (parent node) | Node |Attributes | Semantic|
 |---|---|---|---|
-|xpcf-registry | document root | **autoAlias** = [true, false]<br>-> set whether XPCF must automatically create aliases while parsing the file between :<br>component UUID <-> component name<br> interface UUID <-> interface name | This node declares an xpcf registry file, containing both components and modules structure and their properties| 
-|xpcf-configuration | document root | | This node declares an xpcf configuration file only, containing components properties| 
-|module | xpcf-registry | **uuid** = module is referenced with an uuid. It must be declared here. <br>**name** = name of the module used<br>**path** = path to the module used (can contain environment variables)<br>**description** = the module function description | declares an xpcf module|
-|component | module |  **uuid** = component is referenced with an uuid. It must be declared here. <br>**name** = name of the component used<br>**description** = the component description| declares an xpcf component inside a module|
-|interface | component | **uuid** = interface is referenced with an uuid. It must be declared here. <br>**name** = name of the interface used<br>**description** = the interface description | declares an xpcf interface implemented by a component|
+| document root | xpcf-registry |  **autoAlias** = [true, false]<br>-> set whether XPCF must automatically create aliases while parsing the file between :<br>component UUID <-> component name<br> interface UUID <-> interface name | This node declares an xpcf registry file, containing both components and modules structure and their properties| 
+| document root |xpcf-configuration  | | This node declares an xpcf configuration file only, containing components properties|
 |||||
-|aliases | xpcf-registry | | declares an aliases section. When **autoAlias = true** in **\<xpcf-registry\>**, an alias is created for each component/interface in **\<module\>** node when the first occurence of a name is met. Hence the **\<aliases\>** section must be used to resolve any name ambiguity, or to simplify a non intuitive name. |
-|alias | aliases | **name** = name of the alias <br> **type**=[component, interface]<br> **uuid** = the uuid of the component/interface targeted by the **alias**| declares an alias. Alias can be ...|
-|factory | xpcf-registry | | declares the factory section |
-|bindings | factory | | declares the bindings section - this section is needed only to overload autobinds made while parsing the **&lt;module&gt;** node|
-|bind | bindings | **interface** = interface **alias** or **uuid**<br>**to** = component **alias** or **uuid**<br>[optional] **name** = name of the binding <br>[optional] **range** = [all, default, named, withparents, explicit] the binding range| declares a default or named bind between an interface and a component|
-|injects | factory | | declares the injects section - used for structured (also called planned) injection for specific component class|
-|inject | injects | **to** = component **alias** or **uuid**| declares an injection pattern for a specific component class|
-|bind | inject |**interface** = interface **alias** or **uuid**<br>**to** = component **alias** or **uuid**<br>[optional] **name** = name of the binding| declares a specific (scope bind) bind between an interface and a component for the specific component class declared in **&lt;inject&gt;**|
+| xpcf-registry |module  | **uuid** = module is referenced with an uuid. It must be declared here. <br>**name** = name of the module used<br>**path** = path to the module used (can contain environment variables)<br>**description** = the module function description | declares an xpcf module|
+| module |component |  **uuid** = component is referenced with an uuid. It must be declared here. <br>**name** = name of the component used<br>**description** = the component description| declares an xpcf component inside a module|
+| component |interface  | **uuid** = interface is referenced with an uuid. It must be declared here. <br>**name** = name of the interface used<br>**description** = the interface description | declares an xpcf interface implemented by a component|
 |||||
-|properties | xpcf-registry| | declares the components properties section. This section defines component parameters values for configurable components.|
-|configure | properties | [optional] **uuid** = the component uuid or <br>  **component** = a component alias name| declares the configuration for a specific component |
-|property | configure | **name** = property name <br>**type** = [int, uint, long, ulong, string, wstring, float, double, structure] <br>**value** = property value (must be a valid value for the type chosen) <br> **value** can also be declared as sub-nodes for vector properties | declares a component property|
-|value | property | | declares a component property value|
+| xpcf-registry / xpcf-configuration |aliases | | declares an aliases section. When **autoAlias = true** in **\<xpcf-registry\>**, an alias is created for each component/interface in **\<module\>** node when the first occurence of a name is met. Hence the **\<aliases\>** section must be used to resolve any name ambiguity, or to simplify a non intuitive name. |
+| aliases |alias | **name** = name of the alias <br> **type**=[component, interface]<br> **uuid** = the uuid of the component/interface targeted by the **alias**| declares an alias. Alias can be ...|
+|||||
+| xpcf-registry / xpcf-configuration|factory | | declares the factory section |
+| factory |bindings | | declares the bindings section - this section is needed only to overload autobinds made while parsing the **&lt;module&gt;** node|
+| bindings |bind | **interface** = interface **alias** or **uuid**<br>**to** = component **alias** or **uuid**<br>[optional] **name** = name of the binding <br>[optional] **range** = [all, default, named, withparents, explicit] the binding range<br>[optional] **scope** = [transient, singleton] the binding scope: singleton ensure there will be only one instance of the binded component in this factory context. Transient scope ensure a component is created for each resolution made within the factory context.<br>[optional] **properties** = _name_ - the properties name to use to initialize the binded component| declares a default or named bind between an interface and a component|
+| factory |injects | | declares the injects section - used for structured (also called planned) injection for specific component class|
+| injects |inject | **to** = component **alias** or **uuid**| declares an injection pattern for a specific component class|
+| inject |bind |**interface** = interface **alias** or **uuid**<br>**to** = component **alias** or **uuid**<br>[optional] **name** = name of the binding <br>[optional] **range** = [all, default, named, withparents, explicit] the binding range<br>[optional] **scope** = [transient, singleton] the binding scope: singleton ensure there will be only one instance of the binded component in this factory context. Transient scope ensure a component is created for each resolution made within the factory context.<br>[optional] **properties** = _name_ - the properties name to use to initialize the binded component| declares a specific bind (component context bind) between an interface and a component for the specific component class declared in **&lt;inject&gt;**|
+|||||
+| xpcf-registry / xpcf-configuration|properties | | declares the components properties section. This section defines component parameters values for configurable components.|
+| properties |configure | [optional] **uuid** = the component uuid or <br>  **component** = a component alias name| declares the configuration for a specific component |
+| configure |property | **name** = property name <br>**type** = [int, uint, long, ulong, string, wstring, float, double, structure] <br>**value** = property value (must be a valid value for the type chosen) <br> **value** can also be declared as sub-nodes for vector properties | declares a component property|
+| property |value | | declares a component property value|
 
 **Note :**
 > Aliasing order : an alias declared in the <aliases> section is added to the list of existing aliases, or replace any existing alias with the same name. <aliases> section overload autoAlias already declared. 
