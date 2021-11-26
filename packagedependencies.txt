@@ -1,3 +1,3 @@
-boost#stable|1.74.0|boost|conan|conan-center|default|zlib=False#bzip2=False#numa=False
+boost#stable|1.74.0|boost|conan|conan-center|default|zlib=False#bzip2=False#numa=False#without_stacktrace=True
 
 
