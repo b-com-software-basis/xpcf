@@ -97,7 +97,8 @@ mkdir %dir%\lib\x86_64\static\%config%
 mkdir %dir%\bin\x86_64\static\%config%
 
 if /I %config%==debug (set suffix=debug-) else (set suffix=)
-copy /y "%rootDir%bcom-%suffix%grpc++-win.pc" "%dir%\bcom-%suffix%grpc++.pc"
+if /I %OPENSSL_DEFAULT_MODE%==package (set sslpackage=-openssl) else (set sslpackage=)
+copy /y "%rootDir%bcom-%suffix%grpc++-win%sslpackage%.pc" "%dir%\bcom-%suffix%grpc++.pc"
 
 xcopy /y /s %rootDir%%product%_install_%config%\include %dir%\interfaces
 xcopy /y /s %rootDir%%product%_install_%config%\lib %dir%\lib\x86_64\static\%config%
@@ -107,17 +108,6 @@ REM zlib
 if /I %config%==debug (set suffix=d) else (set suffix=)
 call set zlibPath=%%zlibPath:/=\%%
 copy /y %zlibPath%\lib\x86_64\static\%config%\zlibstatic%suffix%.lib %dir%\lib\x86_64\static\%config%\zlib.lib
-
-REM ssl ('package' mode only)
-setlocal EnableDelayedExpansion
-if /I %OPENSSL_DEFAULT_MODE%==package (
-	for /f %%a in ('call getnexttext.bat %~dp0_build_openssl\conanbuildinfo.txt [libdirs_openssl]') do set "openssl_libdir=%%a"
-	call set openssl_libdir_BACKSLASH=%%openssl_libdir:/=\%%
-
-	copy /y !openssl_libdir_BACKSLASH!\libssl%suffix%.lib %dir%\lib\x86_64\static\%config%\ssl.lib
-	copy /y !openssl_libdir_BACKSLASH!\libcrypto%suffix%.lib %dir%\lib\x86_64\static\%config%\crypto.lib
-)
-endlocal
 
 endlocal
 goto:eof
@@ -132,16 +122,12 @@ goto:eof
 echo This script builds grpc in static mode.
 echo It expects one mandatory argument and also can receive one optional argument. 
 echo.
-echo Usage: params [remaken package name] [OpenSSL version - default='module' (internal boringssl) or 'package' with a conan openssl 1.1.1k version]
+echo Usage: params [config debug/release] [OpenSSL version - default='module' (internal boringssl) or 'package' with a conan openssl 1.1.1k version]
 exit /b 0
 
 :end
 
-
-
-@echo Usage: %0 ^<config debug/release^>
 goto :eof
-
 
 :ok
 REM exit 0
