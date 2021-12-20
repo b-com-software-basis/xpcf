@@ -3,9 +3,9 @@ prefix=/usr/local
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/interfaces
-Name: grpc
-Company: 
-Description: google remote procedure call
+Name: b-com grpc
+Company: b-com
+Description: C++ wrapper for Google Remote Procedure Call
 Version: 1.37.1
 Requires:
 
