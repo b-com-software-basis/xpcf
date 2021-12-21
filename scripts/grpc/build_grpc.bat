@@ -3,8 +3,8 @@ REM cls
 setlocal
 set rootDir=%~dp0
 
-REM default parameter value
-set OPENSSL_DEFAULT_MODE=module
+REM default parameter value - build with boringssl
+set OPENSSL_BUILD=boringssl
 
 REM check whether user had supplied -h or --help . If yes display usage 
 for %%A in ("--help" "-h") do if "%1"==%%A (call:display_usage %1 & exit /b 0)
@@ -19,10 +19,7 @@ goto :exec
 call:display_usage
 exit /b 1
 :exec
-
-REM replace default OPENSSL_DEFAULT_MODE
-if NOT [%2]==[] set OPENSSL_DEFAULT_MODE=%2
-
+	
 REM ####################
 REM REMAKEN_PKG_ROOT
 REM ####################
@@ -36,6 +33,15 @@ set product=grpc
 set version=1.37.1
 set compiler=win-cl-14.1
 set config=%1
+
+
+REM replace default OPENSSL_BUILD
+if NOT [%2]==[] (set OPENSSL_BUILD=%2)
+set SSL_DEFAULT_MODE=module
+if /I %OPENSSL_BUILD%==openssl (
+	set SSL_DEFAULT_MODE=package
+	set product=grpc-%OPENSSL_BUILD%
+)
 
 REM ####################
 REM Git
@@ -51,7 +57,7 @@ REM ####################
 REM Conan Openssl deps
 REM ####################
 setlocal EnableDelayedExpansion
-if /I %OPENSSL_DEFAULT_MODE%==package (
+if /I %SSL_DEFAULT_MODE%==package (
 	if /I %config%==debug (set conanbuildtype=Debug) else (set conanbuildtype=Release)
 	conan install conanfile_openssl.txt -s arch=x86_64 -s compiler.cppstd=17 -s build_type=!conanbuildtype! --build=missing -if %~dp0_build_openssl
 )
@@ -67,21 +73,21 @@ call %VS2017_AMD64%
 call set REMAKEN_PKG_ROOT_WIN_SLASH=%%REMAKEN_PKG_ROOT_WIN:\=/%%
 set zlibPath=%REMAKEN_PKG_ROOT_WIN_SLASH%/%compiler%/zlib/1.2.11
 
-cmake.exe -G"Visual Studio 15 2017" -A x64 -B "grpc/_BUILD64_%config%" -DABSL_ENABLE_INSTALL=1 ^
+cmake.exe -G"Visual Studio 15 2017" -A x64 -B "grpc/_BUILD64_%config%_%OPENSSL_BUILD%" -DABSL_ENABLE_INSTALL=1 ^
 -DgRPC_ZLIB_PROVIDER=package ^
 -DZLIB_INCLUDE_DIR=%zlibPath%/interfaces ^
 -DZLIB_LIBRARY_DEBUG=%zlibPath%/lib/x86_64/static/debug/zlibstaticd.lib ^
 -DZLIB_LIBRARY_RELEASE=%zlibPath%/lib/x86_64/static/release/zlibstatic.lib ^
 -DCMAKE_INSTALL_PREFIX=%rootDir%%product%_install_%config% ^
 -DgRPC_INSTALL=ON ^
--DgRPC_SSL_PROVIDER=%OPENSSL_DEFAULT_MODE%
+-DgRPC_SSL_PROVIDER=%SSL_DEFAULT_MODE%
 
 REM gRPC_INSTALL add because value changed !? (from used of root cmakelist?)
 
-devenv grpc\_BUILD64_%config%\grpc_wrapper.sln /build %config% /Project ALL_BUILD
+devenv grpc\_BUILD64_%config%_%OPENSSL_BUILD%\grpc_wrapper.sln /build %config% /Project ALL_BUILD
 IF ERRORLEVEL 1 GOTO error
 
-devenv grpc\_BUILD64_%config%\grpc_wrapper.sln /build %config% /Project INSTALL
+devenv grpc\_BUILD64_%config%_%OPENSSL_BUILD%\grpc_wrapper.sln /build %config% /Project INSTALL
 IF ERRORLEVEL 1 GOTO error
 
 REM ####################
@@ -97,7 +103,7 @@ mkdir %dir%\lib\x86_64\static\%config%
 mkdir %dir%\bin\x86_64\static\%config%
 
 if /I %config%==debug (set suffix=debug-) else (set suffix=)
-if /I %OPENSSL_DEFAULT_MODE%==package (set sslpackage=-openssl) else (set sslpackage=)
+if /I %SSL_DEFAULT_MODE%==package (set sslpackage=-openssl) else (set sslpackage=)
 copy /y "%rootDir%bcom-%suffix%grpc++-win%sslpackage%.pc" "%dir%\bcom-%suffix%grpc++.pc"
 
 xcopy /y /s %rootDir%%product%_install_%config%\include %dir%\interfaces
@@ -122,7 +128,7 @@ goto:eof
 echo This script builds grpc in static mode.
 echo It expects one mandatory argument and also can receive one optional argument. 
 echo.
-echo Usage: params [config debug/release] [OpenSSL version - default='module' (internal boringssl) or 'package' with a conan openssl 1.1.1k version]
+echo Usage: params [config debug/release] [build with OpenSSL - default='boringssl' (internal boringssl) or 'openssl' with a conan openssl 1.1.1k version]
 exit /b 0
 
 :end
