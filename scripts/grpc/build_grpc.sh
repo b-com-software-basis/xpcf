@@ -7,13 +7,10 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
     sudo apt install -y build-essential autoconf libtool pkg-config
 fi
 
-# default OpenSSL mode = module (borringSSl) - alternative = package (openssl 1.1.1k)
-OPENSSL_DEFAULT_MODE=module
-
 display_usage() { 
 	echo "This script builds grpc in static and shared mode."
     echo "It can receive one optional arguments." 
-	echo -e "\nUsage: \$0 [OpenSSL version - default='module' (internal boringssl) or 'package' with a conan openssl 1.1.1k version] \n" 
+	echo -e "\nUsage: \$0 [build with SSL - default='boringssl' (internal boringssl) or 'openssl' with a conan openssl 1.1.1k version] \n" 
 } 
 
 # check whether user had supplied -h or --help . If yes display usage 
@@ -23,22 +20,28 @@ then
     exit 0
 fi 
 
-if [ $# -eq 1 ]; then
-	OPENSSL_DEFAULT_MODE=$1
-fi
-echo "GRPC Openssl default mode is : ${OPENSSL_DEFAULT_MODE}"
-
 GRPCVERSION=1.37.1
 REMAKENGRPCROOT=grpc/${GRPCVERSION}
+SSL_BUILD=boringssl
+
+if [ $# -eq 1 ]; then
+	SSL_BUILD=$1
+fi
+SSL_MODE=module
+if [[ "${SSL_BUILD}" == "openssl" ]]; then
+	SSL_MODE=package
+    REMAKENGRPCROOT=grpc-${SSL_BUILD}/${GRPCVERSION}
+fi
+echo "GRPC ssl mode is : ${SSL_MODE}"
 
 git clone --recurse-submodules -b v${GRPCVERSION} https://github.com/grpc/grpc
 
 function buildGrpcShared {
     LINKMODE=$(echo "$1" | tr '[:upper:]' '[:lower:]')
-    if [[ "${OPENSSL_DEFAULT_MODE}" == "package" ]]; then
+    if [[ "${SSL_MODE}" == "package" ]]; then
         conan install ./conanfile_openssl.txt -s arch=x86_64 -s compiler.cppstd=17 -s build_type=$1 --build=missing -if ./_build_openssl
     fi
-    BUILDFOLDER=.build/build_shared/$1
+    BUILDFOLDER=.build/build_shared_${SSL_BUILD}/$1
     INSTFOLDER=$HOME/.local/shared/${LINKMODE}/${REMAKENGRPCROOT}/install
     pushd grpc
     mkdir -p $INSTFOLDER
@@ -58,7 +61,7 @@ function buildGrpcShared {
 	  -DgRPC_CARES_PROVIDER=module    \
 	  -DgRPC_PROTOBUF_PROVIDER=module \
 	  -DgRPC_RE2_PROVIDER=module      \
-	  -DgRPC_SSL_PROVIDER=${OPENSSL_DEFAULT_MODE}      \
+	  -DgRPC_SSL_PROVIDER=${SSL_MODE}      \
 	  -DgRPC_ZLIB_PROVIDER=module \
 	  ../../../..
 
@@ -83,10 +86,10 @@ function buildGrpcShared {
 
 function buildGrpcStatic {
     LINKMODE=$(echo "$1" | tr '[:upper:]' '[:lower:]') 
-    if [[ "${OPENSSL_DEFAULT_MODE}" == "package" ]]; then
+    if [[ "${SSL_MODE}" == "package" ]]; then
         conan install ./conanfile_openssl.txt -s arch=x86_64 -s compiler.cppstd=17 -s build_type=$1 --build=missing -if ./_build_openssl
     fi
-    BUILDFOLDER=.build/build_static/$1
+    BUILDFOLDER=.build/build_static_${SSL_BUILD}/$1
     INSTFOLDER=$HOME/.local/static/${LINKMODE}/${REMAKENGRPCROOT}/install
     pushd grpc
     mkdir -p $INSTFOLDER
@@ -105,7 +108,7 @@ function buildGrpcStatic {
 	  -DgRPC_CARES_PROVIDER=module    \
 	  -DgRPC_PROTOBUF_PROVIDER=module \
 	  -DgRPC_RE2_PROVIDER=module      \
-	  -DgRPC_SSL_PROVIDER=${OPENSSL_DEFAULT_MODE}      \
+	  -DgRPC_SSL_PROVIDER=${SSL_MODE}      \
 	  -DgRPC_ZLIB_PROVIDER=module \
 	  ../../../..
 
