@@ -1,0 +1,16 @@
+libname=grpc
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/interfaces
+Name: b-com grpc
+Company: b-com
+Description: C++ wrapper for Google Remote Procedure Call
+Version: 1.37.1
+Requires:
+
+Libs: -L${libdir} -lgrpc++ -lgrpc -llibprotobufd -laddress_sorting -lre2 -lupb -lcares -lzlib -labsl_raw_hash_set -labsl_hashtablez_sampler -labsl_exponential_biased -labsl_hash -labsl_bad_variant_access -labsl_city -labsl_status -labsl_statusor -labsl_cord -labsl_bad_optional_access -labsl_str_format_internal -labsl_synchronization -labsl_graphcycles_internal -labsl_symbolize -labsl_demangle_internal -labsl_stacktrace -labsl_debugging_internal -labsl_malloc_internal -labsl_time -labsl_time_zone -labsl_civil_time -labsl_strings -labsl_strings_internal -labsl_throw_delegate -labsl_int128 -labsl_base -labsl_spinlock_wait -labsl_raw_logging_internal -labsl_log_severity -lgpr -lgrpc++_reflection
+
+Libs.private: ${libdir}/${pfx}grpc++.${lext} ${libdir}/${pfx}grpc.${lext} ${libdir}/libprotobufd.${lext} ${libdir}/${pfx}address_sorting.${lext} ${libdir}/${pfx}re2.${lext} ${libdir}/${pfx}upb.${lext} ${libdir}/${pfx}cares.${lext} ${libdir}/${pfx}zlib.${lext} ${libdir}/${pfx}absl_raw_hash_set.${lext} ${libdir}/${pfx}absl_hashtablez_sampler.${lext} ${libdir}/${pfx}absl_exponential_biased.${lext} ${libdir}/${pfx}absl_hash.${lext} ${libdir}/${pfx}absl_bad_variant_access.${lext} ${libdir}/${pfx}absl_city.${lext} ${libdir}/${pfx}absl_status.${lext} ${libdir}/${pfx}absl_statusor.${lext} ${libdir}/${pfx}absl_cord.${lext} ${libdir}/${pfx}absl_bad_optional_access.${lext} ${libdir}/${pfx}absl_str_format_internal.${lext} ${libdir}/${pfx}absl_synchronization.${lext} ${libdir}/${pfx}absl_graphcycles_internal.${lext} ${libdir}/${pfx}absl_symbolize.${lext} ${libdir}/${pfx}absl_demangle_internal.${lext} ${libdir}/${pfx}absl_stacktrace.${lext} ${libdir}/${pfx}absl_debugging_internal.${lext} ${libdir}/${pfx}absl_malloc_internal.${lext} ${libdir}/${pfx}absl_time.${lext} ${libdir}/${pfx}absl_time_zone.${lext} ${libdir}/${pfx}absl_civil_time.${lext} ${libdir}/${pfx}absl_strings.${lext} ${libdir}/${pfx}absl_strings_internal.${lext} ${libdir}/${pfx}absl_throw_delegate.${lext} ${libdir}/${pfx}absl_int128.${lext} ${libdir}/${pfx}absl_base.${lext} ${libdir}/${pfx}absl_spinlock_wait.${lext} ${libdir}/${pfx}absl_raw_logging_internal.${lext} ${libdir}/${pfx}absl_log_severity.${lext} ${libdir}/${pfx}gpr.${lext} ${libdir}/${pfx}grpc++_reflection.${lext}
+
+Cflags: -I${includedir}
