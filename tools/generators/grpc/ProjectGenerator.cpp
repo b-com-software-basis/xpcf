@@ -27,9 +27,6 @@ std::string pkgdepsStr = "xpcf|2.5.0|xpcf|@github|https://github.com/SolarFramew
 
 ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenerator>())
 {
-    xpcf::uuids::random_generator gen;
-    xpcf::uuids::uuid moduleUUID = gen();
-    m_moduleUUID = xpcf::uuids::to_string(moduleUUID);
     m_headerProjectInfos << "\nHEADERS +=";
     m_srcProjectInfos << "\nSOURCES +=";
     m_protoProjectInfos << "\nPROTO =";
@@ -122,7 +119,8 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
     projectFile << "    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c11 -std=c++11 -O3 -fPIC#-x objective-c++\n";
     projectFile << "    QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++\n";
     projectFile << "    LIBS += -lstdc++ -lc -lpthread\n";
-    projectFile << "    LIBS += -L/usr/local/lib\n}\n\n";
+    projectFile << "    INCLUDEPATH += /usr/local/include\n";
+    projectFile << "    LIBS += -L/usr/local/lib -lprotobuf\n}\n\n";
     projectFile << "win32 {\n\n    DEFINES += WIN64 UNICODE _UNICODE\n    QMAKE_COMPILER_DEFINES += _WIN64\n";
     projectFile << "    QMAKE_CXXFLAGS += -wd4250 -wd4251 -wd4244 -wd4275 /Od\n}\n\n";
     projectFile << "android {\n    QMAKE_LFLAGS += -nostdlib++\n}\n\n";
@@ -158,7 +156,7 @@ void ProjectGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
     m_moduleName = "xpcfGrpcRemoting" +  metadata[MetadataType::PROJECT_NAME];
     m_moduleDescription = "xpcf remoting module for project " + metadata[MetadataType::PROJECT_NAME];
-    m_moduleDeclareMgr->out() << "XPCF_DECLARE_MODULE(\""<< m_moduleUUID <<"\", \"" << m_moduleName << "\",\"" << m_moduleDescription << "\");\n";
+    m_moduleDeclareMgr->out() << "XPCF_DECLARE_MODULE(\""<< metadata[MetadataType::MODULE_UUID]  <<"\", \"" << m_moduleName << "\",\"" << m_moduleDescription << "\");\n";
     m_moduleHdrMgr->includeGuardsEnd();
     m_moduleSrcMgr->out()<<"return errCode;\n";
     m_moduleSrcMgr->leave();

@@ -52,7 +52,6 @@ private:
     std::unique_ptr<CppBlockManager> m_moduleHdrMgr;
     std::unique_ptr<CppBlockManager> m_moduleSrcMgr;
     std::unique_ptr<CppBlockManager> m_moduleDeclareMgr;
-    std::string m_moduleUUID;
     std::string m_moduleName;
     std::string m_moduleDescription;
 

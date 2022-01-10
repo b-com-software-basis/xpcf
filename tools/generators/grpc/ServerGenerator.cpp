@@ -44,6 +44,7 @@ void ServerGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Met
     blockMgr.include(c->getMetadata().at(ClassDescriptor::MetadataType::INTERFACEFILEPATH)); // relative or absolute path?? TODO:  retrieve filepath from metadata
     blockMgr.include("xpcf/component/ConfigurableBase.h",false);
     blockMgr.include("xpcf/remoting/IGrpcService.h",false);
+    blockMgr.include("xpcf/remoting/GrpcHelper.h",false);
     blockMgr.include((*c)[ClassDescriptor::MetadataType::GRPCSERVICENAME] + ".grpc.pb.h");
     blockMgr.include("grpc/grpc.h",false);
     blockMgr.newline();
@@ -80,12 +81,15 @@ void ServerGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Met
                         }
                         baseInterface += c->getName();
                         blockMgr.out() << "SRef<" + baseInterface + "> m_xpcfComponent;\n";
+                        blockMgr.out() << "xpcf::grpcServerCompressionInfos m_serviceCompressionInfos;\n";
+                        blockMgr.out() << "std::map<std::string, xpcf::grpcServerCompressionInfos> m_methodCompressionInfosMap;\n";
                     }
                 }
             }
             {
                 block_guard<CPP::PRIVATE> privateBlk(blockMgr);
                 blockMgr.out() << m_grpcClassName + "Impl m_grpcService;\n";
+                blockMgr.out() << "std::vector<std::string> m_grpcServerCompressionConfig;\n";
             }
         }
     }
@@ -165,6 +169,11 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
                     methodCall << m->returnType().getFullTypeDescription()<< " returnValue = ";
                 }
             }
+            if (m->hasOutputs()) {
+                blockMgr.out() << "xpcf::grpcCompressType askedCompressionType = static_cast<xpcf::grpcCompressType>(request->grpcservercompressionformat());\n";
+                blockMgr.out() << "xpcf::grpcServerCompressionInfos serverCompressInfo = xpcf::deduceServerCompressionType(askedCompressionType, m_serviceCompressionInfos, \""<<m->getName()<<"\", m_methodCompressionInfosMap);\n";
+                blockMgr.out() << "xpcf::prepareServerCompressionContext(context, serverCompressInfo);\n";
+            }
             methodCall << "m_xpcfComponent->" << m->getName() << "(";
             uint32_t nbTypes = 0;
             for (SRef<ParameterDescriptor> p : m->m_params) {
@@ -217,6 +226,7 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
     out << "#include \"" + m_headerFileName + "\"\n";
     out << "#include <cstddef>\n";
     blockMgr.include("xpcf/remoting/ISerializable.h",false);
+    blockMgr.include("xpcf/remoting/GrpcHelper.h",false);
 
     // the body will use the grpcCLient generated from the proto or flat generators hence the following inclusion :
     //#include "grpcgeneratedclient.grpc.[pb|fb].h"
@@ -242,6 +252,7 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
             }
             baseInterface += c->getName();
             blockMgr.out() << "declareInjectable<" + baseInterface + ">(m_grpcService.m_xpcfComponent);\n";
+            blockMgr.out() << "declarePropertySequence(\"grpc_compress_server\", m_grpcServerCompressionConfig);\n";
         }
         blockMgr.newline();
         blockMgr.out() << "void " + m_className + "::unloadComponent ()\n";
@@ -254,6 +265,9 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
         blockMgr.out() << "XPCFErrorCode " + m_className +"::onConfigured()\n";
         {
             block_guard methodBlock(blockMgr);
+            blockMgr.out() << "for (auto & grpcCompressionLine : m_grpcServerCompressionConfig) {\n;";
+            blockMgr.out() << "      translateServerConfiguration(grpcCompressionLine, m_grpcService.m_serviceCompressionInfos, m_grpcService.m_methodCompressionInfosMap);\n";
+            blockMgr.out() << "}\n";
             blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
         }
         blockMgr.newline();

@@ -139,13 +139,14 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
     if (m_inParams.size() > 0) {
         std::cout<<" ==> End parsing member function : found "<<m_inParams.size()<<" input parameters"<<std::endl;
     }
-    if ((m_inParams.size() == 0) && (m_inoutParams.size() == 0)) {
-        // TODO : fwd empty rpc type from rpc gen stage !
-        m_requestName = "::google::protobuf::Empty";
-    }
     if ((m_outParams.size() == 0) && (m_inoutParams.size() == 0) && m_returnDescriptor.isVoid()) {
         // TODO : fwd empty rpc type from rpc gen stage !
         m_responseName = "::google::protobuf::Empty";
+        // now a request is empty ONLY when the response is empty and won't need server compression format argument
+        if ((m_inParams.size() == 0) && (m_inoutParams.size() == 0)) {
+            // TODO : fwd empty rpc type from rpc gen stage !
+            m_requestName = "::google::protobuf::Empty";
+        }
     }
     std::cout<<" ==> Method declaration "<<getDeclaration()<<std::endl;
     return true;

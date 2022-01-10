@@ -83,6 +83,7 @@ extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<double>(const char * name, double & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<std::string>(const char * name, std::string & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<std::wstring>(const char * name, std::wstring & wrappedValue, IProperty::AccessSpecifier iotype);
+extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<SRef<IPropertyMap>>(const char * name, SRef<IPropertyMap> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector, uint32_t>(const char * name, std::vector<uint32_t> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,int32_t>(const char * name, std::vector<int32_t> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,uint64_t>(const char * name, std::vector<uint64_t> & wrappedValue, IProperty::AccessSpecifier iotype);
@@ -91,6 +92,7 @@ extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertyS
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,double>(const char * name, std::vector<double> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,std::string>(const char * name, std::vector<std::string> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,std::wstring>(const char * name, std::vector<std::wstring> & wrappedValue, IProperty::AccessSpecifier iotype);
+extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,SRef<IPropertyMap>>(const char * name, std::vector<SRef<IPropertyMap>> & wrappedValue, IProperty::AccessSpecifier iotype);
 
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<uint32_t>(SRef<IPropertyMap> node, const char * name, uint32_t & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<int32_t>(SRef<IPropertyMap> node, const char * name, int32_t & wrappedValue, IProperty::AccessSpecifier iotype);
@@ -100,6 +102,7 @@ extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<double>(SRef<IPropertyMap> node, const char * name, double & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<std::string>(SRef<IPropertyMap> node, const char * name, std::string & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<std::wstring>(SRef<IPropertyMap> node, const char * name, std::wstring & wrappedValue, IProperty::AccessSpecifier iotype);
+extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declareProperty<SRef<IPropertyMap>>(SRef<IPropertyMap> node, const char * name, SRef<IPropertyMap> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector, uint32_t>(SRef<IPropertyMap> node, const char * name, std::vector<uint32_t> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,int32_t>(SRef<IPropertyMap> node, const char * name, std::vector<int32_t> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,uint64_t>(SRef<IPropertyMap> node, const char * name, std::vector<uint64_t> & wrappedValue, IProperty::AccessSpecifier iotype);
@@ -108,7 +111,7 @@ extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertyS
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,double>(SRef<IPropertyMap> node, const char * name, std::vector<double> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,std::string>(SRef<IPropertyMap> node, const char * name, std::vector<std::string> & wrappedValue, IProperty::AccessSpecifier iotype);
 extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,std::wstring>(SRef<IPropertyMap> node, const char * name, std::vector<std::wstring> & wrappedValue, IProperty::AccessSpecifier iotype);
-
+extern template XPCF_EXPORT_API XPCFErrorCode ConfigurableBase::declarePropertySequence<std::vector,SRef<IPropertyMap>>(SRef<IPropertyMap> node, const char * name, std::vector<SRef<IPropertyMap>> & wrappedValue, IProperty::AccessSpecifier iotype);
 
 }}} //namespace org::bcom::xpcf
 

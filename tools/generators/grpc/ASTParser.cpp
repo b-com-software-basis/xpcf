@@ -123,7 +123,11 @@ int ASTParser::initOptions(const cxxopts::ParseResult & options)
     }
     xpcf::uuids::random_generator gen;
     xpcf::uuids::uuid moduleUUID = gen();
-    m_metadata[IRPCGenerator::MetadataType::MODULE_UUID] = xpcf::uuids::to_string(moduleUUID);
+    std::string moduleUUIDStr = xpcf::uuids::to_string(moduleUUID);
+    if (options.count("module_uuid")) {
+        moduleUUIDStr = options["module_uuid"].as<std::string>();
+    }
+    m_metadata[IRPCGenerator::MetadataType::MODULE_UUID] = moduleUUIDStr;
     m_metadata[IRPCGenerator::MetadataType::MODULE_NAME] = "xpcfGrpcRemoting" +  m_metadata[IRPCGenerator::MetadataType::PROJECT_NAME];
     m_metadata[IRPCGenerator::MetadataType::MODULE_DESCRIPTION] = "xpcf remoting module for project " + m_metadata[IRPCGenerator::MetadataType::PROJECT_NAME];
 

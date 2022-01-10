@@ -76,6 +76,16 @@ std::map<IRPCGenerator::MetadataType,std::string> XpcfConfigGenerator::generateI
                                               {"name", "org::bcom::xpcf::IGrpcService"},
                                               {"description", "xpcf GrpcService interface"}});
     }
+    {
+        xml_block_guard<XML::CONFIGURE> componentBlk(*m_xmlClientPropsMgr,{{"component",metadata[MetadataType::PROXY_XPCFGRPCCOMPONENTNAME]}});
+        m_xmlClientPropsMgr->enter<XML::PROPERTY>({{"name","grpc_compress_proxy"},
+                                                   {"type","string"}});
+        m_xmlClientPropsMgr->addValue("service|none|none");
+        for (auto & m : c->methods()) {
+            m_xmlClientPropsMgr->addValue("method|" + m->getName() + "|none|none");
+        }
+        m_xmlClientPropsMgr->leave();
+    }
     m_grpcComponentBinds.push_back(metadata.at(MetadataType::SERVER_XPCFGRPCCOMPONENTNAME));
     return metadata;
 }

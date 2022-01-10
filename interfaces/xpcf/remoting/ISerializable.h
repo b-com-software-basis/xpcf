@@ -162,7 +162,8 @@ void load(Archive & ar, std::chrono::system_clock::time_point & t, const unsigne
     int64_t nanoSeconds;
     ar & nanoSeconds;
     std::chrono::nanoseconds nsDuration (nanoSeconds);
-    std::chrono::system_clock::time_point n(nsDuration);
+    // duration_cast toward system_clock duration resolutionis needed as it depends on the platform resolution
+    std::chrono::system_clock::time_point n(std::chrono::duration_cast<std::chrono::system_clock::time_point::duration>(nsDuration));
     t = n;
 }
 

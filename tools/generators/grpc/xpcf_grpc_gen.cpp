@@ -48,9 +48,31 @@
 namespace xpcf = org::bcom::xpcf;
 
 
-/// usage sample:
+/// Usage samples:
 /// --database_file /path/to/database_dir/compile_commands.json --database_dir /path/to/database_dir/ --remove_comments_in_macro --std c++1z
 
+//$ ./xpcf_grpc_gen -n xpcfSampleComponent -v 2.5.0 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/releases/download --std c++1z --database_dir ../../../xpcf/samples/build-xpcfSampleComponent-Desktop_Qt_5_12_5_clang_64bit-Debug/ --remove_comments_in_macro -o ~/tmp/grpc_gen_folder_sampleComponent -g protobuf
+
+//$ ./xpcf_grpc_server -f ~/tmp/grpc_gen_folder_sampleComponent/xpcfGrpcRemotingxpcfSampleComponent.xml
+// note server URL should be available either in xpcf conf or in XPCF_GRPC_SERVER_URL env var : to add to grpc_server for env var
+//default url is 0.0.0.0:50051
+//$ ./xpcf_grpc_client -f ../../../xpcfGrpcSampleComponentClient.xml
+
+//$ ./xpcf_grpc_gen -n nom_projet -v version_projet -r @github -u url_projet –std c++1z –database_dir chemin/vers/compilation_database/ –remove_comments_in_macro -o ~/tmp/grpc_gen_folder_sampleComponent -g protobuf
+
+//$ ./xpcf_grpc_gen -n SolARFramework -v 0.9.0 -r SolARBuild@github -u https://github.com/SolarFramework/SolARFramework —database_dir /home/ltouraine/builds/build-SolARFramework-Desktop_Qt_5_12_6_GCC_64bit-Debug/ –std c++1z —remove_comments_in_macro -g protobuf -o ~/grpcGenSolar
+
+
+//Linux sample grpc process:
+//server side
+//. ~/workspace/linux-github/linux-xpcf/scripts/set_linux_env.sh
+//export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ltouraine/.conan/data/boost/1.74.0/_/_/package/eeef031d45a4b3fccb233a8660e3255a183c617c/lib:~/.remaken/packages/linux-gcc/xpcf/2.5.0/lib/x86_64/shared/debug/
+//export XPCF_GRPC_SERVER_URL=0.0.0.0:34123
+//./xpcf_grpc_server -f xpcfGrpcSampleComponentServer.xml
+
+//client side
+//. ~/workspace/linux-github/linux-xpcf/scripts/set_linux_env.sh
+//./xpcf_grpc_client -f xpcfGrpcSampleComponentClient.xml
 // print help options
 void print_help(const cxxopts::Options& options)
 {
@@ -131,6 +153,8 @@ try
     option_list.add_options("generation")
             ("g,generator", "the message format to use : either 'flatbuffers' or 'protobuf'",
              cxxopts::value<std::string>()->default_value("flatbuffers"))
+            ("m,module_uuid", "the UUID to use for the XPCF module generated",
+             cxxopts::value<std::string>())
             ("o,output", "set the destination folder where the generated grpc files will be created. The folder is created if it doesn't already exists",
              cxxopts::value<std::string>());
 
@@ -238,8 +262,6 @@ try
                         r.setNamespace(typeFound->getMetadata().at(ClassDescriptor::MetadataType::INTERFACENAMESPACE));
                     }
                 }
-
-
             }
         }
         serviceGenerator->initialize(astParser->metadata());

@@ -116,6 +116,10 @@ public:
         m_out << b;
     }
 
+    void addValue(const std::string & value) {
+        m_out << indent() + "<value>" + value + "</value>\n";
+    }
+
     void node(const std::string & nodeName, std::initializer_list<std::pair<std::string,std::string>> attributes = {}) {
         std::string b;
         b = indent() + "<" + nodeName;

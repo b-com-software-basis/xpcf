@@ -84,6 +84,7 @@ static const std::map<std::string,std::string> proto2cppTypeMap = {
 
 static const std::map<std::string,std::string> protoReservedKeywordsTranscription = {
     {"descriptor","descriptorParam"},
+    {"grpcServerCompressionFormat","grpcServerCompressionFormatParam"},
 };
 
 GRPCProtoGenerator::GRPCProtoGenerator():AbstractGenerator(xpcf::toMap<GRPCProtoGenerator>())
@@ -101,7 +102,7 @@ void GRPCProtoGenerator::prepareMessages(const SRef<ClassDescriptor> c)
     for (auto & methodDesc : c->methods()) {
         std::string streamingClient, streamingServer;
 
-        if (methodDesc->hasInputs()) {
+        if (methodDesc->m_requestName != "::google::protobuf::Empty") {
             if (methodDesc->m_requestName.empty()) {
                 methodDesc->m_requestName = methodDesc->m_rpcName + "Request";
             }
@@ -133,17 +134,17 @@ void GRPCProtoGenerator::generateService(const SRef<ClassDescriptor> c, std::ost
             streamingServer = "stream ";
         }
         out<<"rpc "<<methodDesc->m_rpcName<<"("<<streamingClient<<methodDesc->m_requestName<<") returns("<<streamingServer<<methodDesc->m_responseName<<") {}"<<std::endl;
-        if (!methodDesc->hasInputs()) {
-            methodDesc->m_requestName = "::google::protobuf::Empty";
-        }
-        else {
+        if (methodDesc->m_requestName != "google.protobuf.Empty") {
             methodDesc->m_requestName = "::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + methodDesc->m_requestName;
         }
-        if (!methodDesc->hasOutputs()) {
-            methodDesc->m_responseName = "::google::protobuf::Empty";
+        else {
+            methodDesc->m_requestName = "::google::protobuf::Empty";
+        }
+        if (methodDesc->m_responseName != "google.protobuf.Empty") {
+            methodDesc->m_responseName = "::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + methodDesc->m_responseName;
         }
         else {
-            methodDesc->m_responseName = "::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + methodDesc->m_responseName;
+            methodDesc->m_responseName = "::google::protobuf::Empty";
         }
     }
     out<<"}"<<std::endl<<std::endl;
@@ -210,6 +211,9 @@ void GRPCProtoGenerator::generateMessages(SRef<MethodDescriptor> m, std::ostream
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 1;
         std::string typeName = "int64";
+        if (m->m_responseName != "google.protobuf.Empty") {
+            out << "int32 grpcServerCompressionFormat  = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
+        }
         for (ParameterDescriptor * p : m->m_inParams) {
             auto typeName = getTypeName(p->type());
             out << typeName <<" "<< GRPCProtoGenerator::tryTranscribeName(*p) <<" = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
