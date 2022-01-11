@@ -148,7 +148,7 @@ void ProxyGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager &
             blockMgr.out() <<p.getName()<<" = respOut."<< boost::to_lower_copy(p.getName()) <<"();\n";
         }
     }
-    else if ((p.type().kind() == type_kind::user_defined_t)|| (p.type().kind() == type_kind::template_t)) {
+    else if ((p.type().kind() == type_kind::user_defined_t) || (p.type().kind() == type_kind::template_t)) {
         blockMgr.out() <<p.getName()<<" = xpcf::deserialize<" << p.type().getFullTypeDescription() << ">(respOut."<<boost::to_lower_copy(p.getName()) <<"());\n";
     }
 }
@@ -205,7 +205,7 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
                         blockMgr.out() << "return respOut.xpcfgrpcreturnvalue();\n";
                     }
                 }
-                else if (m->returnType().kind() == type_kind::user_defined_t) {
+                else if ((m->returnType().kind() == type_kind::user_defined_t) || (m->returnType().kind() == type_kind::template_t)) {
                     if (m->returnType().isConst() && m->returnType().isReference()) {
                         blockMgr.out() << "m_" << m->getName()<<" = xpcf::deserialize<" << m->returnType().getFullTypeDescription() << ">(respOut.xpcfgrpcreturnvalue());\n";
                         blockMgr.out() << "return m_" << m->getName() << ";\n";

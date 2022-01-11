@@ -34,7 +34,13 @@
 #include <vector>
 
 namespace org { namespace bcom { namespace xpcf {
-
+/**
+ * @class ComponentMetadata
+ * @brief Specifies the ComponentMetadata class.
+ *
+ * This class provides XPCF component metadata informations.
+ * Informations about the interfaces UUIDs provided by the component can be retrieved with getInterfaces().
+ */
 class XPCF_EXPORT_API ComponentMetadata : public InterfaceMetadata {
 public:
     ComponentMetadata() = delete;

@@ -49,7 +49,9 @@ void XpcfConfigGenerator::initializeImpl(std::map<MetadataType,std::string> meta
                                         {"description",metadata[MetadataType::MODULE_DESCRIPTION]},
                                         {"path","$REMAKENROOT/modules"}});
     m_xmlClientPropsMgr->xmlOpenRootNode("xpcf-configuration");
+    m_xmlClientPropsMgr->enter<XML::PROPERTIES>();
     m_xmlServerPropsMgr->xmlOpenRootNode("xpcf-configuration");
+    m_xmlServerPropsMgr->enter<XML::PROPERTIES>();
 }
 
 std::map<IRPCGenerator::MetadataType,std::string> XpcfConfigGenerator::generateImpl(SRef<ClassDescriptor> c, std::map<MetadataType,std::string> metadata)
@@ -85,6 +87,16 @@ std::map<IRPCGenerator::MetadataType,std::string> XpcfConfigGenerator::generateI
             m_xmlClientPropsMgr->addValue("method|" + m->getName() + "|none|none");
         }
         m_xmlClientPropsMgr->leave();
+    }
+    {
+        xml_block_guard<XML::CONFIGURE> componentBlk(*m_xmlServerPropsMgr,{{"component",metadata[MetadataType::SERVER_XPCFGRPCCOMPONENTNAME]}});
+        m_xmlServerPropsMgr->enter<XML::PROPERTY>({{"name","grpc_compress_server"},
+                                                   {"type","string"}});
+        m_xmlServerPropsMgr->addValue("service|none|0");
+        for (auto & m : c->methods()) {
+            m_xmlServerPropsMgr->addValue("method|" + m->getName() + "|none|0");
+        }
+        m_xmlServerPropsMgr->leave();
     }
     m_grpcComponentBinds.push_back(metadata.at(MetadataType::SERVER_XPCFGRPCCOMPONENTNAME));
     return metadata;

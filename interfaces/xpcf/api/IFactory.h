@@ -50,7 +50,15 @@ typedef enum {
     Shared
 } ContextMode;
 
-
+/**
+ * @class IFactory
+ * @brief Specifies the IFactory interface.
+ *
+ * This interface provides method definitions to handle XPCF factories.
+ * A factory is ...
+ * Several factories (contexts) can be created.
+ *
+ */
 class IFactory : virtual public IComponentIntrospect {
 public:
     virtual ~IFactory() override = default;

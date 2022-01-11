@@ -29,6 +29,13 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+/**
+ * @class InjectableMetadata
+ * @brief Specifies the InjectableMetadata class.
+ *
+ * This class provides XPCF injectable metadata informations.
+ * Informations about the interfaces UUIDs provided by the component can be retrieved with getInterfaces().
+ */
 class XPCF_EXPORT_API InjectableMetadata {
 public:
     InjectableMetadata(const uuids::uuid & serviceUUID, bool optional = false);
@@ -44,6 +51,12 @@ private:
     UniqueRef<InjectableMetadataImpl> m_pimpl;
 };
 
+
+/**
+ * @class Injector
+ * @brief Specifies the Injector class.
+ *
+ */
 class XPCF_EXPORT_API Injector : public InjectableMetadata {
 public:
     Injector( const std::function<void(SRef<IComponentIntrospect>)> & injector, uuids::uuid serviceUUID, bool optional = false);

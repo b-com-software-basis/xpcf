@@ -27,6 +27,16 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+/**
+ * @class IAliasManager
+ * @brief Specifies the IAliasManager interface.
+ *
+ * This interface provides method definitions to handle XPCF aliases.
+ * An alias allows to associate a name with an uuid.
+ * Its main purpose is to facilitate configuration handling, using names being easier than uuids throughout the configuration file.
+ * Once defined, the alias name can be used instead of the uuid in the various sections of the configuration file, or across configuration files.
+ * An alias is declared for an XPCF element, either a module, a component or an interface.
+ */
 class IAliasManager : virtual public IComponentIntrospect {
 public:
     typedef enum {

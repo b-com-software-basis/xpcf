@@ -28,6 +28,12 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+/**
+ * @class IConfigurable
+ * @brief Specifies the IConfigurable interface.
+ *
+ * This interface provides method definitions to handle XPCF component configuration.
+ */
 class IConfigurable : virtual public IComponentIntrospect {
 public:
     virtual ~IConfigurable() = default;

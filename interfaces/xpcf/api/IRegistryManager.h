@@ -31,6 +31,12 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+/**
+ * @class IRegistryManager
+ * @brief Specifies the IRegistryManager interface.
+ *
+ * This interface provides method definitions to handle XPCF registries.
+ */
 class IRegistryManager  : virtual public IComponentIntrospect {
 public:
     ~IRegistryManager() override  = default;

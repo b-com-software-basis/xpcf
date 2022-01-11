@@ -25,6 +25,15 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+/**
+ * @class InterfaceTraits
+ * @brief Specifies the InterfaceTraits template class.
+ *
+ * This template class must be used to describe an XPCF interface.
+ * A class "ISrv" is considered to be an XPCF interface when it implements IComponentIntrospect
+ * and it instantiates the InterfaceTraits<ISrv> class.
+ * It is mandatory to have a newly and unique generated UUID for each interface.
+ */
 template <typename T>
 struct InterfaceTraits
 {

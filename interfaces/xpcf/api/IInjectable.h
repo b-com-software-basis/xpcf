@@ -32,6 +32,14 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+/**
+ * @class IInjectable
+ * @brief Specifies the IInjectable interface.
+ *
+ * This interface provides method definitions to handle XPCF component injection.
+ * Every component inheriting ComponentBase implicitly implements this interface.
+ *
+ */
 class IInjectable : virtual public IComponentIntrospect {
 public:
     virtual ~IInjectable() = default;

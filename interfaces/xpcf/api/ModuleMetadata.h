@@ -32,6 +32,14 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+/**
+ * @class ModuleMetadata
+ * @brief Specifies the ModuleMetadata class.
+ *
+ * This class provides XPCF module metadata informations.
+ * A module contains components implementing one or several XPCF interfaces.
+ * Informations about the components hosted in the module can be retrieved with getComponentMetadata().
+ */
 class XPCF_EXPORT_API ModuleMetadata : public InterfaceMetadata, public IModuleIndex
 {
 public:

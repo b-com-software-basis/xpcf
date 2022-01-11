@@ -25,6 +25,15 @@
 
 namespace org { namespace bcom { namespace xpcf {
 
+/**
+ * @class ComponentTraits
+ * @brief Specifies the ComponentTraits template class.
+ *
+ * This template class must be used to describe an XPCF component.
+ * A class "SrvComponent" is considered to be an XPCF component when it inherits ComponentBase or ConfigurableBase
+ * and it instantiates the ComponentTraits<SrvComponent> class.
+ * It is mandatory to have a newly and unique generated UUID for each component.
+ */
 template <typename T>
 struct ComponentTraits
 {

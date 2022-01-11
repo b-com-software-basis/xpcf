@@ -198,7 +198,7 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
                         blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
                     }
                 }
-                else if (m->returnType().kind() == type_kind::user_defined_t) {
+                else if ((m->returnType().kind() == type_kind::user_defined_t) || (m->returnType().kind() == type_kind::template_t)) {
                     blockMgr.out() << "response->set_xpcfgrpcreturnvalue(xpcf::serialize<" << m->returnType().getFullTypeDescription() << ">(returnValue));\n";
                 }
                 else if (m->returnType().kind() == type_kind::enum_t) {
