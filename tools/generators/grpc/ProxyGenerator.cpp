@@ -269,6 +269,7 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
             blockMgr.out() << "declareInterface<" + baseInterface + ">(this);\n";
             blockMgr.out() << "declareProperty(\"channelUrl\",m_channelUrl);\n";
             blockMgr.out() << "declareProperty(\"channelCredentials\",m_channelCredentials);\n";
+            blockMgr.out() << "m_grpcProxyCompressionConfig.resize("<< c->methods().size() + 1 <<");\n";
             blockMgr.out() << "declarePropertySequence(\"grpc_compress_proxy\", m_grpcProxyCompressionConfig);\n";
         }
         blockMgr.newline();

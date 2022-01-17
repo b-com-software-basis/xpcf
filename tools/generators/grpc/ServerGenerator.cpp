@@ -252,6 +252,7 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
             }
             baseInterface += c->getName();
             blockMgr.out() << "declareInjectable<" + baseInterface + ">(m_grpcService.m_xpcfComponent);\n";
+            blockMgr.out() << "m_grpcServerCompressionConfig.resize("<< c->methods().size() + 1 <<");\n";
             blockMgr.out() << "declarePropertySequence(\"grpc_compress_server\", m_grpcServerCompressionConfig);\n";
         }
         blockMgr.newline();
