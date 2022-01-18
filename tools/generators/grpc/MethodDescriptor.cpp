@@ -5,7 +5,7 @@
 
 namespace xpcf =  org::bcom::xpcf;
 
-MethodDescriptor::MethodDescriptor(const cppast::cpp_member_function& m):m_baseMethod(m),m_returnDescriptor(m.return_type())
+MethodDescriptor::MethodDescriptor(const cppast::cpp_member_function& m, bool compressionDisabled):m_compressionDisabled(compressionDisabled), m_baseMethod(m), m_returnDescriptor(m.return_type())
 {
 }
 
@@ -91,6 +91,9 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
                             boost::algorithm::erase_all(m_rpcName,"\"");
                         }
                     }
+                    else if ((attrib.name() == "noCompression") && !m_compressionDisabled) {
+                        m_compressionDisabled = true;
+                    }
                     else {
                         setStreamingType(attrib.name());
                     }
@@ -147,6 +150,10 @@ bool MethodDescriptor::parse(const cppast::cpp_entity_index& index)
             // TODO : fwd empty rpc type from rpc gen stage !
             m_requestName = "::google::protobuf::Empty";
         }
+    }
+    if ((m_inParams.size() == 0) && (m_inoutParams.size() == 0) && m_compressionDisabled) {
+        // TODO : fwd empty rpc type from rpc gen stage !
+        m_requestName = "::google::protobuf::Empty";
     }
     std::cout<<" ==> Method declaration "<<getDeclaration()<<std::endl;
     return true;

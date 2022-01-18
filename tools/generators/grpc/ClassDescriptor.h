@@ -95,6 +95,11 @@ public:
         return m_clientSendSize;
     }
 
+    bool compressionDisabled() {
+        return m_compressionDisabled;
+    }
+
+
 private:
     void generateRpcMapping(const std::map<std::string, std::vector<std::size_t>> & virtualMethodsMap);
     void parseMethods(const cppast::cpp_class & c, std::map<std::string, std::vector<std::size_t>> & virtualMethodsMap, const cppast::cpp_entity_index& index);
@@ -109,6 +114,7 @@ private:
     int64_t m_clientSendSize;
     bool m_clientReceiveSizeOverriden = false;
     bool m_clientSendSizeOverriden = false;
+    bool m_compressionDisabled = false;
     mutable org::bcom::xpcf::uuids::uuid m_clientUUID = {00000000-0000-0000-0000-000000000000};
     mutable org::bcom::xpcf::uuids::uuid m_serverUUID = {00000000-0000-0000-0000-000000000000};
     std::map<MetadataType,std::string> m_metadata;

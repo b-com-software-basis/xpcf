@@ -71,6 +71,7 @@ public:
     virtual ~IMusician() = default;
     virtual void learn () = 0;
     virtual void playMusic (const MusicScore & score) = 0;
+    [[grpc::noCompression]]
     virtual void playScore (std::vector<std::pair<std::string, float>> & score) = 0;
     virtual void playModifyScore (std::vector<std::pair<std::string, float>> & score) = 0;
     virtual void listen () = 0;

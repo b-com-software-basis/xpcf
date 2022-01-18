@@ -58,7 +58,7 @@ public:
 };
 
 
-class [[xpcf::clientUUID("734ee845-fa91-49b3-8a9b-37338f8a40cf")]] [[xpcf::serverUUID("3e6ff511-ced5-440e-b101-880862726a30")]] IGuitar :
+class [[xpcf::clientUUID("734ee845-fa91-49b3-8a9b-37338f8a40cf")]] [[xpcf::serverUUID("3e6ff511-ced5-440e-b101-880862726a30")]] [[grpc::noCompression]] IGuitar :
     virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:

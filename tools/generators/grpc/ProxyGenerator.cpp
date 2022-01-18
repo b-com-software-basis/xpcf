@@ -87,9 +87,12 @@ void ProxyGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Meta
                 blockMgr.out() << "std::string m_channelUrl;\n";
                 blockMgr.out() << "uint32_t m_channelCredentials;\n";
                 blockMgr.out() << "std::shared_ptr<::grpc::Channel> m_channel;\n";
-                blockMgr.out() << "xpcf::grpcCompressionInfos m_serviceCompressionInfos;\n";
-                blockMgr.out() << "std::map<std::string, xpcf::grpcCompressionInfos> m_methodCompressionInfosMap;\n";
-                blockMgr.out() << "std::vector<std::string> m_grpcProxyCompressionConfig;\n";
+                if (!c->compressionDisabled()) {
+                    blockMgr.out() << "xpcf::grpcCompressionInfos m_serviceCompressionInfos;\n";
+                    blockMgr.out() << "std::map<std::string, xpcf::grpcCompressionInfos> m_methodCompressionInfosMap;\n";
+                    blockMgr.out() << "std::vector<std::string> m_grpcProxyCompressionConfig;\n";
+                }
+
 
                 blockMgr.out() << "std::unique_ptr<::" +  c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::Stub> m_grpcStub;\n";
                 for (auto & [name, value ] : m_proxyMembersVariables) {
@@ -166,7 +169,7 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
             blockMgr.out() << "::grpc::ClientContext context;\n";
             blockMgr.out() << m->m_requestName << " reqIn;\n";
             blockMgr.out() << m->m_responseName << " respOut;\n";
-            if (m->hasOutputs()) {
+            if (m->hasOutputs() && !m->compressionDisabled()) {
                 blockMgr.out() << "xpcf::grpcCompressionInfos serverCompressionInfo = xpcf::deduceClientCompressionInfo(m_serviceCompressionInfos, \""<<m->getName()<<"\", m_methodCompressionInfosMap);\n";
                 blockMgr.out() << "xpcf::grpcCompressType serverCompressionType = xpcf::prepareClientCompressionContext(context, serverCompressionInfo);\n";
                 blockMgr.out() << "reqIn.set_grpcservercompressionformat (static_cast<int32_t>(serverCompressionType));\n";
@@ -269,8 +272,10 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
             blockMgr.out() << "declareInterface<" + baseInterface + ">(this);\n";
             blockMgr.out() << "declareProperty(\"channelUrl\",m_channelUrl);\n";
             blockMgr.out() << "declareProperty(\"channelCredentials\",m_channelCredentials);\n";
-            blockMgr.out() << "m_grpcProxyCompressionConfig.resize("<< c->methods().size() + 1 <<");\n";
-            blockMgr.out() << "declarePropertySequence(\"grpc_compress_proxy\", m_grpcProxyCompressionConfig);\n";
+            if (!c->compressionDisabled()) {
+                blockMgr.out() << "m_grpcProxyCompressionConfig.resize("<< c->methods().size() + 1 <<");\n";
+                blockMgr.out() << "declarePropertySequence(\"grpc_compress_proxy\", m_grpcProxyCompressionConfig);\n";
+            }
         }
         blockMgr.newline();
         blockMgr.out() << "void " + m_className + "::unloadComponent ()\n";
@@ -300,9 +305,11 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
                 blockMgr.out() << "m_channel = ::grpc::CreateChannel(m_channelUrl, xpcf::GrpcHelper::getCredentials(static_cast<xpcf::grpcCredentials>(m_channelCredentials)));\n";
             }
             blockMgr.out() << "m_grpcStub = ::" + c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) + "::" + m_grpcClassName + "::NewStub(m_channel);\n";
-            blockMgr.out() << "for (auto & compressionLine : m_grpcProxyCompressionConfig) {\n";
-            blockMgr.out() << "    translateClientConfiguration(compressionLine, m_serviceCompressionInfos, m_methodCompressionInfosMap);\n";
-            blockMgr.out() << "}\n";
+            if (!c->compressionDisabled()) {
+                blockMgr.out() << "for (auto & compressionLine : m_grpcProxyCompressionConfig) {\n";
+                blockMgr.out() << "    translateClientConfiguration(compressionLine, m_serviceCompressionInfos, m_methodCompressionInfosMap);\n";
+                blockMgr.out() << "}\n";
+            }
 
             blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
         }

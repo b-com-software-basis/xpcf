@@ -81,15 +81,19 @@ void ServerGenerator::generateHeader(const SRef<ClassDescriptor> c, std::map<Met
                         }
                         baseInterface += c->getName();
                         blockMgr.out() << "SRef<" + baseInterface + "> m_xpcfComponent;\n";
-                        blockMgr.out() << "xpcf::grpcServerCompressionInfos m_serviceCompressionInfos;\n";
-                        blockMgr.out() << "std::map<std::string, xpcf::grpcServerCompressionInfos> m_methodCompressionInfosMap;\n";
+                        if (!c->compressionDisabled()) {
+                            blockMgr.out() << "xpcf::grpcServerCompressionInfos m_serviceCompressionInfos;\n";
+                            blockMgr.out() << "std::map<std::string, xpcf::grpcServerCompressionInfos> m_methodCompressionInfosMap;\n";
+                        }
                     }
                 }
             }
             {
                 block_guard<CPP::PRIVATE> privateBlk(blockMgr);
                 blockMgr.out() << m_grpcClassName + "Impl m_grpcService;\n";
-                blockMgr.out() << "std::vector<std::string> m_grpcServerCompressionConfig;\n";
+                if (!c->compressionDisabled()) {
+                    blockMgr.out() << "std::vector<std::string> m_grpcServerCompressionConfig;\n";
+                }
             }
         }
     }
@@ -169,7 +173,7 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
                     methodCall << m->returnType().getFullTypeDescription()<< " returnValue = ";
                 }
             }
-            if (m->hasOutputs()) {
+            if (m->hasOutputs() && !m->compressionDisabled()) {
                 blockMgr.out() << "xpcf::grpcCompressType askedCompressionType = static_cast<xpcf::grpcCompressType>(request->grpcservercompressionformat());\n";
                 blockMgr.out() << "xpcf::grpcServerCompressionInfos serverCompressInfo = xpcf::deduceServerCompressionType(askedCompressionType, m_serviceCompressionInfos, \""<<m->getName()<<"\", m_methodCompressionInfosMap);\n";
                 blockMgr.out() << "xpcf::prepareServerCompressionContext(context, serverCompressInfo);\n";
@@ -252,8 +256,10 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
             }
             baseInterface += c->getName();
             blockMgr.out() << "declareInjectable<" + baseInterface + ">(m_grpcService.m_xpcfComponent);\n";
-            blockMgr.out() << "m_grpcServerCompressionConfig.resize("<< c->methods().size() + 1 <<");\n";
-            blockMgr.out() << "declarePropertySequence(\"grpc_compress_server\", m_grpcServerCompressionConfig);\n";
+            if (!c->compressionDisabled()) {
+                blockMgr.out() << "m_grpcServerCompressionConfig.resize("<< c->methods().size() + 1 <<");\n";
+                blockMgr.out() << "declarePropertySequence(\"grpc_compress_server\", m_grpcServerCompressionConfig);\n";
+            }
         }
         blockMgr.newline();
         blockMgr.out() << "void " + m_className + "::unloadComponent ()\n";
@@ -266,9 +272,11 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
         blockMgr.out() << "XPCFErrorCode " + m_className +"::onConfigured()\n";
         {
             block_guard methodBlock(blockMgr);
-            blockMgr.out() << "for (auto & grpcCompressionLine : m_grpcServerCompressionConfig) {\n;";
-            blockMgr.out() << "      translateServerConfiguration(grpcCompressionLine, m_grpcService.m_serviceCompressionInfos, m_grpcService.m_methodCompressionInfosMap);\n";
-            blockMgr.out() << "}\n";
+            if (!c->compressionDisabled()) {
+                blockMgr.out() << "for (auto & grpcCompressionLine : m_grpcServerCompressionConfig) {\n;";
+                blockMgr.out() << "      translateServerConfiguration(grpcCompressionLine, m_grpcService.m_serviceCompressionInfos, m_grpcService.m_methodCompressionInfosMap);\n";
+                blockMgr.out() << "}\n";
+            }
             blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
         }
         blockMgr.newline();

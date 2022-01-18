@@ -211,7 +211,7 @@ void GRPCProtoGenerator::generateMessages(SRef<MethodDescriptor> m, std::ostream
         out<<"{"<<std::endl;
         std::size_t fieldIndex = 1;
         std::string typeName = "int64";
-        if (m->m_responseName != "google.protobuf.Empty") {
+        if (m->m_responseName != "google.protobuf.Empty" && !m->compressionDisabled()) {
             out << "int32 grpcServerCompressionFormat  = "<<std::to_string(fieldIndex++)<<";"<<std::endl;
         }
         for (ParameterDescriptor * p : m->m_inParams) {

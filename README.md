@@ -212,6 +212,7 @@ xpcf provides a Domain specific language through the use of c++ user defined att
 |[[xpcf::ignore]] | none | class or method level | specify that the corresponding class/method must be ignored while generating remoting code|
 |[[xpcf::clientUUID("uuid_string")]]| string | class level | specify the xpcf remoting client UUID |
 | [[xpcf::serverUUID("uuid_string")]]| string | class level | specify the xpcf remoting server UUID |
+| [[grpc::noCompression)]]| none | class or method level | disable grpc compression for a whole interface or for a method (compression code generation is not made for the targeted item) |
 | [[grpc::server\_streaming]], [[grpc::client\_streaming]] or [[grpc::streaming]] | none | method level| |
 | [[grpc::request("requestMessageName")]] | string | method level | optionally set grpc request message name |
 | [[grpc::response("responseMessageName")]] | string | method level | optionally set grpc response message name |

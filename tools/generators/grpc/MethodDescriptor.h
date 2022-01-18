@@ -59,7 +59,7 @@ public:
         bidir = 0x03
     } streaming_type;
 
-    MethodDescriptor(const cppast::cpp_member_function& m);
+    MethodDescriptor(const cppast::cpp_member_function& m, bool compressionDisabled = false);
     const std::string & getName() const { return m_baseMethod.name(); }
     const TypeDescriptor & returnType() const { return m_returnDescriptor; }
     const std::string getFullDeclaration() const { return getReturnType() + " " + getDeclaration(); }
@@ -75,6 +75,9 @@ public:
     bool parse(const cppast::cpp_entity_index& index);
     bool hasInputs() { return ((m_inParams.size() != 0) || (m_inoutParams.size() != 0)); }
     bool hasOutputs() { return ((m_inoutParams.size() != 0) || (m_outParams.size() != 0 ) || !m_returnDescriptor.isVoid() ); }
+    bool compressionDisabled() {
+        return m_compressionDisabled;
+    }
 
     std::vector<ParameterDescriptor *> m_inParams;
     std::vector<ParameterDescriptor *> m_outParams;
@@ -86,7 +89,9 @@ public:
 
 
 
+
 private:
+    bool m_compressionDisabled = false;
     void setStreamingType(const std::string & streamType);
     TypeDescriptor m_returnDescriptor;
     streaming_type m_rpcStreamingType = streaming_type::none;

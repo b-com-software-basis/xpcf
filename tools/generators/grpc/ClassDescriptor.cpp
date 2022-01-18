@@ -88,7 +88,7 @@ void ClassDescriptor::parseMethods(const cppast::cpp_class & c, std::map<std::st
     for (auto & m : c) {
         if (m.kind() == cppast::cpp_entity_kind::member_function_t) {
             // cast to member_function
-            SRef<MethodDescriptor> desc  = xpcf::utils::make_shared<MethodDescriptor>(static_cast<const cppast::cpp_member_function&>(m));
+            SRef<MethodDescriptor> desc  = xpcf::utils::make_shared<MethodDescriptor>(static_cast<const cppast::cpp_member_function&>(m), m_compressionDisabled);
             desc->parse(index);
             if (desc->isPureVirtual()) {
                 m_virtualMethods.push_back(desc);
@@ -143,6 +143,9 @@ bool ClassDescriptor::parse(const cppast::cpp_entity_index& index)
                             m_clientSendSizeOverriden = true;
                             m_clientSendSize = std::atol(sndSizeStr.c_str());
                         }
+                    }
+                    else if (attrib.name() == "noCompression") {
+                        m_compressionDisabled = true;
                     }
                 }
             }
