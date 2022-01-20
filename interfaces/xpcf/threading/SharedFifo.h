@@ -58,6 +58,8 @@ public:
     virtual bool pop( T & value , std::chrono::milliseconds duration) = 0;
 
     virtual bool empty() const = 0 ;
+
+    virtual void clear() = 0;
 };
 
 template <class MutexClass, class ConditionVariableClass, class CVStatusClass>//, class TaskClass >
@@ -69,6 +71,22 @@ struct TemplatedThreadedNamespace {
 };
 
 using StdThreadedNamespace = TemplatedThreadedNamespace<std::mutex, std::condition_variable, std::cv_status>;
+
+template<typename T, typename = void>
+struct FifoCleaner
+{
+    static void cleanup([[maybe_unused]] const std::deque<T> & data) {}
+};
+
+template<typename T>
+struct FifoCleaner<T, std::enable_if_t< std::is_pointer_v<T>>>
+{
+    static void cleanup(const std::deque<T> & data) {
+        for (auto element: data) {
+            delete element;
+        }
+    }
+};
 
 //template <class T, class M = std::mutex, class CV = std::condition_variable>
 template <class T, class NS = StdThreadedNamespace>
@@ -181,12 +199,8 @@ public:
         m_condQueueNotEmpty.notify_all();
     }
 
-    inline void clear() {
-        if (std::is_pointer_v<T>) {
-            for (auto element: m_data) {
-                delete element;
-            }
-        }
+   void clear() override {
+        FifoCleaner<T>::cleanup(m_data);
         m_data.clear();
     }
 
@@ -211,6 +225,7 @@ protected:
         m_nbNotified--;
     }
 };
+
 
 template <class T> SRef<IFifo<T>> createFifo() {
     return utils::make_shared<SharedFifo<T>>();

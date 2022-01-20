@@ -30,9 +30,32 @@
 #include "TestDefines.h"
 
 using namespace std;
-/*
+
 BOOST_AUTO_TEST_SUITE( test_threading )
 
+
+BOOST_AUTO_TEST_CASE( test_fifo_instantitation)
+{
+    SRef<xpcf::IFifo<int>> intFifo = xpcf::createFifo<xpcf::SharedFifo,int>();
+    SRef<xpcf::IFifo<int*>> intPointerFifo = xpcf::createFifo<xpcf::SharedFifo,int*>();
+    SRef<xpcf::IFifo<std::string>> stringFifo = xpcf::createFifo<xpcf::SharedFifo,std::string>();
+    SRef<xpcf::IFifo<SRef<std::string>>> srefStringFifo = xpcf::createFifo<xpcf::SharedFifo,SRef<std::string>>();
+    intFifo->push(4);
+    intFifo->push(5);
+    intFifo->clear();
+    int * i = new int;
+    *i = 10;
+    intPointerFifo->push(i);
+    intPointerFifo->clear();
+    stringFifo->push("test");
+    stringFifo->push("test2");
+    stringFifo->clear();
+    SRef<string> str = xpcf::utils::make_shared<string>("srefString");
+    srefStringFifo->push(str);
+    srefStringFifo->clear();
+}
+
+/*
 BOOST_AUTO_TEST_CASE( test_threading_std)
 {
     SRef<xpcf::IFifo<int>> inFifo = xpcf::createFifo<xpcf::SharedFifo,int>();
@@ -344,6 +367,7 @@ BOOST_AUTO_TEST_CASE( test_threading_fibers, * boost::unit_test::disabled())
 
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+
 
 */
+BOOST_AUTO_TEST_SUITE_END()
