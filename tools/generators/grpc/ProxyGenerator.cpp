@@ -170,9 +170,11 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
             blockMgr.out() << m->m_requestName << " reqIn;\n";
             blockMgr.out() << m->m_responseName << " respOut;\n";
             if (m->hasOutputs() && !m->compressionDisabled()) {
-                blockMgr.out() << "xpcf::grpcCompressionInfos serverCompressionInfo = xpcf::deduceClientCompressionInfo(m_serviceCompressionInfos, \""<<m->getName()<<"\", m_methodCompressionInfosMap);\n";
-                blockMgr.out() << "xpcf::grpcCompressType serverCompressionType = xpcf::prepareClientCompressionContext(context, serverCompressionInfo);\n";
+                blockMgr.out() <<"#ifndef DISABLE_GRPC_COMPRESSION\n";
+                blockMgr.out() << "xpcf::grpcCompressionInfos proxyCompressionInfo = xpcf::deduceClientCompressionInfo(m_serviceCompressionInfos, \""<<m->getName()<<"\", m_methodCompressionInfosMap);\n";
+                blockMgr.out() << "xpcf::grpcCompressType serverCompressionType = xpcf::prepareClientCompressionContext(context, proxyCompressionInfo);\n";
                 blockMgr.out() << "reqIn.set_grpcservercompressionformat (static_cast<int32_t>(serverCompressionType));\n";
+                blockMgr.out() <<"#endif\n";
             }
             if (m->hasInputs()) {
                 for (ParameterDescriptor * p: m->m_inParams) {
@@ -182,9 +184,16 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
                     bindInput(*p, blockMgr);
                 }
             }
-
+            blockMgr.out() <<"#ifdef ENABLE_PROXY_TIMERS\n";
+            blockMgr.out() <<"boost::posix_time::ptime start = boost::posix_time::microsec_clock::universal_time();\n";
+            blockMgr.out() <<"std::cout << \"====> "<<m_className<<"::"<<m->getName()<<" request sent at \" << to_simple_string(start) << std::endl;\n";
+            blockMgr.out() <<"#endif\n";
             blockMgr.out() << "::grpc::Status grpcRemoteStatus = m_grpcStub->" + m->m_rpcName + "(&context, reqIn, &respOut);\n";
-
+            blockMgr.out() <<"#ifdef ENABLE_PROXY_TIMERS\n";
+            blockMgr.out() <<"boost::posix_time::ptime end = boost::posix_time::microsec_clock::universal_time();\n";
+            blockMgr.out() <<"std::cout << \"====> "<<m_className<<"::"<<m->getName()<<" response received at \" << to_simple_string(end) << std::endl;\n";
+            blockMgr.out() <<"std::cout << \"   => elapsed time = \" << ((end - start).total_microseconds() / 1000.00) << \" ms\" << std::endl;\n";
+            blockMgr.out() <<"#endif\n";
             blockMgr.out() << "if (!grpcRemoteStatus.ok())";
             {
                 block_guard condBlk(blockMgr);
@@ -241,6 +250,7 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
     blockMgr.out() << "// GRPC Proxy Class implementation generated with xpcf_grpc_gen\n";
     blockMgr.include(m_headerFileName);
     blockMgr.include("cstddef",false);
+    blockMgr.include("boost/date_time.hpp",false);
     blockMgr.include("xpcf/core/Exception.h",false);
     blockMgr.include("xpcf/remoting/ISerializable.h",false);
     blockMgr.include("grpcpp/client_context.h",false);

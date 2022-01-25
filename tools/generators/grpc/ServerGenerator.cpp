@@ -2,6 +2,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/date_time.hpp>
 
 namespace xpcf = org::bcom::xpcf;
 
@@ -174,10 +175,16 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
                 }
             }
             if (m->hasOutputs() && !m->compressionDisabled()) {
+                blockMgr.out() <<"#ifndef DISABLE_GRPC_COMPRESSION\n";
                 blockMgr.out() << "xpcf::grpcCompressType askedCompressionType = static_cast<xpcf::grpcCompressType>(request->grpcservercompressionformat());\n";
                 blockMgr.out() << "xpcf::grpcServerCompressionInfos serverCompressInfo = xpcf::deduceServerCompressionType(askedCompressionType, m_serviceCompressionInfos, \""<<m->getName()<<"\", m_methodCompressionInfosMap);\n";
                 blockMgr.out() << "xpcf::prepareServerCompressionContext(context, serverCompressInfo);\n";
+                blockMgr.out() <<"#endif\n";
             }
+            blockMgr.out() <<"#ifdef ENABLE_SERVER_TIMERS\n";
+            blockMgr.out() <<"boost::posix_time::ptime start = boost::posix_time::microsec_clock::universal_time();\n";
+            blockMgr.out() <<"std::cout << \"====> "<<m_className<<"::"<<m->getName()<<" request received at \" << to_simple_string(start) << std::endl;\n";
+            blockMgr.out() <<"#endif\n";
             methodCall << "m_xpcfComponent->" << m->getName() << "(";
             uint32_t nbTypes = 0;
             for (SRef<ParameterDescriptor> p : m->m_params) {
@@ -217,6 +224,13 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
                     blockMgr.out() << "response->set_xpcfgrpcreturnvalue(returnValue);\n";
                 }
             }
+            blockMgr.out() <<"#ifdef ENABLE_SERVER_TIMERS\n";
+            blockMgr.out() <<"boost::posix_time::ptime end = boost::posix_time::microsec_clock::universal_time();\n";
+            blockMgr.out() <<"std::cout << \"====> "<<m_className<<"::"<<m->getName()<<" response sent at \" << to_simple_string(end) << std::endl;\n";
+            blockMgr.out() <<"std::cout << \"   => elapsed time = \" << ((end - start).total_microseconds() / 1000.00) << \" ms\" << std::endl;\n";
+            blockMgr.out() <<"#endif\n";
+            //boost::posix_time::ptime end = boost::posix_time::microsec_clock::local_time();
+            //std::cout << “====>IMappingPipeline_grpcServer::init response sent at “ << to_simple_string(end)
             blockMgr.out() << "return ::grpc::Status::OK;\n";
         }
         blockMgr.newline();
@@ -228,7 +242,8 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
     CppBlockManager blockMgr(out);
     out << "// GRPC Server Class implementation generated with xpcf_grpc_gen\n";
     out << "#include \"" + m_headerFileName + "\"\n";
-    out << "#include <cstddef>\n";
+    blockMgr.include("cstddef",false);
+    blockMgr.include("boost/date_time.hpp",false);
     blockMgr.include("xpcf/remoting/ISerializable.h",false);
     blockMgr.include("xpcf/remoting/GrpcHelper.h",false);
 

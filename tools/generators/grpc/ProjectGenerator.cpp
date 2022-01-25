@@ -104,7 +104,7 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
     projectFile << "VERSION="<< metadata[MetadataType::PROJECT_VERSION] << "\n";
     projectFile << "\nDEFINES += MYVERSION=$${VERSION}\nDEFINES += TEMPLATE_LIBRARY\nCONFIG += c++1z\n\n";
     projectFile << "include(findremakenrules.pri)\n\n";
-    projectFile << "CONFIG(debug,debug|release) {\n    DEFINES += _DEBUG=1\n    DEFINES += DEBUG=1\n}\n";
+    projectFile << "CONFIG(debug,debug|release) {\n    DEFINES += _DEBUG=1\n    DEFINES += DEBUG=1\n DEFINES += ENABLE_PROXY_TIMERS=1\n DEFINES += ENABLE_SERVER_TIMERS=1\n }\n";
     projectFile << "CONFIG(release,debug|release) {\n    DEFINES += _NDEBUG=1\n    DEFINES += NDEBUG=1\n}\n\n";
     projectFile << "DEPENDENCIESCONFIG = shared recursive install_recurse\n\n";
     projectFile << "## Configuration for Visual Studio to install binaries and dependencies. Work also for QT Creator by replacing QMAKE_INSTALL\n";
