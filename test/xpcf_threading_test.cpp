@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "xpcf/threading/FiberFifos.h"
+#include "xpcf/threading/DropBuffer.h"
 #include "xpcf/threading/MultiConsumer.h"
 #include "xpcf/threading/BaseTask.h"
 #include <boost/test/unit_test.hpp>
@@ -36,14 +37,15 @@ BOOST_AUTO_TEST_SUITE( test_threading )
 
 BOOST_AUTO_TEST_CASE( test_fifo_instantitation)
 {
-    SRef<xpcf::IFifo<int>> intFifo = xpcf::createFifo<xpcf::SharedFifo,int>();
+    SRef<xpcf::IFifo<int>> intBuffer = xpcf::createSharedBuffer<int>(10,5);
     SRef<xpcf::IFifo<int*>> intPointerFifo = xpcf::createFifo<xpcf::SharedFifo,int*>();
     SRef<xpcf::IFifo<std::string>> stringFifo = xpcf::createFifo<xpcf::SharedFifo,std::string>();
-    SRef<xpcf::IFifo<SRef<std::string>>> srefStringFifo = xpcf::createFifo<xpcf::SharedFifo,SRef<std::string>>();
-    intFifo->clear();
-    intFifo->push(4);
-    intFifo->push(5);
-    intFifo->clear();
+    SRef<xpcf::IFifo<SRef<std::string>>> srefStringDropBuffer = xpcf::createDropBuffer<SRef<std::string>>();
+    intBuffer->clear();
+    intBuffer->push(4);
+    intBuffer->push(5);
+    intBuffer->clear();
+    intBuffer->clear();
     int * i = new int;
     *i = 10;
     intPointerFifo->push(i);
@@ -54,8 +56,8 @@ BOOST_AUTO_TEST_CASE( test_fifo_instantitation)
     stringFifo->clear();
     stringFifo->clear();
     SRef<string> str = xpcf::utils::make_shared<string>("srefString");
-    srefStringFifo->push(str);
-    srefStringFifo->clear();
+    srefStringDropBuffer->push(str);
+    srefStringDropBuffer->clear();
 }
 
 /*

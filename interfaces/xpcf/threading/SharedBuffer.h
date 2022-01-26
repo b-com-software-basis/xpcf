@@ -94,6 +94,10 @@ private:
     }
 };
 
+template < class T, class NS = StdThreadedNamespace> SRef<IFifo<T>> createSharedBuffer(std::size_t max, std::size_t startAt = 0) {
+    return utils::make_shared<SharedBuffer<T,NS>>(max, startAt);
+}
+
 }}}
 
 #endif
