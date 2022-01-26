@@ -201,6 +201,7 @@ public:
 
    void clear() override {
         FifoCleaner<T>::cleanup(m_data);
+        m_nbNotified = 0;
         m_data.clear();
     }
 

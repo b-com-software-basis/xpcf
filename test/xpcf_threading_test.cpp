@@ -40,6 +40,7 @@ BOOST_AUTO_TEST_CASE( test_fifo_instantitation)
     SRef<xpcf::IFifo<int*>> intPointerFifo = xpcf::createFifo<xpcf::SharedFifo,int*>();
     SRef<xpcf::IFifo<std::string>> stringFifo = xpcf::createFifo<xpcf::SharedFifo,std::string>();
     SRef<xpcf::IFifo<SRef<std::string>>> srefStringFifo = xpcf::createFifo<xpcf::SharedFifo,SRef<std::string>>();
+    intFifo->clear();
     intFifo->push(4);
     intFifo->push(5);
     intFifo->clear();
@@ -47,8 +48,10 @@ BOOST_AUTO_TEST_CASE( test_fifo_instantitation)
     *i = 10;
     intPointerFifo->push(i);
     intPointerFifo->clear();
+    stringFifo->clear();
     stringFifo->push("test");
     stringFifo->push("test2");
+    stringFifo->clear();
     stringFifo->clear();
     SRef<string> str = xpcf::utils::make_shared<string>("srefString");
     srefStringFifo->push(str);
