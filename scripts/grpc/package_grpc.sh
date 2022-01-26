@@ -17,7 +17,7 @@ if [ -d ${BUILDFOLDER}/${pkgName} ]
 then
 echo "Packaging ${pkgName}-${PKGVERSION} from folder ${BUILDFOLDER}/${pkgName}"
 pushd ${BUILDFOLDER}
-zip -r ${pkgName}_${PKGVERSION}_x86_64_${linkMode}_${buildMode}.zip ${pkgName}
+zip -r -y ${pkgName}_${PKGVERSION}_x86_64_${linkMode}_${buildMode}.zip ${pkgName}
 popd
 fi
 done
