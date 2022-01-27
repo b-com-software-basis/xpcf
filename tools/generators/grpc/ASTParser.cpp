@@ -1,4 +1,5 @@
 #include "ASTParser.h"
+#include "RemakenPathHelper.h"
 #include <cppast/visitor.hpp>
 #include <cppast/cpp_file.hpp>
 #include <cppast/cpp_namespace.hpp>
@@ -8,13 +9,11 @@
 #include <xpcf/api/IComponentManager.h>
 
 #include <boost/algorithm/string.hpp>
-
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 
 namespace xpcf = org::bcom::xpcf;
 
 template<> ASTParser * xpcf::ComponentFactory::createInstance<ASTParser>();
-
-
 
 ASTParser::ASTParser():xpcf::ComponentBase(xpcf::toMap<ASTParser>())
 {
@@ -102,6 +101,7 @@ int ASTParser::set_compile_options(const cxxopts::ParseResult & options, cppast:
 
 int ASTParser::initOptions(const cxxopts::ParseResult & options)
 {
+    fs::detail::utf8_codecvt_facet utf8;
     if (options.count("database_dir") && !options["database_dir"].as<std::string>().empty())
     {
         cppast::libclang_compilation_database database(options["database_dir"].as<std::string>());
@@ -141,6 +141,14 @@ int ASTParser::initOptions(const cxxopts::ParseResult & options)
                 + options["repository"].as<std::string>()+ "|"+  options["url"].as<std::string>();
     }
 
+    fs::path projectAbsolutePath = RemakenPathHelper::getHomePath();
+    if (options.count("project_folder")) {
+        projectAbsolutePath /= options["project_folder"].as<std::string>();
+    }
+    m_projectAbsolutePath = projectAbsolutePath.generic_string(utf8);
+    if (m_projectAbsolutePath.back() != fs::path::separator) {
+        m_projectAbsolutePath += fs::path::separator;
+    }
     return ASTParser::set_compile_options(options,m_config);
 }
 
@@ -236,7 +244,11 @@ void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, cons
     if (e.kind() == cppast::cpp_entity_kind::class_t) {
         out << " [" << e.name() << "] is class"<< '\n';
         std::string entityNspace = computeNamespace();
-        SRef<ClassDescriptor> c = xpcf::utils::make_shared<ClassDescriptor>(e, entityNspace, filePath);
+        std::string includePath = filePath;
+        if (boost::algorithm::starts_with(includePath, m_projectAbsolutePath)) {
+            boost::algorithm::erase_first(includePath, m_projectAbsolutePath);
+        }
+        SRef<ClassDescriptor> c = xpcf::utils::make_shared<ClassDescriptor>(e, entityNspace, includePath);
         c->parse(m_index);
         if (c->isInterface() && !c->ignored()) {
             m_interfaces.insert(std::make_pair(c->getFullName(),c));

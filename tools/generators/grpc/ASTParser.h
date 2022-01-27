@@ -46,6 +46,7 @@ private:
     cppast::stderr_diagnostic_logger m_logger;
     cppast::libclang_compile_config m_config;
     std::unique_ptr<cppast::cpp_file> m_fileParsed;
+    std::string m_projectAbsolutePath;
 
 };
 

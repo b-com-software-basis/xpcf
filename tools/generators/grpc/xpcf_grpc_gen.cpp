@@ -155,6 +155,8 @@ try
              cxxopts::value<std::string>()->default_value("flatbuffers"))
             ("m,module_uuid", "the UUID to use for the XPCF module generated",
              cxxopts::value<std::string>())
+            ("p,project_folder", "the relative project folder (starting from $HOME folder) for the project (this path will be removed from #include directives)",
+             cxxopts::value<std::string>())
             ("o,output", "set the destination folder where the generated grpc files will be created. The folder is created if it doesn't already exists",
              cxxopts::value<std::string>());
 
