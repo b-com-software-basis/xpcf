@@ -81,4 +81,4 @@ make
 make install
 popd
 
-${XPCFROOT}/scripts/make_remaken_package.sh xpcf 2.5.0
+${XPCFROOT}/scripts/make_remaken_package.sh xpcf 2.5.1
