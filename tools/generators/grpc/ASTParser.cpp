@@ -141,13 +141,13 @@ int ASTParser::initOptions(const cxxopts::ParseResult & options)
                 + options["repository"].as<std::string>()+ "|"+  options["url"].as<std::string>();
     }
 
-    fs::path projectAbsolutePath = RemakenPathHelper::getHomePath();
-    if (options.count("project_folder")) {
-        projectAbsolutePath /= options["project_folder"].as<std::string>();
+    fs::path interfacesAbsolutePath = RemakenPathHelper::getHomePath();
+    if (options.count("interfaces_folder")) {
+        interfacesAbsolutePath /= options["interfaces_folder"].as<std::string>();
     }
-    m_projectAbsolutePath = projectAbsolutePath.generic_string(utf8);
-    if (m_projectAbsolutePath.back() != fs::path::separator) {
-        m_projectAbsolutePath += fs::path::separator;
+    m_interfacesAbsolutePath = interfacesAbsolutePath.generic_string(utf8);
+    if (m_interfacesAbsolutePath.back() != fs::path::separator) {
+        m_interfacesAbsolutePath += fs::path::separator;
     }
     return ASTParser::set_compile_options(options,m_config);
 }
@@ -245,8 +245,8 @@ void ASTParser::parseEntity(std::ostream& out, const cppast::cpp_entity& e, cons
         out << " [" << e.name() << "] is class"<< '\n';
         std::string entityNspace = computeNamespace();
         std::string includePath = filePath;
-        if (boost::algorithm::starts_with(includePath, m_projectAbsolutePath)) {
-            boost::algorithm::erase_first(includePath, m_projectAbsolutePath);
+        if (boost::algorithm::starts_with(includePath, m_interfacesAbsolutePath)) {
+            boost::algorithm::erase_first(includePath, m_interfacesAbsolutePath);
         }
         SRef<ClassDescriptor> c = xpcf::utils::make_shared<ClassDescriptor>(e, entityNspace, includePath);
         c->parse(m_index);
