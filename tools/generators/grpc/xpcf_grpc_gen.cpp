@@ -113,8 +113,15 @@ try
     SRef<xpcf::IComponentManager> cmpMgr = xpcf::getComponentManagerInstance();
 
     cxxopts::Options option_list("xpcf_grpc_gen",
-                                 "xpcf_grpc_gen - The commandline interface to the grpc generators for xpcf.\n");
-    // clang-format off
+                                 "xpcf_grpc_gen - The commandline interface to the grpc generators for xpcf.\n"
+"Sample use:\n"
+"1/ generate the compilation database from the framework project hosting the xpcf interfaces that will be remoted.\n"
+"Within QT Creator for instance, use \"Build->Generate Compilation Database for [project]\"\n\n"
+"2/ launch xpcf_grpc_gen with:\n"
+"xpcf_grpc_gen -n [framework name] -v [framework version] -r @github -u [framework binary release github url] --std c++1z --database_dir [compilation database folder path] --remove_comments_in_macro -o [code generation destination folder path] -g protobuf -i [relative framework interfaces path beneath the project starting at $HOME - this path will be removed from #include directives]\n\n"
+"Example: to generate grpc code from xpcf SampleComponent interfaces the command is (if the xpcf folder is located in the $HOME user folder):\n"
+"xpcf_grpc_gen -n xpcfSampleComponent -v 2.5.1 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/download --std c++1z --database_dir xpcf/samples/build-xpcfSampleComponent-Desktop_Qt_5_12_10_clang_64bit-Debug/ --remove_comments_in_macro -o ~/tmp/grpc_gen_sampleComponent -g protobuf -i xpcf/samples/sample_component");
+        // clang-format off
     option_list.add_options()
             ("h,help", "display this help and exit")
             ("version", "display version information and exit")
