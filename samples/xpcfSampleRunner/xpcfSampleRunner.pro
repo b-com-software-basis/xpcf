@@ -1,5 +1,6 @@
 QT       -= core gui
 CONFIG -= app_bundle qt
+CONFIG += console
 
 TARGET = xpcfSampleRunner
 FRAMEWORK = $${TARGET}
