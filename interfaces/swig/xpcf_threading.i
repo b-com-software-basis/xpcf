@@ -10,7 +10,7 @@
 //#include "xpcf/threading/FiberFifos.h"
 //%}
 
-//%include "Swig.i"
+//%include "swig.i"
 
 //%import (module="XPCF.Core") "xpcf_core.i"
 

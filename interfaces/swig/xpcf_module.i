@@ -3,7 +3,7 @@
 #include "xpcf/module/ModuleFactory.h"
 %}
 
-%include "Swig.i"
+%include "swig.i"
 
 %import (module="XPCF.Core") "xpcf_core.i"
 %import (module="XPCF.Component") "xpcf_Component.i"

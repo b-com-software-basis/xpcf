@@ -9,7 +9,7 @@
 #include "xpcf/core/XPCFErrorCode.h"
 %}
 
-%include "Swig.i"
+%include "swig.i"
 
 ///
 

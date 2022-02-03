@@ -5,7 +5,7 @@
 #include "xpcf/component/ConfigurableBase.h"
 %}
 
-%include "Swig.i"
+%include "swig.i"
 
 %import (module="XPCF.Core") "xpcf_core.i"
 %import (module="XPCF.Api") "xpcf_api.i"
