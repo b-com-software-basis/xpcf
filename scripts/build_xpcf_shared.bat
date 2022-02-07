@@ -12,7 +12,7 @@ for %%A in ("--help" "-h") do if "%1"==%%A (call:display_usage %1 & exit /b 0)
 REM replace default QTVERSION
 if NOT [%1]==[] set QTVERSION=%1
 
-set JOM_PATH=c:\Qt\Tools\QtCreator\bin
+set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
 set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2017_64\bin
 
 if not exist %QMAKE_PATH% (echo "Qt path '%QMAKE_PATH%' doesn't exist : check your Qt installation and kits" & exit /b 2)

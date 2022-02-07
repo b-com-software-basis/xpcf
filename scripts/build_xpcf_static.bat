@@ -12,7 +12,7 @@ for %%A in ("--help" "-h") do if "%1"==%%A (call:display_usage %1 & exit /b 0)
 REM replace default QTVERSION
 if NOT [%1]==[] set QTVERSION=%1
 
-set JOM_PATH=c:\Qt\Tools\QtCreator\bin
+set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
 set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2017_64\bin
 
 if not exist %QMAKE_PATH% (echo "Qt path '%QMAKE_PATH%' doesn't exist : check your Qt installation and kits" & exit /b 2)
@@ -25,12 +25,12 @@ if not exist build-%PROJECT%\static\release mkdir build-%PROJECT%\static\release
 
 echo "===========> building %PROJECT% static <==========="
 cd %~dp0\build-%PROJECT%\static\debug
-%QMAKE_PATH%\qmake.exe ../../../../%PROJECT%.pro -spec win32-msvc CONFIG+=debug CONFIG+=staticlib DEFINES+=%PROJECT%_API_DLLEXPORT
+%QMAKE_PATH%\qmake.exe ../../../../%PROJECT%.pro -spec win32-msvc CONFIG+=debug CONFIG+=staticlib
 %JOM_PATH%\jom.exe
 %JOM_PATH%\jom.exe install
 
 cd %~dp0\build-%PROJECT%\static\release
-%QMAKE_PATH%\qmake.exe ../../../../%PROJECT%.pro -spec win32-msvc CONFIG+=staticlib DEFINES+=%PROJECT%_API_DLLEXPORT
+%QMAKE_PATH%\qmake.exe ../../../../%PROJECT%.pro -spec win32-msvc CONFIG+=staticlib
 %JOM_PATH%\jom.exe
 %JOM_PATH%\jom.exe install
 

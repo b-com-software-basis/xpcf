@@ -13,7 +13,7 @@ if NOT [%1]==[] set QTVERSION=%1
 
 call build_xpcf_shared.bat %QTVERSION%
 call build_testxpcf.bat %QTVERSION%
-REM call build_xpcf_static.bat %QTVERSION%
+call build_xpcf_static.bat %QTVERSION%
 
 cd "%~dp0"
 

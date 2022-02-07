@@ -3,7 +3,7 @@ cls
 setlocal
 
 set PROJECT=xpcf
-set PKGVERSION=2.5.0
+set PKGVERSION=2.5.1
 
 REM default parameter value
 set QTVERSION=5.14.2
@@ -14,7 +14,7 @@ for %%A in ("--help" "-h") do if "%1"==%%A (call:display_usage %1 & exit /b 0)
 REM replace default QTVERSION
 if NOT [%1]==[] set QTVERSION=%1
 
-set JOM_PATH=c:\Qt\Tools\QtCreator\bin
+set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
 set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2017_64\bin
 
 if not exist %QMAKE_PATH% (echo "Qt path '%QMAKE_PATH%' doesn't exist : check your Qt installation and kits" & exit /b 2)
@@ -33,6 +33,22 @@ cd %~dp0\build-%PROJECT%-package\shared\debug
 
 cd %~dp0\build-%PROJECT%-package\shared\release
 %QMAKE_PATH%\qmake.exe ../../../../xpcf.pro -spec win32-msvc CONFIG+=package_remaken
+%JOM_PATH%\jom.exe
+%JOM_PATH%\jom.exe install
+
+cd "%~dp0"
+if exist build-%PROJECT%-package\static rmdir /S /Q build-%PROJECT%-package\static
+if not exist build-%PROJECT%-package\static\debug mkdir build-%PROJECT%-package\static\debug
+if not exist build-%PROJECT%-package\static\release mkdir build-%PROJECT%-package\static\release
+
+REM echo "===========> building XPCF static <==========="
+cd %~dp0\build-%PROJECT%-package\static\debug
+%QMAKE_PATH%\qmake.exe ../../../../xpcf.pro -spec win32-msvc CONFIG+=staticlib CONFIG+=debug CONFIG+=package_remaken
+%JOM_PATH%\jom.exe
+%JOM_PATH%\jom.exe install
+
+cd %~dp0\build-%PROJECT%-package\static\release
+%QMAKE_PATH%\qmake.exe ../../../../xpcf.pro -spec win32-msvc CONFIG+=staticlib CONFIG+=package_remaken
 %JOM_PATH%\jom.exe
 %JOM_PATH%\jom.exe install
 
