@@ -22,6 +22,10 @@ SOURCES += xpcfSampleRunner_main.cpp
 unix {
 }
 
+linux {
+    LIBS += -ldl
+}
+
 macx {
     DEFINES += _MACOS_TARGET_
     QMAKE_MAC_SDK= macosx
