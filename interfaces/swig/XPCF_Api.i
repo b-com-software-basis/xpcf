@@ -2,6 +2,9 @@
 %{
 #include "xpcf/api/ComponentMetadata.h"
 #include "xpcf/api/IComponentIntrospect.h"
+#include "xpcf/api/IFactory.h"
+#include "xpcf/api/IAliasManager.h"
+#include "xpcf/api/IRegistryManager.h"
 #include "xpcf/api/IComponentManager.h"
 #include "xpcf/api/IConfigurable.h"
 #include "xpcf/module/IModuleIndex.h"
@@ -22,7 +25,7 @@
 
 %pragma(csharp) moduleimports=
 %{
-	using XPCF.Core;
+    using XPCF.Core;
     using XPCF.Collection;
     using XPCF.Properties;
     using XPCF.Traits;
@@ -40,6 +43,11 @@
 
 %shared_ptr(org::bcom::xpcf::ComponentMetadata)
 %shared_ptr(org::bcom::xpcf::IComponentIntrospect)
+%shared_ptr(org::bcom::xpcf::InjectableMetadata)
+%shared_ptr(org::bcom::xpcf::Injector)
+%shared_ptr(org::bcom::xpcf::IFactory)
+%shared_ptr(org::bcom::xpcf::IAliasManager)
+%shared_ptr(org::bcom::xpcf::IRegistryManager)
 %shared_ptr(org::bcom::xpcf::IComponentManager)
 %shared_ptr(org::bcom::xpcf::IConfigurable)
 %shared_ptr(org::bcom::xpcf::IInjectable)
@@ -98,10 +106,17 @@ template <typename I> bool injectExists() const;
 template <typename I> bool injectExists(const char * name) const;
 */
 
+//#include "IComponentIntrospect.h"
+//#include <xpcf/core/uuid.h>
+%include "xpcf/api/InjectableMetadata.h"
+
 //#include "xpcf/api/IInjectable.i"
 //#include "xpcf/api/InterfaceMetadata.i"
 //#include "xpcf/api/ComponentMetadata.i"
 //#include "xpcf/api/ModuleMetadata.i"
+%include "xpcf/api/IFactory.h"
+%include "xpcf/api/IAliasManager.h"
+%include "xpcf/api/IRegistryManager.h"
 %include "xpcf/api/IComponentManager.h"
 
 //#include "xpcf/api/IComponentIntrospect.i"
@@ -115,9 +130,7 @@ template <typename I> bool injectExists(const char * name) const;
 //#include "xpcf/api/IConfigurable.i"
 %include "xpcf/xpcf.h"
 
-//#include "IComponentIntrospect.h"
-//#include <xpcf/core/uuid.h>
-%include "xpcf/api/InjectableMetadata.h"
+
 
 //#include "xpcf/core/uuid.i"
 //#include "xpcf/core/xpcf_api_define.i"
