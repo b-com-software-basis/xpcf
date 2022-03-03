@@ -1,4 +1,4 @@
-%module xpcf_core
+%module XPCF_Core
 %{
 #include "xpcf/core/helpers.h"
 #include "xpcf/core/refs.h"

@@ -1,4 +1,4 @@
-%module xpcf_properties
+%module XPCF_Properties
 %{
 #include "xpcf/properties/IProperty.h"
 #include "xpcf/properties/IPropertyMap.h"
@@ -6,8 +6,8 @@
 
 %include "swig.i"
 
-%import (module="XPCF.Core") "xpcf_core.i"
-%import (module="XPCF.Collection") "xpcf_collection.i"
+%import (module="XPCF.Core") "XPCF_Core.i"
+%import (module="XPCF.Collection") "XPCF_Collection.i"
 
 %typemap(csimports) SWIGTYPE
 %{

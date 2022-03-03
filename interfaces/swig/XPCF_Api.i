@@ -1,4 +1,4 @@
-%module xpcf_api
+%module XPCF_Api
 %{
 #include "xpcf/api/ComponentMetadata.h"
 #include "xpcf/api/IComponentIntrospect.h"
@@ -18,10 +18,10 @@
 
 %include "swig.i"
 
-%import (module="XPCF.Core") "xpcf_core.i"
-%import (module="XPCF.Collection") "xpcf_collection.i"
-%import (module="XPCF.Properties") "xpcf_properties.i"
-%import (module="XPCF.Traits") "xpcf_traits.i"
+%import (module="XPCF.Core") "XPCF_Core.i"
+%import (module="XPCF.Collection") "XPCF_Collection.i"
+%import (module="XPCF.Properties") "XPCF_Properties.i"
+%import (module="XPCF.Traits") "XPCF_Traits.i"
 
 %pragma(csharp) moduleimports=
 %{
@@ -96,6 +96,7 @@ namespace boost{namespace filesystem{}}
 %ignore org::bcom::xpcf::IInjectable::inject;
 %ignore org::bcom::xpcf::IInjectable::injectExists;
 %include "xpcf/api/IInjectable.h"
+%template("IInjectableTraits") org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IInjectable>;
 /*
 %template(inject) org::bcom::xpcf::IInjectable::inject<org::bcom::xpcf::IComponentIntrospect>(SRef<IComponentIntrospect> instance);
 template <typename I> void inject(SRef<I> instance);
@@ -116,12 +117,14 @@ template <typename I> bool injectExists(const char * name) const;
 //#include "xpcf/api/ModuleMetadata.i"
 %include "xpcf/api/IFactory.h"
 %include "xpcf/api/IAliasManager.h"
+%template("IAliasManagerTraits") org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IAliasManager>;
 %include "xpcf/api/IRegistryManager.h"
+%template("IRegistryManagerTraits") org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IRegistryManager>;
 %include "xpcf/api/IComponentManager.h"
 
 //#include "xpcf/api/IComponentIntrospect.i"
 %include "xpcf/api/IConfigurable.h"
-
+%template("IConfigurableTraits") org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IConfigurable>;
 //#include "xpcf/api/IComponentIntrospect.i"
 //#include "xpcf/api/ModuleMetadata.i"
 %include "xpcf/api/IModuleManager.h"

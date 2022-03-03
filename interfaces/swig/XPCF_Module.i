@@ -1,13 +1,13 @@
-%module xpcf_module
+%module XPCF_Module
 %{
 #include "xpcf/module/ModuleFactory.h"
 %}
 
 %include "swig.i"
 
-%import (module="XPCF.Core") "xpcf_core.i"
-%import (module="XPCF.Component") "xpcf_Component.i"
-%import (module="XPCF.Api") "xpcf_api.i"
+%import (module="XPCF.Core") "XPCF_Core.i"
+%import (module="XPCF.Component") "XPCF_Component.i"
+%import (module="XPCF.Api") "XPCF_Api.i"
 
 %typemap(csimports) SWIGTYPE
 %{

@@ -1,4 +1,4 @@
-%module xpcf_component
+%module XPCF_Component
 %{
 #include "xpcf/component/ComponentBase.h"
 #include "xpcf/component/ComponentFactory.h"
@@ -7,8 +7,8 @@
 
 %include "swig.i"
 
-%import (module="XPCF.Core") "xpcf_core.i"
-%import (module="XPCF.Api") "xpcf_api.i"
+%import (module="XPCF.Core") "XPCF_Core.i"
+%import (module="XPCF.Api") "XPCF_Api.i"
 
 %typemap(csimports) SWIGTYPE
 %{

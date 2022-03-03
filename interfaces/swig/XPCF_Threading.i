@@ -1,4 +1,4 @@
-//%module xpcf_threading
+//%module XPCF_Threading
 //%{
 //#include "xpcf/threading/ITask.h"
 //#include "xpcf/threading/SharedFifo.h"
@@ -12,7 +12,7 @@
 
 //%include "swig.i"
 
-//%import (module="XPCF.Core") "xpcf_core.i"
+//%import (module="XPCF.Core") "XPCF_Core.i"
 
 //%typemap(csimports) SWIGTYPE
 //%{

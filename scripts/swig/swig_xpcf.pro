@@ -74,14 +74,14 @@ android {
 
 OTHER_FILES += \
     packagedependencies.txt \
-    ../../interfaces/swig/xpcf_api.i \
-    ../../interfaces/swig/xpcf_collection.i \
-    ../../interfaces/swig/xpcf_component.i \
-    ../../interfaces/swig/xpcf_core.i \
-    ../../interfaces/swig/xpcf_module.i \
-    ../../interfaces/swig/xpcf_properties.i \
-    ../../interfaces/swig/xpcf_threading.i \
-    ../../interfaces/swig/xpcf_traits.i \
+    ../../interfaces/swig/XPCF_Api.i \
+    ../../interfaces/swig/XPCF_Collection.i \
+    ../../interfaces/swig/XPCF_Component.i \
+    ../../interfaces/swig/XPCF_Core.i \
+    ../../interfaces/swig/XPCF_Module.i \
+    ../../interfaces/swig/XPCF_Properties.i \
+    ../../interfaces/swig/XPCF_Threading.i \
+    ../../interfaces/swig/XPCF_Traits.i \
     ../../interfaces/swig/swig.i
 
 #NOTE : Must be placed at the end of the .pro

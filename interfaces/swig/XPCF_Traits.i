@@ -1,4 +1,4 @@
-%module xpcf_traits
+%module XPCF_Traits
 %{
 #include "xpcf/component/ComponentTraits.h"
 #include "xpcf/api/InterfaceTraits.h"
@@ -7,7 +7,7 @@
 
 %include "swig.i"
 
-%import (module="XPCF.Core") "xpcf_core.i"
+%import (module="XPCF.Core") "XPCF_Core.i"
 
 %typemap(csimports) SWIGTYPE
 %{

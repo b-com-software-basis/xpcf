@@ -36,7 +36,7 @@ echo "Generate xpcf csharp interfaces with SWIG"
 
 REMAKEN_XPCF_PKG_ROOT=~/.remaken/packages/${PLATFORM}/xpcf/${XPCF_VERSION}
 
-OPTIONS="-c++ -${TARGET_LANG} -fcompact -O -I${SWIGSRCFOlDER} -I${INTERFACESFOLDER} -DXPCF_USE_BOOST -DSWIG_CSHARP_NO_WSTRING_HELPER" # -dllimport swig_xpcf"
+OPTIONS="-c++ -${TARGET_LANG} -fcompact -O -I${SWIGSRCFOlDER} -I${INTERFACESFOLDER} -DXPCF_USE_BOOST -DSWIG_CSHARP_NO_WSTRING_HELPER -dllimport swig_xpcf"
 
 for swigFile in ${SWIGSRCFOlDER}/*.i ; do
    echo "--> parsing $swigFile"
