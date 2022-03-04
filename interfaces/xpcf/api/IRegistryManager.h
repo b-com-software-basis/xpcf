@@ -95,7 +95,7 @@ public:
     virtual const IEnumerable<SPtr<InterfaceMetadata>> & getInterfacesMetadata() const = 0;
 
     /**
-     * deprecatd ?? TODO : check
+     * deprecated ?? TODO : check
      * @param [in]
      * @return
      */
@@ -114,7 +114,6 @@ template <typename C> SPtr<ComponentMetadata> IRegistryManager::findComponentMet
 {
     return findComponentMetadata( toUUID<C>() );
 }
-
 
 template <> struct InterfaceTraits<IRegistryManager>
 {

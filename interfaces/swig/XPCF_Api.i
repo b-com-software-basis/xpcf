@@ -82,10 +82,8 @@ namespace boost{namespace filesystem{}}
 %include "xpcf/api/ModuleMetadata.h"
 
 //#include "xpcf/api/InterfaceMetadata.i"
-%ignore org::bcom::xpcf::IComponentIntrospect::getMetadata;
+//%ignore org::bcom::xpcf::IComponentIntrospect::getMetadata;
 %include "xpcf/api/IComponentIntrospect.h"
-%rename(queryInterface) org::bcom::xpcf::IComponentIntrospect::queryInterface<org::bcom::xpcf::IComponentIntrospect>;
-%template(queryInterface) org::bcom::xpcf::IComponentIntrospect::queryInterface<org::bcom::xpcf::IComponentIntrospect>;
 
 //#include <xpcf/api/IComponentIntrospect.h>
 //#include <xpcf/api/InjectableMetadata.h>
@@ -96,7 +94,6 @@ namespace boost{namespace filesystem{}}
 %ignore org::bcom::xpcf::IInjectable::inject;
 %ignore org::bcom::xpcf::IInjectable::injectExists;
 %include "xpcf/api/IInjectable.h"
-%template("IInjectableTraits") org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IInjectable>;
 /*
 %template(inject) org::bcom::xpcf::IInjectable::inject<org::bcom::xpcf::IComponentIntrospect>(SRef<IComponentIntrospect> instance);
 template <typename I> void inject(SRef<I> instance);
@@ -117,9 +114,7 @@ template <typename I> bool injectExists(const char * name) const;
 //#include "xpcf/api/ModuleMetadata.i"
 %include "xpcf/api/IFactory.h"
 %include "xpcf/api/IAliasManager.h"
-%template("IAliasManagerTraits") org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IAliasManager>;
 %include "xpcf/api/IRegistryManager.h"
-%template("IRegistryManagerTraits") org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IRegistryManager>;
 %include "xpcf/api/IComponentManager.h"
 
 //#include "xpcf/api/IComponentIntrospect.i"
@@ -157,5 +152,10 @@ namespace std{class runtime_error {};}
 %ignore org::bcom::xpcf::InjectableDeclarationException::InjectableDeclarationException(const std::string & what);
 %include "xpcf/core/Exception.h"
 
+%define XPCF_BIND_TO(NAME, TYPE)
+%template(bindTo_ ## NAME) org::bcom::xpcf::IComponentIntrospect::bindTo<TYPE>;
+%enddef
 
-
+XPCF_BIND_TO(IAliasManager, org::bcom::xpcf::IAliasManager)
+XPCF_BIND_TO(IRegistryManager, org::bcom::xpcf::IRegistryManager)
+XPCF_BIND_TO(IInjectable, org::bcom::xpcf::IInjectable)
