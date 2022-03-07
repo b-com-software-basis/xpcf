@@ -66,6 +66,8 @@ done
 
 generate_swig ${SWIGXPCFFOlDER} ${TARGET_LANG} ${DESTFOLDER} "swig_xpcf"
 generate_swig ${SWIGSAMPLEFOlDER} ${TARGET_LANG} ${DESTFOLDER} "swig_xpcf"
+generate_swig ${SWIGXPCFFOlDER} ${TARGET_LANG}-sample ${DESTSAMPLEFOLDER} "swig_xpcf_sample"
+generate_swig ${SWIGSAMPLEFOlDER} ${TARGET_LANG}-sample ${DESTSAMPLEFOLDER} "swig_xpcf_sample"
 echo "------------------ Patch for Android support -----------------------------"
 
 
@@ -101,5 +103,5 @@ if [ -d test/xpcf ]; then
     echo "Suppress csharp interfaces in test/xpcf"
     rm -r test/xpcf
 fi
-cp -r ${TARGET_LANG}/xpcf test
+cp -r ${TARGET_LANG}-sample/xpcf test
 echo "-----------------------------------------------"

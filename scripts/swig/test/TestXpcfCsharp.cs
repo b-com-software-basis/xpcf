@@ -2,6 +2,7 @@
 using XPCF.Api;
 using XPCF.Core;
 using XPCF.Properties;
+using XPCF.SampleComponent;
 using reflect = System.Reflection;
 
 Test t = new Test();
@@ -180,6 +181,10 @@ public class Test
         xpcfComponentManager.load(confPath);
         var vgComponent = xpcfComponentManager.createComponent("{63FF193D-93E6-4EDE-9947-22F864AC843F}");
         IConfigurable rIConfigurable = vgComponent.BindTo<IConfigurable>();
+        IGuitarist? guitarist = vgComponent.BindTo<IGuitarist>();
+        if (guitarist is not null) {
+            guitarist.learn();
+        }
         Console.WriteLine("Accessing class values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
         foreach (var property in rIConfigurable.getProperties())
         {

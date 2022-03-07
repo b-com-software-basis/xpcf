@@ -15,6 +15,11 @@
     using XPCF.Api;
 %}
 
+%typemap(csimports) SWIGTYPE
+%{
+    using XPCF.Api;
+%}
+
 %shared_ptr(IGuitar)
 %shared_ptr(IElectricGuitar)
 %shared_ptr(ITuner)
