@@ -4,8 +4,11 @@ PLATFORM="linux-gcc"
 XPCF_VERSION=2.5.1
 TARGET_LANG="csharp"
 DESTFOLDER="swig-xpcf-cxx"
+DESTSAMPLEFOLDER="swig-xpcf-sample-cxx"
 INTERFACESFOLDER=../../interfaces
-SWIGSRCFOlDER=${INTERFACESFOLDER}/swig
+SAMPLE_INTERFACESFOLDER=../../samples/sample_component
+SWIGXPCFFOlDER=${INTERFACESFOLDER}/swig
+SWIGSAMPLEFOlDER=${SAMPLE_INTERFACESFOLDER}/swig
 
 display_usage() { 
 	echo "This script builds swig csharp for xpcf."
@@ -36,26 +39,33 @@ echo "Generate xpcf csharp interfaces with SWIG"
 
 REMAKEN_XPCF_PKG_ROOT=~/.remaken/packages/${PLATFORM}/xpcf/${XPCF_VERSION}
 
-OPTIONS="-c++ -${TARGET_LANG} -fcompact -O -I${SWIGSRCFOlDER} -I${INTERFACESFOLDER} -DXPCF_USE_BOOST -DSWIG_CSHARP_NO_WSTRING_HELPER -dllimport swig_xpcf"
-
-for swigFile in ${SWIGSRCFOlDER}/*.i ; do
+OPTIONS="-c++ -${TARGET_LANG} -fcompact -O -I${SWIGXPCFFOlDER} -I${SWIGSAMPLEFOLDER} -I${SAMPLE_INTERFACESFOLDER} -I${INTERFACESFOLDER} -DXPCF_USE_BOOST -DSWIG_CSHARP_NO_WSTRING_HELPER"
+generate_swig() {
+local swigFilesFolder=$1
+local targetLangDestFolder=$2
+local sourceLangDestFolder=$3
+local swigImportSymbol=$4
+for swigFile in ${swigFilesFolder}/*.i ; do
    echo "--> parsing $swigFile"
-   file_name="${swigFile##*/}"
-   file="${file_name%.*}"
-   outfolder="${TARGET_LANG}/${file/_//}"
-   if [ ! -d "$outfolder" ]; then
-      mkdir -p "$outfolder"
+   file_name=${swigFile##*/}
+   file=${file_name%.*}
+   outfolder=${targetLangDestFolder}/${file/_//}
+   if [ ! -d $outfolder ]; then
+      mkdir -p $outfolder
    fi
-   if [ ! -d "$DESTFOLDER" ]; then
-      mkdir -p "$DESTFOLDER"
+   if [ ! -d ${sourceLangDestFolder} ]; then
+      mkdir -p ${sourceLangDestFolder}
    fi
    find "$outfolder" -name "*.*" -type f -delete
-   echo "swig ${OPTIONS} -namespace ${file/_/.} -outdir ${outfolder} -o ${DESTFOLDER}/${file}_wrap.cxx $swigFile"
-   swig ${OPTIONS} -namespace ${file/_/.} -outdir ${outfolder} -o ${DESTFOLDER}/${file}_wrap.cxx $swigFile 
+   echo "swig ${OPTIONS} -dllimport ${swigImportSymbol} -namespace ${file/_/.} -outdir ${outfolder} -o ${sourceLangDestFolder}/${file}_wrap.cxx $swigFile"
+   swig ${OPTIONS} -dllimport ${swigImportSymbol} -namespace ${file/_/.} -outdir ${outfolder} -o ${sourceLangDestFolder}/${file}_wrap.cxx $swigFile
    echo "-----------------------------------------------"
 done
+}
 
 
+generate_swig ${SWIGXPCFFOlDER} ${TARGET_LANG} ${DESTFOLDER} "swig_xpcf"
+generate_swig ${SWIGSAMPLEFOlDER} ${TARGET_LANG} ${DESTFOLDER} "swig_xpcf"
 echo "------------------ Patch for Android support -----------------------------"
 
 

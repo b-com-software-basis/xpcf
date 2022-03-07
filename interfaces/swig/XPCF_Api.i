@@ -119,7 +119,6 @@ template <typename I> bool injectExists(const char * name) const;
 
 //#include "xpcf/api/IComponentIntrospect.i"
 %include "xpcf/api/IConfigurable.h"
-%template("IConfigurableTraits") org::bcom::xpcf::InterfaceTraits<org::bcom::xpcf::IConfigurable>;
 //#include "xpcf/api/IComponentIntrospect.i"
 //#include "xpcf/api/ModuleMetadata.i"
 %include "xpcf/api/IModuleManager.h"

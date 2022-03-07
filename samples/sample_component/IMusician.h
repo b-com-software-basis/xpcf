@@ -64,14 +64,19 @@ inline void serialize(Archive & ar,
    */
 
 
-class [[xpcf::clientUUID("98626b20-3f78-42e0-9891-221be79902cf")]] [[xpcf::serverUUID("eda6836a-6568-4135-b241-5f245574bee9")]] IMusician :
-    virtual public org::bcom::xpcf::IComponentIntrospect
+class
+#ifndef SWIG
+        [[xpcf::clientUUID("98626b20-3f78-42e0-9891-221be79902cf")]] [[xpcf::serverUUID("eda6836a-6568-4135-b241-5f245574bee9")]]
+#endif
+IMusician : virtual public org::bcom::xpcf::IComponentIntrospect
 {
 public:
     virtual ~IMusician() = default;
     virtual void learn () = 0;
     virtual void playMusic (const MusicScore & score) = 0;
-    [[grpc::noCompression]]
+#ifndef SWIG
+[[grpc::noCompression]]
+#endif
     virtual void playScore (std::vector<std::pair<std::string, float>> & score) = 0;
     virtual void playModifyScore (std::vector<std::pair<std::string, float>> & score) = 0;
     virtual void listen () = 0;

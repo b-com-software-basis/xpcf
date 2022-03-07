@@ -83,4 +83,5 @@ header_files.files += xpcfSampleComponent_traits.h
 
 INSTALLS += header_files
 DISTFILES += \
-    Makefile
+    Makefile \
+    swig/XPCF_SampleComponent.i
