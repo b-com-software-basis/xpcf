@@ -3,6 +3,7 @@ using XPCF.Api;
 using XPCF.Core;
 using XPCF.Properties;
 using XPCF.SampleComponent;
+using XPCF.Bindings;
 using reflect = System.Reflection;
 
 Test t = new Test();
@@ -78,12 +79,19 @@ public static class IntrospectExtensions
         return xpcfComponentManager.createComponent(name, uuid);
     }
 
-    public static T? BindTo<T>(this IComponentIntrospect component) where T : class
-    {
-        return (T?)component.BindTo(typeof(T).Name);
+    public static T handleNull<T>(T? obj) {
+        if (obj is null) {
+            throw new System.Exception("Object is null " + typeof(T).Name);
+        }
+        return obj!;
     }
 
-    public static object? BindTo(this IComponentIntrospect component, string name)
+    public static T BindTo<T>(this IComponentIntrospect component) where T : class
+    {
+        return (T)component.BindTo(typeof(T).Name);
+    }
+
+    public static object BindTo(this IComponentIntrospect component, string name)
     {
         InterfaceMetadata? mData = null;
         foreach (UUID uuid in component.getInterfaces() ) {
@@ -96,12 +104,12 @@ public static class IntrospectExtensions
         if (mData is null) {
             throw new System.Exception("Component doesn't implement interface " + name);
         }
-        Type compType = component.GetType();
-        reflect.MethodInfo? method = compType.GetMethod("bindTo_" + name);
+        Type compType = typeof(XPCF_Bindings);
+        reflect.MethodInfo? method = compType.GetMethod("bindTo_" + name,reflect.BindingFlags.Public | reflect.BindingFlags.Static);
         if (method is null) {
             throw new System.Exception("No method bindTo_"+ name + " available for the component: check swig binding !");
         }
-        return method.Invoke(component, null);
+        return method.Invoke(null, new object[] {component})!;
     }
 }
 
@@ -181,10 +189,8 @@ public class Test
         xpcfComponentManager.load(confPath);
         var vgComponent = xpcfComponentManager.createComponent("{63FF193D-93E6-4EDE-9947-22F864AC843F}");
         IConfigurable rIConfigurable = vgComponent.BindTo<IConfigurable>();
-        IGuitarist? guitarist = vgComponent.BindTo<IGuitarist>();
-        if (guitarist is not null) {
-            guitarist.learn();
-        }
+        IGuitarist guitarist = vgComponent.BindTo<IGuitarist>();
+        guitarist.learn();
         Console.WriteLine("Accessing class values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
         foreach (var property in rIConfigurable.getProperties())
         {

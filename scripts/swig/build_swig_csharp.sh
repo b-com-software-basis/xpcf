@@ -1,5 +1,7 @@
 #!/bin/bash
 
+QTVERSION=5.15.2
+
 PLATFORM="linux-gcc"
 XPCF_VERSION=2.5.1
 TARGET_LANG="csharp"
@@ -7,14 +9,44 @@ DESTFOLDER="swig-xpcf-cxx"
 DESTSAMPLEFOLDER="swig-xpcf-sample-cxx"
 INTERFACESFOLDER=../../interfaces
 SAMPLE_INTERFACESFOLDER=../../samples/sample_component
-SWIGXPCFFOlDER=${INTERFACESFOLDER}/swig
-SWIGSAMPLEFOlDER=${SAMPLE_INTERFACESFOLDER}/swig
+SWIGXPCFFOLDER=${INTERFACESFOLDER}/swig
+SWIGSAMPLEFOLDER=${SAMPLE_INTERFACESFOLDER}/swig
 
 display_usage() { 
 	echo "This script builds swig csharp for xpcf."
     echo "It can receive two optional arguments." 
-	echo -e "\nUsage: \$0 [XPCF VERSION | default='${XPCF_VERSION}'] [generation destination folder | default='${DESTFOLDER}'] \n" 
+        echo -e "\nUsage: \$0 [XPCF VERSION | default='${XPCF_VERSION}'] [Qt kit version to use | default='${QTVERSION}'] [generation destination folder | default='${DESTFOLDER}'] \n"
 } 
+
+# check whether user had supplied -h or --help . If yes display usage
+if [[ ( $1 == "--help") ||  $1 == "-h" ]]
+then
+    display_usage
+    exit 0
+fi
+
+if [ $# -ge 1 ]; then
+        XPCF_VERSION=$1
+fi
+
+if [ $# -ge 2 ]; then
+        QTVERSION=$2
+fi
+
+if [ $# -eq 3 ]; then
+        DESTFOLDER=$3
+fi
+
+QMAKE_PATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
+QMAKE_SPEC=linux-g++
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+# overload for mac values
+        PLATFORM=mac-clang
+        QMAKE_PATH=/Applications/Qt/${QTVERSION}/clang_64/bin
+        QMAKE_SPEC=macx-clang
+        export PKG_CONFIG_PATH=/usr/local/opt/openssl@1.1/lib/pkgconfig:/usr/local/lib/pkgconfig
+fi
 
 if [ ! -d ${TARGET_LANG}_android ]; then
     rm -r ${TARGET_LANG}_android
@@ -37,31 +69,9 @@ if [ ! -d ${DESTSAMPLEFOLDER} ]; then
 fi
 
 
-
-# check whether user had supplied -h or --help . If yes display usage 
-if [[ ( $1 == "--help") ||  $1 == "-h" ]] 
-then 
-    display_usage
-    exit 0
-fi 
-
-if [ $# -ge 1 ]; then
-	XPCF_VERSION=$1
-fi
-if [ $# -eq 2 ]; then
-	DESTFOLDER=$2
-fi
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-# overload for mac values
-	PLATFORM=mac-clang
-fi
-
-echo "Generate xpcf csharp interfaces with SWIG"
-
 REMAKEN_XPCF_PKG_ROOT=~/.remaken/packages/${PLATFORM}/xpcf/${XPCF_VERSION}
 
-OPTIONS="-c++ -${TARGET_LANG} -fcompact -O -I${SWIGXPCFFOlDER} -I${SWIGSAMPLEFOLDER} -I${SAMPLE_INTERFACESFOLDER} -I${INTERFACESFOLDER} -DXPCF_USE_BOOST -DSWIG_CSHARP_NO_WSTRING_HELPER"
+OPTIONS="-c++ -${TARGET_LANG} -fcompact -O -I${SWIGXPCFFOLDER} -I${SWIGSAMPLEFOLDER} -I${SAMPLE_INTERFACESFOLDER} -I${INTERFACESFOLDER} -DXPCF_USE_BOOST -DSWIG_CSHARP_NO_WSTRING_HELPER"
 generate_swig() {
 local swigFilesFolder=$1
 local targetLangDestFolder=$2
@@ -85,28 +95,37 @@ for swigFile in ${swigFilesFolder}/*.i ; do
 done
 }
 
+echo "Generating xpcf csharp interfaces with SWIG"
+#generate_swig ${SWIGXPCFFOLDER} ${TARGET_LANG} ${DESTFOLDER} "swig_xpcf"
+#generate_swig ${SWIGSAMPLEFOLDER} ${TARGET_LANG} ${DESTFOLDER} "swig_xpcf"
+generate_swig ${SWIGXPCFFOLDER} ${TARGET_LANG}-sample ${DESTSAMPLEFOLDER} "swig_xpcf_sample"
+generate_swig ${SWIGSAMPLEFOLDER} ${TARGET_LANG}-sample ${DESTSAMPLEFOLDER} "swig_xpcf_sample"
+echo "-----------------------------------------------"
 
-generate_swig ${SWIGXPCFFOlDER} ${TARGET_LANG} ${DESTFOLDER} "swig_xpcf"
-generate_swig ${SWIGSAMPLEFOlDER} ${TARGET_LANG} ${DESTFOLDER} "swig_xpcf"
-generate_swig ${SWIGXPCFFOlDER} ${TARGET_LANG}-sample ${DESTSAMPLEFOLDER} "swig_xpcf_sample"
-generate_swig ${SWIGSAMPLEFOlDER} ${TARGET_LANG}-sample ${DESTSAMPLEFOLDER} "swig_xpcf_sample"
-
+echo "Generating xpcf c++ wrapping shared libraries"
 if [ -d build-swig-xpcf-sample/shared ]; then
         rm -rf build-swig-xpcf-sample/shared
 fi
 mkdir -p build-swig-xpcf-sample/shared/debug
 mkdir -p build-swig-xpcf-sample/shared/release
-echo "===========> building XPCF shared <==========="
+echo "===========> building swig-xpcf-sample shared <==========="
 pushd build-swig-xpcf-sample/shared/debug
 `${QMAKE_PATH}/qmake ../../../swig_xpcf_sample.pro -spec ${QMAKE_SPEC} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
 popd
-pushd build-xpcf/shared/release
+pushd build-swig-xpcf-sample/shared/release
 `${QMAKE_PATH}/qmake ../../../swig_xpcf_sample.pro -spec ${QMAKE_SPEC} CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
 popd
+echo "-----------------------------------------------"
+
+
+echo "Generating .Net sample test project with dotnet core"
+dotnet build test/testXpcfCsharp.csproj
+echo "-----------------------------------------------"
+
 
 echo "------------------ Patch for Android support -----------------------------"
 cp -r ${TARGET_LANG} ${TARGET_LANG}_android

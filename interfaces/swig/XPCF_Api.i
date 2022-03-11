@@ -150,11 +150,3 @@ namespace std{class runtime_error {};}
 %ignore org::bcom::xpcf::InjectableNotFoundException::InjectableNotFoundException(const std::string & what);
 %ignore org::bcom::xpcf::InjectableDeclarationException::InjectableDeclarationException(const std::string & what);
 %include "xpcf/core/Exception.h"
-
-%define XPCF_BIND_TO(NAME, TYPE)
-%template(bindTo_ ## NAME) org::bcom::xpcf::IComponentIntrospect::bindTo<TYPE>;
-%enddef
-
-XPCF_BIND_TO(IAliasManager, org::bcom::xpcf::IAliasManager)
-XPCF_BIND_TO(IRegistryManager, org::bcom::xpcf::IRegistryManager)
-XPCF_BIND_TO(IInjectable, org::bcom::xpcf::IInjectable)

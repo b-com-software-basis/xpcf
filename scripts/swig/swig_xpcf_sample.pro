@@ -75,7 +75,19 @@ android {
 }
 
 OTHER_FILES += \
-    packagedependencies.txt
+packagedependencies.txt \
+../../interfaces/swig/XPCF_Bindings.i \
+../../interfaces/swig/XPCF_Api.i \
+../../interfaces/swig/XPCF_Collection.i \
+../../interfaces/swig/XPCF_Component.i \
+../../interfaces/swig/XPCF_Core.i \
+../../interfaces/swig/XPCF_Module.i \
+../../interfaces/swig/XPCF_Properties.i \
+../../interfaces/swig/XPCF_Threading.i \
+../../interfaces/swig/XPCF_Traits.i \
+../../interfaces/swig/swig.i \
+ ../../samples/sample_component/swig/XPCF_SampleComponent.i
+
 
 #NOTE : Must be placed at the end of the .pro
 include (../../builddefs/qmake/remaken_install_target.pri)))

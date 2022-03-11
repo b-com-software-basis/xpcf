@@ -11,8 +11,8 @@
         <bindings>
             <!-- multibind -->
             <bind interface="IElectricGuitar">
-                <component to="JacksonDinky6ElectricGuitar"/>
-                <component to="Ibanez7ElectricGuitar"/>
+                <component to="JacksonDinky6ElectricGuitar" range="all"/>
+                <component to="Ibanez7ElectricGuitar" range="all"/>
             </bind>
         </bindings>
     </factory>

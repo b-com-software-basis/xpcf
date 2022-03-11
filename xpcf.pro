@@ -238,6 +238,19 @@ contains(DEFINES, "WITHREMOTING") {
     INSTALLS += h_remoting_files
 }
 
+OTHER_FILES += \
+interfaces/swig/swig.i \
+interfaces/swig/XPCF_Bindings.i \
+interfaces/swig/XPCF_Api.i \
+interfaces/swig/XPCF_Collection.i \
+interfaces/swig/XPCF_Component.i \
+interfaces/swig/XPCF_Core.i \
+interfaces/swig/XPCF_Module.i \
+interfaces/swig/XPCF_Properties.i \
+interfaces/swig/XPCF_Threading.i \
+interfaces/swig/XPCF_Traits.i
+
+
 DISTFILES += \
     Makefile \
     doc/xpcf-registry-sample.xml \

@@ -1,4 +1,5 @@
 SOURCES += \
+$${SWIG_CXX_GEN_FOLDER}/XPCF_Bindings_wrap.cxx \
 $${SWIG_CXX_GEN_FOLDER}/XPCF_SampleComponent_wrap.cxx \
 $${SWIG_CXX_GEN_FOLDER}/XPCF_Api_wrap.cxx \
 $${SWIG_CXX_GEN_FOLDER}/XPCF_Collection_wrap.cxx \

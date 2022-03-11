@@ -31,10 +31,3 @@
 %include "IMusician.h"
 %include "IHuman.h"
 %include "IGuitarist.h"
-
-XPCF_BIND_TO(IGuitar, IGuitar)
-XPCF_BIND_TO(IElectricGuitar, IElectricGuitar)
-XPCF_BIND_TO(IGuitarist, IGuitarist)
-XPCF_BIND_TO(ITuner, ITuner)
-XPCF_BIND_TO(IHuman, IHuman)
-XPCF_BIND_TO(IMusician, IMusician)
