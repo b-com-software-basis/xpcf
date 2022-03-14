@@ -33,6 +33,8 @@
 
 %define XPCF_BIND_TO(NAME, TYPE)
 %template(bindTo_ ## NAME) org::bcom::xpcf::bindTo<TYPE>;
+%template(resolve_ ## NAME) org::bcom::xpcf::resolve<TYPE>;
+%template(resolveAll_ ## NAME) org::bcom::xpcf::resolveAll<TYPE>;
 %enddef
 
 // Base XPCF interfaces bindTo wrapping

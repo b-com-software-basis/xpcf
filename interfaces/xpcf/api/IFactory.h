@@ -368,6 +368,21 @@ template <> struct InterfaceTraits<IFactory>
     static constexpr const char * DESCRIPTION = "Factory interface.\nProvides binding between interfaces uuid and concrete components uuid for injection patterns";
 };
 
+template <typename I> SRef<I> resolve(SRef<IFactory> factory)
+{
+    return factory->resolve<I>();
+}
+
+template <typename I> SRef<I> resolve(SRef<IFactory> factory, const std::string & name)
+{
+    return factory->resolve<I>(name);    
+}
+
+template <typename I> const SRef<IEnumerable<SRef<IComponentIntrospect>>> resolveAll(SRef<IFactory> factory)
+{
+    return factory->resolveAll<I>();   
+}
+
 
 }}} //namespace org::bcom::xpcf
 

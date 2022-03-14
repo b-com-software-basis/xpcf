@@ -1,30 +1,27 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using XPCF.Api;
 using XPCF.Core;
+using XPCF.Collection;
 using XPCF.Properties;
 using XPCF.SampleComponent;
 using XPCF.Bindings;
 using reflect = System.Reflection;
 
+IntrospectExtensions.xpcfComponentManager = XPCF_Api.getComponentManagerInstance();
+
 Test t = new Test();
-foreach (var type in typeof(IComponentManager).Assembly.GetTypes()) {
-        Console.WriteLine(type.Name);
-}
 try
 {
     IntrospectExtensions.xpcfComponentManager.load();
-    IRegistryManager? registryMgr = IntrospectExtensions.xpcfComponentManager.getFactory().BindTo<IRegistryManager>();
-    if (registryMgr is not null) {
-    foreach (var interfaceMdata in registryMgr.getInterfacesMetadata()) {
-        IntrospectExtensions.interfacesDict.TryAdd(interfaceMdata.name(), interfaceMdata.getUUID().ToString());
-    }
-    }
+    IntrospectExtensions.populateRegistry();
     bool result = t.loadModuleMetadata();
 }
-catch(System.TypeInitializationException e) {
+catch (System.TypeInitializationException e)
+{
     Console.WriteLine(e.Message);
     Console.WriteLine(e.StackTrace);
-    if (e.InnerException is not null) {
+    if (e.InnerException is not null)
+    {
         Console.WriteLine("InnerException: " + e.InnerException.Message);
     }
 }
@@ -48,42 +45,124 @@ public static class IntrospectExtensions
 {
     public static IComponentManager xpcfComponentManager = XPCF_Api.getComponentManagerInstance();
     public static Dictionary<string, string> interfacesDict = new Dictionary<string, string>();
+    public static Dictionary<string, string> componentsDict = new Dictionary<string, string>();
+
+    public static void populateRegistry() {
+        IRegistryManager? registryMgr = IntrospectExtensions.xpcfComponentManager.getFactory().BindTo<IRegistryManager>();
+        if (registryMgr is not null)
+        {
+            foreach (var interfaceMdata in registryMgr.getInterfacesMetadata())
+            {
+                IntrospectExtensions.interfacesDict.TryAdd(interfaceMdata.name(), interfaceMdata.getUUID().ToString());
+            }
+            foreach (var moduleMData in registryMgr.getModulesMetadata())
+            {
+                IntrospectExtensions.modulesDict.TryAdd(moduleMData.name(), moduleMData.getUUID().ToString());
+                foreach (var componentMData in moduleMData.getComponentsMetadata())
+                {
+                    IntrospectExtensions.componentsDict.TryAdd(componentMData.name(), componentMData.getUUID().ToString());
+                }
+            }
+        }
+    }
+    public static Dictionary<string, string> modulesDict = new Dictionary<string, string>();
     public static string GetUUID(string name)
-    {// from aliasmanager?
+    {
         Console.WriteLine("GetUUID for " + name);
-        string uuid = interfacesDict[name];
-        return uuid;
+        if (interfacesDict.ContainsKey(name))
+            return interfacesDict[name];
+        if (componentsDict.ContainsKey(name))
+            return componentsDict[name];
+        if (modulesDict.ContainsKey(name))
+            return modulesDict[name];
+        return "";
     }
 
-    public static UUID GetUUID<T>()
+    public static string GetUUID(IAliasManager mgr, string name)
     {
-        var name = typeof(T).Name;
-        return new UUID(GetUUID(name));
+        Console.WriteLine("GetUUID from AliasManager for " + name);
+        if (mgr.aliasExists(IAliasManager.Type.Component, name)) {
+            return mgr.resolveComponentAlias(name).ToString();
+        }
+        if (mgr.aliasExists(IAliasManager.Type.Interface, name)) {
+            return mgr.resolveInterfaceAlias(name).ToString();
+        }
+        if (mgr.aliasExists(IAliasManager.Type.Module, name)) {
+            return mgr.resolveModuleAlias(name).ToString();
+        }
+        return "";
     }
 
-    [Obsolete("Use type parameter")]
-    public static IComponentIntrospect Create<T>(this IComponentManager xpcfComponentManager)
+    public static T handleNull<T>(T? obj)
     {
-        return xpcfComponentManager.createComponent(GetUUID<T>());
-    }
-
-    public static IComponentIntrospect Create(this IComponentManager xpcfComponentManager, string type)
-    {
-        var uuid = new UUID(GetUUID(type));
-        return xpcfComponentManager.createComponent(uuid);
-    }
-
-    public static IComponentIntrospect Create(this IComponentManager xpcfComponentManager, string type, string name)
-    {
-        var uuid = new UUID(GetUUID(type));
-        return xpcfComponentManager.createComponent(name, uuid);
-    }
-
-    public static T handleNull<T>(T? obj) {
-        if (obj is null) {
+        if (obj is null)
+        {
             throw new System.Exception("Object is null " + typeof(T).Name);
         }
         return obj!;
+    }
+
+    public static T Resolve<T>(this IComponentManager cmpMgr) where T : class
+    {
+        return cmpMgr.getFactory().Resolve<T>();
+    }
+
+    public static T Resolve<T>(this IFactory factory) where T : class
+    {
+        return (T)Resolve(factory, typeof(T).Name);
+    }
+
+    public static object Resolve(this IFactory factory, string name)
+    {
+        Type compType = typeof(XPCF_Bindings);
+        reflect.MethodInfo? method = compType.GetMethod("resolve_" + name, reflect.BindingFlags.Public | reflect.BindingFlags.Static, null, new System.Type[] { typeof(IFactory) }, null);
+        if (method is null)
+        {
+            throw new System.Exception("No method resolve_" + name + " available : check swig binding !");
+        }
+        return method.Invoke(null, new object[] { factory })!;
+    }
+
+    public static T Resolve<T>(this IComponentManager cmpMgr, string instanceName) where T : class
+    {
+        return cmpMgr.getFactory().Resolve<T>(instanceName);
+    }
+
+    public static T Resolve<T>(this IFactory factory, string instanceName) where T : class
+    {
+        return (T)Resolve(factory, typeof(T).Name, instanceName);
+    }
+
+    public static object Resolve(this IFactory factory, string name, string instanceName)
+    {
+        Type compType = typeof(XPCF_Bindings);
+        reflect.MethodInfo? method = compType.GetMethod("resolve_" + name, reflect.BindingFlags.Public | reflect.BindingFlags.Static, null, new System.Type[] { typeof(IFactory), typeof(string) }, null);
+        if (method is null)
+        {
+            throw new System.Exception("No method resolve_" + name + " available : check swig binding !");
+        }
+        return method.Invoke(null, new object[] { factory, instanceName })!;
+    }
+
+    public static IComponentIntrospectEnumerable ResolveAll<T>(this IComponentManager cmpMgr) where T : class
+    {
+        return cmpMgr.getFactory().ResolveAll<T>();
+    }
+
+    public static IComponentIntrospectEnumerable ResolveAll<T>(this IFactory factory) where T : class
+    {
+        return (IComponentIntrospectEnumerable)ResolveAll(factory, typeof(T).Name);
+    }
+
+    public static object ResolveAll(this IFactory component, string name)
+    {
+        Type compType = typeof(XPCF_Bindings);
+        reflect.MethodInfo? method = compType.GetMethod("resolveAll_" + name, reflect.BindingFlags.Public | reflect.BindingFlags.Static);
+        if (method is null)
+        {
+            throw new System.Exception("No method resolveAll_" + name + " available : check swig binding !");
+        }
+        return method.Invoke(null, new object[] { component })!;
     }
 
     public static T BindTo<T>(this IComponentIntrospect component) where T : class
@@ -94,22 +173,26 @@ public static class IntrospectExtensions
     public static object BindTo(this IComponentIntrospect component, string name)
     {
         InterfaceMetadata? mData = null;
-        foreach (UUID uuid in component.getInterfaces() ) {
+        foreach (UUID uuid in component.getInterfaces())
+        {
             string compIFName = component.getMetadata(uuid).name();
-            if (compIFName.Contains(name)) {
+            if (compIFName.Contains(name))
+            {
                 mData = component.getMetadata(uuid);
                 break;
             }
         }
-        if (mData is null) {
+        if (mData is null)
+        {
             throw new System.Exception("Component doesn't implement interface " + name);
         }
         Type compType = typeof(XPCF_Bindings);
-        reflect.MethodInfo? method = compType.GetMethod("bindTo_" + name,reflect.BindingFlags.Public | reflect.BindingFlags.Static);
-        if (method is null) {
-            throw new System.Exception("No method bindTo_"+ name + " available for the component: check swig binding !");
+        reflect.MethodInfo? method = compType.GetMethod("bindTo_" + name, reflect.BindingFlags.Public | reflect.BindingFlags.Static);
+        if (method is null)
+        {
+            throw new System.Exception("No method bindTo_" + name + " available for the component: check swig binding !");
         }
-        return method.Invoke(null, new object[] {component})!;
+        return method.Invoke(null, new object[] { component })!;
     }
 }
 
@@ -167,6 +250,7 @@ public class Test
     }
     public bool loadModuleMetadata()
     {
+
         IComponentManager xpcfComponentManager = IntrospectExtensions.xpcfComponentManager;
         xpcfComponentManager.load();
         XPCF.Core.UUID sampleComponentModuleUUID = new UUID("3b899ff0-e098-4218-bdaa-82abdec22960");
@@ -191,6 +275,11 @@ public class Test
         IConfigurable rIConfigurable = vgComponent.BindTo<IConfigurable>();
         IGuitarist guitarist = vgComponent.BindTo<IGuitarist>();
         guitarist.learn();
+        Console.WriteLine("Resolving component for IElectricGuitar interface");
+        IElectricGuitar elecGuitar = xpcfComponentManager.Resolve<IElectricGuitar>();
+        IGuitar guitar = elecGuitar.BindTo<IGuitar>();
+        Console.WriteLine("Electric guitar brand is " + guitar.getGuitarBrand());
+        Console.WriteLine("Electric guitar string number is " + guitar.getNbStrings());
         Console.WriteLine("Accessing class values for VirtualGuitarist from IProperty/IPropertyMap interfaces");
         foreach (var property in rIConfigurable.getProperties())
         {
@@ -202,7 +291,4 @@ public class Test
         xpcfComponentManager.clear();
         return true;
     }
-
-
-
 }
