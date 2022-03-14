@@ -50,8 +50,10 @@ DEFINES += SWIG
 
 unix:!android {
     QMAKE_CXXFLAGS += -Wignored-qualifiers
-    QMAKE_LINK=clang++
-    QMAKE_CXX = clang++
+}
+
+linux {
+   QMAKE_LFLAGS += -ldl
 }
 
 macx {
@@ -86,11 +88,11 @@ packagedependencies.txt \
 ../../interfaces/swig/XPCF_Threading.i \
 ../../interfaces/swig/XPCF_Traits.i \
 ../../interfaces/swig/swig.i \
- ../../samples/sample_component/swig/XPCF_SampleComponent.i
-
+ ../../samples/sample_component/swig/XPCF_SampleComponent.i \
+ build_swig_csharp.sh \
+ clean_swig_build.sh
 
 #NOTE : Must be placed at the end of the .pro
 include (../../builddefs/qmake/remaken_install_target.pri)))
 
-DISTFILES += \
-    build_swig_csharp.sh
+

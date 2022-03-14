@@ -48,8 +48,10 @@ DEFINES += SWIG
 
 unix:!android {
     QMAKE_CXXFLAGS += -Wignored-qualifiers
-    QMAKE_LINK=clang++
-    QMAKE_CXX = clang++
+}
+
+linux {
+   QMAKE_LFLAGS += -ldl
 }
 
 macx {

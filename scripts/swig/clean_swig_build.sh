@@ -38,9 +38,9 @@ if [ -d ${DESTSAMPLEFOLDER} ]; then
     rm -r ${DESTSAMPLEFOLDER}
 fi
 
-if [ -d test/xpcf ]; then
-    echo "Suppress csharp interfaces in test/xpcf"
-    rm -rf test/xpcf
+if [ -d test/XPCF ]; then
+    echo "Suppress csharp interfaces in test/XPCF"
+    rm -rf test/XPCF
 fi
 
 if [ -d test/bin ]; then

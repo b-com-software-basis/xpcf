@@ -68,8 +68,8 @@ if [ -d ${DESTSAMPLEFOLDER} ]; then
     rm -rf ${DESTSAMPLEFOLDER}
 fi
 
-
-REMAKEN_XPCF_PKG_ROOT=~/.remaken/packages/${PLATFORM}/xpcf/${XPCF_VERSION}
+REMAKEN_PLATFORM_ROOT=~/.remaken/packages/${PLATFORM}
+REMAKEN_XPCF_PKG_ROOT=${REMAKEN_PLATFORM_ROOT}/xpcf/${XPCF_VERSION}
 
 OPTIONS="-c++ -${TARGET_LANG} -fcompact -O -I${SWIGXPCFFOLDER} -I${SWIGSAMPLEFOLDER} -I${SAMPLE_INTERFACESFOLDER} -I${INTERFACESFOLDER} -DXPCF_USE_BOOST -DSWIG_CSHARP_NO_WSTRING_HELPER"
 generate_swig() {
@@ -103,11 +103,11 @@ generate_swig ${SWIGSAMPLEFOLDER} ${TARGET_LANG}-sample ${DESTSAMPLEFOLDER} "swi
 echo "-----------------------------------------------"
 
 echo "------------------ Export xpcf csharp files to test folder -----------------------------"
-if [ -d test/xpcf ]; then
-    echo "Suppress csharp interfaces in test/xpcf"
-    rm -r test/xpcf
+if [ -d test/XPCF ]; then
+    echo "Suppress csharp interfaces in test/XPCF"
+    rm -r test/XPCF
 fi
-cp -r ${TARGET_LANG}-sample/xpcf test
+cp -r ${TARGET_LANG}-sample/XPCF test
 echo "-----------------------------------------------"
 
 echo "Generating xpcf c++ wrapping shared libraries"
@@ -134,7 +134,7 @@ dotnet build test/testXpcfCsharp.csproj
 echo "-----------------------------------------------"
 
 echo "------------------ Deploying shared libraries (swig wrapper, xpcf...) to C# binary folder -----------------------------"
-~/.remaken/packages/mac-clang/remaken/1.9.2/bin/x86_64/static/debug/remaken.app/Contents/MacOS/remaken bundle -v -c debug --cpp-std 17 -d test/bin/Debug/net6.0/. --recurse test/packagedependencies.txt
+remaken bundle -v -c debug --cpp-std 17 -d test/bin/Debug/net6.0/. --recurse test/packagedependencies.txt
 echo "-----------------------------------------------"
 
 echo "------------------ Patch for Android support -----------------------------"
