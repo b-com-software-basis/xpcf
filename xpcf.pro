@@ -108,14 +108,6 @@ SOURCES += \
     src/BaseTask.cpp
 
 HEADERS += \
-    interfaces/swig/xpcf_api.i \
-    interfaces/swig/xpcf_collection.i \
-    interfaces/swig/xpcf_component.i \
-    interfaces/swig/xpcf_core.i \
-    interfaces/swig/xpcf_module.i \
-    interfaces/swig/xpcf_properties.i \
-    interfaces/swig/xpcf_threading.i \
-    interfaces/swig/xpcf_traits.i \
     interfaces/xpcf/api/IAliasManager.h \
     interfaces/xpcf/api/IRegistryManager.h \
     interfaces/xpcf/api/InjectableMetadata.h \
@@ -240,15 +232,15 @@ contains(DEFINES, "WITHREMOTING") {
 
 OTHER_FILES += \
 interfaces/swig/swig.i \
-interfaces/swig/XPCF_Bindings.i \
 interfaces/swig/XPCF_Api.i \
+interfaces/swig/XPCF_Bindings.i \
 interfaces/swig/XPCF_Collection.i \
 interfaces/swig/XPCF_Component.i \
 interfaces/swig/XPCF_Core.i \
 interfaces/swig/XPCF_Module.i \
 interfaces/swig/XPCF_Properties.i \
 interfaces/swig/XPCF_Threading.i \
-interfaces/swig/XPCF_Traits.i
+interfaces/swig/XPCF_Traits.i \
 
 
 DISTFILES += \
