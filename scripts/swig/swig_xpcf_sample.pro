@@ -91,7 +91,7 @@ packagedependencies.txt \
  ../../samples/sample_component/swig/XPCF_SampleComponent.i \
  build_swig_csharp.sh \
  clean_swig_build.sh \
- install_dotNet.sh
+ install_swig_dotNet.sh
 
 
 #NOTE : Must be placed at the end of the .pro
