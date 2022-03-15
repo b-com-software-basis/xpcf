@@ -1,5 +1,6 @@
+FRAMEWORK = xpcfcli
 TARGET = xpcfcli
-VERSION=2.5.0
+VERSION=2.5.1
 
 CONFIG += c++17
 CONFIG += console
@@ -25,7 +26,7 @@ win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
 DEPENDENCIESCONFIG = staticlib recurse
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
-include (../builddefs/qmake/templateappconfig.pri)
+include (../../builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
 
@@ -38,6 +39,7 @@ unix {
 macx {
     QMAKE_MAC_SDK= macosx
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++
+    LIBS += -L/usr/local/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 win32 {
