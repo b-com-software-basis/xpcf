@@ -30,8 +30,6 @@ for %%b in (%BUILDMODES%) do (
 	)
 )
 
-cd "%~dp0"
-
 endlocal
 goto:eof
 
