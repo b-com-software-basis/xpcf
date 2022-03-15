@@ -3,7 +3,7 @@
 
 
 QTVERSION=5.15.2
-XPCFROOT=..
+XPCFROOT=../..
 
 display_usage() { 
 	echo "This script builds xpcf in shared and static mode with a special deployment option for packaging."
@@ -81,4 +81,4 @@ make
 make install
 popd
 
-${XPCFROOT}/scripts/make_remaken_package.sh xpcf 2.5.1
+${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcf 2.5.1

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 QTVERSION=5.15.2
-XPCFROOT=..
+XPCFROOT=../..
 
 display_usage() { 
 	echo "This script builds xpcf_grpc_gen application."

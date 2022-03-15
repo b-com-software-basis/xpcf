@@ -1,6 +1,6 @@
 #!/bin/bash
 QTVERSION=5.15.2
-XPCFROOT=..
+XPCFROOT=../..
 
 display_usage() { 
 	echo "This script builds xpcf in shared and static mode, xpcf_grpc_gen and testxpcf applications."
@@ -32,8 +32,8 @@ if [ ! -d ${XPCFROOT} ]; then
 	exit 2
 fi
 echo "XPCF project root path used is : ${XPCFROOT}"
-${XPCFROOT}/scripts/build_xpcf_shared.sh ${XPCFROOT} ${QTVERSION}
-${XPCFROOT}/scripts/build_xpcf_grpc_client.sh ${XPCFROOT} ${QTVERSION}
-${XPCFROOT}/scripts/build_xpcf_grpc_server.sh ${XPCFROOT} ${QTVERSION}
-${XPCFROOT}/scripts/build_xpcf_static.sh ${XPCFROOT} ${QTVERSION}
-${XPCFROOT}/scripts/build_xpcf_grpc_gen.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_xpcf_shared.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_xpcf_grpc_client.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_xpcf_grpc_server.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_xpcf_static.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_xpcf_grpc_gen.sh ${XPCFROOT} ${QTVERSION}

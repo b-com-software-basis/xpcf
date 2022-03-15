@@ -1,6 +1,6 @@
 #!/bin/bash
 QTVERSION=5.15.2
-XPCFROOT=..
+XPCFROOT=../..
 
 display_usage() { 
 	echo "This script builds xpcf in shared and static mode, xpcf_grpc_gen and testxpcf applications."
@@ -21,14 +21,15 @@ fi
 if [ $# -eq 2 ]; then
 	QTVERSION=$2
 fi
-# default linux values
+
+set_brew_env.sh
 
 if [ ! -d ${XPCFROOT} ]; then
 	echo "XPCF project root path '${XPCFROOT}' doesn't exist"
 	exit 2
 fi
 echo "XPCF project root path used is : ${XPCFROOT}"
-${XPCFROOT}/scripts/build_xpcf_shared.sh ${XPCFROOT} ${QTVERSION}
-${XPCFROOT}/scripts/build_testxpcf.sh ${XPCFROOT} ${QTVERSION}
-${XPCFROOT}/scripts/build_xpcf_static.sh ${XPCFROOT} ${QTVERSION}
-${XPCFROOT}/scripts/build_xpcf_grpc_gen.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_xpcf_shared.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_testxpcf.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_xpcf_static.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_xpcfcli.sh ${XPCFROOT} ${QTVERSION}
