@@ -23,5 +23,6 @@ if [ $# -eq 2 ]; then
 fi
 
 ${XPCFROOT}/scripts/unixes/build_xpcf.sh ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfSampleComponent shared ${XPCFROOT}/samples/sample_component ${QTVERSION}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh testxpcf shared ${XPCFROOT}/test ${QTVERSION}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfcli static ${XPCFROOT}/tools/cli ${QTVERSION}

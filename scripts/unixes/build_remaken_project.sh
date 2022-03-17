@@ -3,6 +3,7 @@
 QTVERSION=5.15.2
 PROJECTROOT=../..
 MODE=shared
+QMAKE_MODE=""
 
 display_usage() { 
 	echo "This script builds a remaken project."
@@ -45,6 +46,11 @@ if [[ ${MODE} != "shared" && ${MODE} != "static" ]]; then
 	exit 2
 fi
 
+if [[ ${MODE} == "static" ]]; then
+	QMAKE_MODE=CONFIG+=staticlib
+	echo "${MODE} build enabled: building with ${QMAKE_MODE} option"
+fi
+
 if [ ! -d ${QMAKE_PATH} ]; then
 	echo "Qt path '${QMAKE_PATH}' doesn't exist : check your Qt installation and kits"
 	exit 2
@@ -80,12 +86,12 @@ mkdir -p ${BUILDROOTFOLDER}/${MODE}/debug
 mkdir -p ${BUILDROOTFOLDER}/${MODE}/release
 echo "===========> building ${PROJECTNAME} project <==========="
 pushd ${BUILDROOTFOLDER}/${MODE}/debug
-`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
+`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
 popd
 pushd ${BUILDROOTFOLDER}/${MODE}/release
-`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
+`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 make
 make install
 popd
