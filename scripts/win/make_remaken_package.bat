@@ -11,7 +11,7 @@ call:display_usage
 exit /b 1
 :args_count_ok
 
-echo "===========> package XPCF shared <==========="
+echo "===========> package shared <==========="
 set PKGNAME=%1
 set PKGVERSION=%2
 set REMAKEN_PLATFORM=win-cl-14.1

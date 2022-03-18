@@ -1,5 +1,4 @@
 @echo off
-cls
 setlocal
 
 REM default parameter value
@@ -13,14 +12,8 @@ REM default win walues
 if NOT [%1]==[] set XPCFROOT=%1
 if NOT [%2]==[] set QTVERSION=%2
 
-
-if not exist %XPCFROOT% (echo "XPCF project root path '%XPCFROOT%' doesn't exist" & exit /b 2)
-echo "XPCF project root path used is : %XPCFROOT%"
-
-call %XPCFROOT%/scripts/win/build_xpcf.bat %XPCFROOT% %QTVERSION%
-call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfSampleComponent shared %XPCFROOT%/samples/sample_component %QTVERSION%
-call %XPCFROOT%/scripts/win/build_remaken_project.bat testxpcf shared %XPCFROOT%/test %QTVERSION%
-call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfcli static %XPCFROOT%/tools/cli %QTVERSION%
+call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcf shared %XPCFROOT% %QTVERSION%
+call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcf static %XPCFROOT% %QTVERSION%
 
 endlocal
 goto:eof
