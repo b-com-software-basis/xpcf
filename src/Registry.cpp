@@ -21,12 +21,12 @@
  */
 
 #include "xpcf/api/IConfigurable.h"
-#include "ModuleManager.h"
-#include "Registry.h"
+#include "private/xpcf/ModuleManager.h"
+#include "private/xpcf/Registry.h"
 #include "xpcf/component/ComponentFactory.h"
 #include "xpcf/core/Exception.h"
 #include "xpcf/core/helpers.h"
-#include "PathBuilder.h"
+#include "private/xpcf/PathBuilder.h"
 
 
 

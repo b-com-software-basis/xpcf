@@ -20,7 +20,7 @@
  * @date 2017-10-27
  */
 
-#include "Property.h"
+#include "private/xpcf/Property.h"
 #include "xpcf/core/Exception.h"
 
 //#pragma warning(disable:4786)

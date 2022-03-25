@@ -21,7 +21,7 @@
  */
 
 #include "xpcf/api/ComponentMetadata.h"
-#include "PathBuilder.h"
+#include "private/xpcf/PathBuilder.h"
 #include <xpcf/collection/Collection.h>
 #include <string.h>
 

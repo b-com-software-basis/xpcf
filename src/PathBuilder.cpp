@@ -20,7 +20,7 @@
  * @date 2017-11-23
  */
 
-#include "PathBuilder.h"
+#include "private/xpcf/PathBuilder.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/predef/os.h>
 

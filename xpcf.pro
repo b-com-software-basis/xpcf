@@ -115,19 +115,20 @@ HEADERS += \
     interfaces/xpcf/remoting/BaseBuffer.h \
     interfaces/xpcf/remoting/ISerializable.h \
     interfaces/xpcf/threading/MultiConsumer.h \
-    src/AliasManager.h \
-    src/Factory.h \
-    src/Registry.h \
-    src/tinyxml2.h \
-    src/tinyxmlhelper.h \
-    src/ComponentManager.h \
-    src/PathBuilder.h \
-    src/ModuleManager.h \
-    src/Property.h \
-    src/PropertyMap.h \
-    src/PropertySequenceWrapper.h \
-    src/PropertyWrapper.h \
-    src/PropertyManager.h \
+    interfaces/private/xpcf/AliasManager.h \
+    interfaces/private/xpcf/Factory.h \
+    interfaces/private/xpcf/Registry.h \
+    interfaces/private/xpcf/tinyxml2.h \
+    interfaces/private/xpcf/tinyxmlhelper.h \
+    interfaces/private/xpcf/ComponentManager.h \
+    interfaces/private/xpcf/PathBuilder.h \
+    interfaces/private/xpcf/MethodMetadata.h \
+    interfaces/private/xpcf/ModuleManager.h \
+    interfaces/private/xpcf/Property.h \
+    interfaces/private/xpcf/PropertyMap.h \
+    interfaces/private/xpcf/PropertySequenceWrapper.h \
+    interfaces/private/xpcf/PropertyWrapper.h \
+    interfaces/private/xpcf/PropertyManager.h \
     interfaces/xpcf/core/Result.h \
     interfaces/xpcf/core/Exception.h \
     interfaces/xpcf/core/XPCFErrorCode.h \

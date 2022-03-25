@@ -21,12 +21,12 @@
  */
 
 
-#include "Factory.h"
+#include "private/xpcf/Factory.h"
 #include <xpcf/api/IModuleManager.h>
 #include <xpcf/core/Exception.h>
 #include <xpcf/core/helpers.h>
 #include <boost/algorithm/string.hpp>
-#include "PathBuilder.h"
+#include "private/xpcf/PathBuilder.h"
 
 using namespace std;
 using placeholders::_1;

@@ -1,4 +1,4 @@
-#include "GrpcManager.h"
+#include "private/xpcf/GrpcManager.h"
 
 namespace xpcf = org::bcom::xpcf;
 

@@ -21,14 +21,14 @@
  */
 
 #include "xpcf/component/ConfigurableBase.h"
-#include "PropertyManager.h"
+#include "private/xpcf/PropertyManager.h"
 #include <iostream>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/attributes.hpp>
 #include <xpcf/collection/Collection.h>
-#include "PropertyWrapper.h"
-#include "PropertyMap.h"
+#include "private/xpcf/PropertyWrapper.h"
+#include "private/xpcf/PropertyMap.h"
 #include <string>
 
 using namespace std;

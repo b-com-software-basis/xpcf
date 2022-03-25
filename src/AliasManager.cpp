@@ -21,7 +21,7 @@
  */
 
 
-#include "AliasManager.h"
+#include "private/xpcf/AliasManager.h"
 #include <xpcf/api/IModuleManager.h>
 #include <xpcf/core/Exception.h>
 #include <functional>

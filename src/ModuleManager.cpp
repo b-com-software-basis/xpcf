@@ -21,16 +21,16 @@
  */
 
 #include "xpcf/core/Exception.h"
-#include "ModuleManager.h"
+#include "private/xpcf/ModuleManager.h"
 #include "xpcf/module/ModuleFactory.h"
-#include "PathBuilder.h"
+#include "private/xpcf/PathBuilder.h"
 #include <iostream>
 #include <fstream>
 #include <boost/dll.hpp>
 #include <boost/locale.hpp>
 #include <boost/dll/shared_library.hpp>
 #include <boost/function.hpp>
-#include "tinyxmlhelper.h"
+#include "private/xpcf/tinyxmlhelper.h"
 //#include <filesystem>
 
 using namespace std;

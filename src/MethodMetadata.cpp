@@ -20,7 +20,7 @@
  * @date 2017-04-28
  */
 
-#include "MethodMetadata.h"
+#include "private/xpcf/MethodMetadata.h"
 namespace org { namespace bcom { namespace xpcf {
 
 
