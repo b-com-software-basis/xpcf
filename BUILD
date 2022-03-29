@@ -14,6 +14,7 @@ cc_library(
     strip_include_prefix = "interfaces",
     linkstatic = False,
     deps = ["@boost//:boost","@grpcpp//:grpcpp"],
+    alwayslink=1,
     visibility = ["//visibility:public"],
 )
 
@@ -22,4 +23,5 @@ cc_binary(
     copts = ["-std=c++17", "-Isamples/sample_component"],
     srcs = ["test/xpcf_dynamic_test.cpp", "test/xpcf_properties_test.cpp",  "test/xpcf_threading_test.cpp", "test/TestDefines.h"],
     deps = ["@boost//:boost","@xpcfSampleComponent//:xpcfSampleComponent"],
+    linkstatic=False,
 )
