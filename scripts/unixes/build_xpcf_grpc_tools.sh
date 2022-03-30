@@ -22,7 +22,12 @@ if [ $# -eq 2 ]; then
 	QTVERSION=$2
 fi
 
-${XPCFROOT}/scripts/unixes/build_xpcf.sh ${XPCFROOT} ${QTVERSION}
+if [ ! -d ${XPCFROOT}/scripts/unixes/build-xpcf ]; then
+	echo "${XPCFROOT}/scripts/unixes/build-xpcf path doesn't exist"
+	echo "Running build_xpcf.sh"
+	${XPCFROOT}/scripts/unixes/build_xpcf.sh ${XPCFROOT} ${QTVERSION}
+fi
+
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_grpc_client shared ${XPCFROOT}/tools ${QTVERSION}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_grpc_server shared ${XPCFROOT}/tools ${QTVERSION}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_grpc_gen static ${XPCFROOT}/tools/generators/grpc ${QTVERSION}

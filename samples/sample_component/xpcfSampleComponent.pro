@@ -9,6 +9,26 @@ DEFINES += MYVERSION=$${VERSION}
 CONFIG += c++17
 CONFIG += shared
 #DEFINES += USE_XPCF_STD
+
+staticlib {
+    REMAKEN_PKGSUBDIR=static
+} else {
+    REMAKEN_PKGSUBDIR=shared
+}
+
+CONFIG(debug,debug|release) {
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
+}
+
+CONFIG(release,debug|release) {
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
+}
+
+package_remaken {
+    message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
+    INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
+}
+
 macx {
     # EXPERIMENTAL : needs to use remaken configure first
     # REMAKENCONFIG += use_remaken_parser

@@ -24,3 +24,4 @@ fi
 
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf shared ${XPCFROOT} ${QTVERSION}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf static ${XPCFROOT} ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfSampleComponent shared ${XPCFROOT}/samples/sample_component ${QTVERSION}

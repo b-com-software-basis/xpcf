@@ -67,8 +67,11 @@ DISTFILES += \
     packagedependencies.txt \
     xpcfGrpcSampleComponentServer.xml
 
-xml_files.path = $${TARGETDEPLOYDIR}
+xml_files.path = $${PROJECTDEPLOYDIR}
 xml_files.files =  xpcfGrpcSampleComponentServer.xml
 
-INSTALLS += xml_files
+xpcf_grpc_xml_files.path = $${USERHOMEFOLDER}/.xpcf/grpc
+xpcf_grpc_xml_files.files = xpcfGrpcSampleComponentServer.xml
+
+INSTALLS += xml_files xpcf_grpc_xml_files
 
