@@ -108,14 +108,6 @@ SOURCES += \
     src/BaseTask.cpp
 
 HEADERS += \
-    interfaces/swig/xpcf_api.i \
-    interfaces/swig/xpcf_collection.i \
-    interfaces/swig/xpcf_component.i \
-    interfaces/swig/xpcf_core.i \
-    interfaces/swig/xpcf_module.i \
-    interfaces/swig/xpcf_properties.i \
-    interfaces/swig/xpcf_threading.i \
-    interfaces/swig/xpcf_traits.i \
     interfaces/xpcf/api/IAliasManager.h \
     interfaces/xpcf/api/IRegistryManager.h \
     interfaces/xpcf/api/InjectableMetadata.h \
@@ -123,19 +115,20 @@ HEADERS += \
     interfaces/xpcf/remoting/BaseBuffer.h \
     interfaces/xpcf/remoting/ISerializable.h \
     interfaces/xpcf/threading/MultiConsumer.h \
-    src/AliasManager.h \
-    src/Factory.h \
-    src/Registry.h \
-    src/tinyxml2.h \
-    src/tinyxmlhelper.h \
-    src/ComponentManager.h \
-    src/PathBuilder.h \
-    src/ModuleManager.h \
-    src/Property.h \
-    src/PropertyMap.h \
-    src/PropertySequenceWrapper.h \
-    src/PropertyWrapper.h \
-    src/PropertyManager.h \
+    interfaces/private/xpcf/AliasManager.h \
+    interfaces/private/xpcf/Factory.h \
+    interfaces/private/xpcf/Registry.h \
+    interfaces/private/xpcf/tinyxml2.h \
+    interfaces/private/xpcf/tinyxmlhelper.h \
+    interfaces/private/xpcf/ComponentManager.h \
+    interfaces/private/xpcf/PathBuilder.h \
+    interfaces/private/xpcf/MethodMetadata.h \
+    interfaces/private/xpcf/ModuleManager.h \
+    interfaces/private/xpcf/Property.h \
+    interfaces/private/xpcf/PropertyMap.h \
+    interfaces/private/xpcf/PropertySequenceWrapper.h \
+    interfaces/private/xpcf/PropertyWrapper.h \
+    interfaces/private/xpcf/PropertyManager.h \
     interfaces/xpcf/core/Result.h \
     interfaces/xpcf/core/Exception.h \
     interfaces/xpcf/core/XPCFErrorCode.h \
@@ -237,6 +230,19 @@ contains(DEFINES, "WITHREMOTING") {
     h_remoting_files.files = $$files($${PWD}/interfaces/xpcf/remoting/*)
     INSTALLS += h_remoting_files
 }
+
+OTHER_FILES += \
+interfaces/swig/swig.i \
+interfaces/swig/XPCF_Api.i \
+interfaces/swig/XPCF_Bindings.i \
+interfaces/swig/XPCF_Collection.i \
+interfaces/swig/XPCF_Component.i \
+interfaces/swig/XPCF_Core.i \
+interfaces/swig/XPCF_Module.i \
+interfaces/swig/XPCF_Properties.i \
+interfaces/swig/XPCF_Threading.i \
+interfaces/swig/XPCF_Traits.i \
+
 
 DISTFILES += \
     Makefile \

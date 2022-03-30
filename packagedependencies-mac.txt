@@ -1,2 +1,1 @@
-//grpc|1.37.0|grpc++%WITHREMOTING|conan|conan-center|
-grpc|1.42.0|grpc++%WITHREMOTING|brew@system|
+grpc|1.44.0|grpc++%WITHREMOTING|brew@system|

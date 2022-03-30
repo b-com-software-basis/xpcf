@@ -1,5 +1,6 @@
 QT       -= core gui
 CONFIG -= app_bundle qt
+CONFIG += console
 
 TARGET = xpcfSampleRunner
 FRAMEWORK = $${TARGET}
@@ -19,6 +20,10 @@ DEFINES += BOOST_ALL_DYN_LINK
 SOURCES += xpcfSampleRunner_main.cpp
 
 unix {
+}
+
+linux {
+    LIBS += -ldl
 }
 
 macx {

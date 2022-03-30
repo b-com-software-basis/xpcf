@@ -206,6 +206,12 @@ bool IComponentIntrospect::implements() const
     return implements(toUUID<I>());
 }
 
+template <class I>
+SRef<I> bindTo(SRef<IComponentIntrospect> component)
+{
+    return component->bindTo<I>();
+};
+
 }}} //namespace org::bcom::xpcf
 
 #endif

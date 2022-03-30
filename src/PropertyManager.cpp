@@ -24,10 +24,10 @@
 #include "xpcf/api/IModuleManager.h"
 #include "xpcf/core/Exception.h"
 #include "xpcf/module/ModuleFactory.h"
-#include "PropertyManager.h"
-#include "PathBuilder.h"
+#include "private/xpcf/PropertyManager.h"
+#include "private/xpcf/PathBuilder.h"
 
-#include "tinyxmlhelper.h"
+#include "private/xpcf/tinyxmlhelper.h"
 #include <iostream>
 #include <fstream>
 

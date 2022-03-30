@@ -1,5 +1,5 @@
 TARGET = xpcf_grpc_client
-VERSION = 2.5.0
+VERSION = 2.5.1
 
 CONFIG += c++1z
 CONFIG += console
@@ -30,8 +30,6 @@ SOURCES += \
 
 linux {
     LIBS += -ldl
-    INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
-    INCLUDEPATH += $${REMAKENDEPSFOLDER}/$${BCOM_TARGET_PLATFORM}/xpcfSampleComponent/$$VERSION/interfaces
     LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
@@ -42,10 +40,8 @@ macx {
     QMAKE_CFLAGS += -mmacosx-version-min=10.7 #-x objective-c++
     QMAKE_CXXFLAGS += -mmacosx-version-min=10.7  -std=c++17 -fPIC#-x objective-c++
     QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
-    INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
     LIBS += -lstdc++ -lc -lpthread
     LIBS += -L/usr/local/lib
-    INCLUDEPATH += $${REMAKENDEPSFOLDER}/$${BCOM_TARGET_PLATFORM}/xpcfSampleComponent/$$VERSION/interfaces
 }
 
 win32 {
@@ -58,14 +54,20 @@ win32 {
     INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
 }
 
+INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
+INCLUDEPATH += ../../samples/sample_component
+
 DISTFILES += \
     grpc_server_sample.xml \
     packagedependencies.txt \
     xpcfGrpcSampleComponentClient.xml
 
-xml_files.path = $${TARGETDEPLOYDIR}
+xml_files.path = $${PROJECTDEPLOYDIR}
 xml_files.files =  xpcfGrpcSampleComponentClient.xml
 
-INSTALLS += xml_files
+xpcf_grpc_xml_files.path = $${USERHOMEFOLDER}/.xpcf/grpc
+xpcf_grpc_xml_files.files = xpcfGrpcSampleComponentClient.xml
+
+INSTALLS += xml_files xpcf_grpc_xml_files
 
 

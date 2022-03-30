@@ -1,5 +1,5 @@
 TARGET = testxpcf
-VERSION=2.5.0
+VERSION=2.5.1
 
 CONFIG += c++1z
 CONFIG += console
@@ -87,4 +87,7 @@ xpcf_xml_files.path = $${USERHOMEFOLDER}/.xpcf
 xpcf_xml_files.files = $${PWD}/xpcf_registry_test.xml
 xpcf_xml_files.files += $${PWD}/xpcf_conf_test.xml
 
-INSTALLS += xpcf_xml_files
+xpcf_xml_sample_structure_files.path = $${PROJECTDEPLOYDIR}/
+xpcf_xml_sample_structure_files.files = $${PWD}/xpcf_registry_test.xml
+
+INSTALLS += xpcf_xml_files xpcf_xml_sample_structure_files

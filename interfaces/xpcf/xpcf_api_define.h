@@ -2,10 +2,14 @@
 #define XPCF_API_DEFINE_H
 
 #if _WIN32
+#if XPCF_SHARED
 #ifdef xpcf_API_DLLEXPORT
 #define XPCF_EXPORT_API __declspec(dllexport)
 #else
 #define XPCF_EXPORT_API __declspec(dllimport)
+#endif
+#else
+#define XPCF_EXPORT_API
 #endif
 #else
 #define XPCF_EXPORT_API

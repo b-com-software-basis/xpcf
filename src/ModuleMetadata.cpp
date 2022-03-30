@@ -21,7 +21,7 @@
  */
 
 #include "xpcf/api/ModuleMetadata.h"
-#include "PathBuilder.h"
+#include "private/xpcf/PathBuilder.h"
 #include <string.h>
 #include <xpcf/collection/Collection.h>
 #include <boost/uuid/uuid_generators.hpp>

@@ -21,7 +21,7 @@
  */
 
 #include "xpcf/component/ComponentBase.h"
-#include "PropertyManager.h"
+#include "private/xpcf/PropertyManager.h"
 #include "xpcf/core/Exception.h"
 #include "xpcf/core/helpers.h"
 #include "xpcf/api/IModuleManager.h"

@@ -20,7 +20,7 @@
  * @date 2017-04-28
  */
 
-#include "tinyxmlhelper.h"
+#include "private/xpcf/tinyxmlhelper.h"
 #include <stdexcept>
 
 std::string xmlGetTextSecure(tinyxml2::XMLElement * elt, const std::string & nodeName, bool optional, const std::string & defaultValue)

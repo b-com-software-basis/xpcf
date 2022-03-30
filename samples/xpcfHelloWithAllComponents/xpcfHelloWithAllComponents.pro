@@ -51,8 +51,8 @@ header_files.path = $${PROJECTDEPLOYDIR}/interfaces/
 header_files.files = $$files($${PWD}/../interfaces/*.h)
 header_files.files += _traits.h
 
-target.path = /Users/ltouraine/.xpcf/modules/$${TARGET}
-xpcf_xml_files.path = $$(HOME)/.xpcf/samples
+target.path = $${USERHOMEFOLDER}/.xpcf/modules/$${TARGET}
+xpcf_xml_files.path = $${USERHOMEFOLDER}/.xpcf/samples
 xpcf_xml_files.files=$$files($${PWD}/xpcfHelloWithAllComponents.xml)
 
 INSTALLS += header_files target xpcf_xml_files

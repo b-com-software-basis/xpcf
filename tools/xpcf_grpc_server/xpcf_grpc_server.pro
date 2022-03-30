@@ -1,5 +1,5 @@
 TARGET = xpcf_grpc_server
-VERSION = 2.5.0
+VERSION = 2.5.1
 
 CONFIG += c++1z
 CONFIG += console
@@ -37,7 +37,6 @@ SOURCES += \
 linux {
     LIBS += -ldl
     LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
-    INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
 }
 
 
@@ -47,7 +46,6 @@ macx {
     QMAKE_CFLAGS += -mmacosx-version-min=10.7 #-x objective-c++
     QMAKE_CXXFLAGS += -mmacosx-version-min=10.7  -std=c++17 -fPIC#-x objective-c++
     QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
-    INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
     LIBS += -lstdc++ -lc -lpthread
     LIBS += -L/usr/local/lib
 }
@@ -62,13 +60,18 @@ win32 {
     INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
 }
 
+INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
+
 DISTFILES += \
     grpc_server_sample.xml \
     packagedependencies.txt \
     xpcfGrpcSampleComponentServer.xml
 
-xml_files.path = $${TARGETDEPLOYDIR}
+xml_files.path = $${PROJECTDEPLOYDIR}
 xml_files.files =  xpcfGrpcSampleComponentServer.xml
 
-INSTALLS += xml_files
+xpcf_grpc_xml_files.path = $${USERHOMEFOLDER}/.xpcf/grpc
+xpcf_grpc_xml_files.files = xpcfGrpcSampleComponentServer.xml
+
+INSTALLS += xml_files xpcf_grpc_xml_files
 
