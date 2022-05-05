@@ -45,12 +45,12 @@ CONFIG(debug,debug|release) {
 #    DEFINES += XPCF_WITH_LOGS
     DEFINES += "XPCFDEBUG"
     DEFINES += XPCFSUBDIRSEARCH=\\\"debug\\\"
-    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug/$${TARGET}_$${VERSION}
 }
 
 CONFIG(release,debug|release) {
-    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
     DEFINES += XPCFSUBDIRSEARCH=\\\"release\\\"
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release/$${TARGET}_$${VERSION}
 }
 
 package_remaken {
