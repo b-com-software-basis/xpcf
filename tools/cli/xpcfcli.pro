@@ -1,6 +1,6 @@
 FRAMEWORK = xpcfcli
 TARGET = xpcfcli
-VERSION=2.5.1
+VERSION=2.5.2
 
 CONFIG += c++17
 CONFIG += console

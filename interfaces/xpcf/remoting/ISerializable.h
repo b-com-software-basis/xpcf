@@ -116,7 +116,7 @@ BOOST_SERIALIZATION_SPLIT_FREE(std::chrono::system_clock::time_point)
 namespace boost {
 namespace serialization {
 
-template<uint N>
+template<unsigned int N>
 struct Serialize
 {
     template<class Archive, typename... Args>

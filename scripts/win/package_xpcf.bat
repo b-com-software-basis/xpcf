@@ -2,7 +2,7 @@
 cls
 setlocal
 
-set PKGVERSION=2.5.1
+set PKGVERSION=2.5.2
 
 REM default parameter value
 set QTVERSION=5.14.2
