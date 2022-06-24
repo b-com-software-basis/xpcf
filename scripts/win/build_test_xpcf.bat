@@ -17,10 +17,15 @@ if NOT [%2]==[] set QTVERSION=%2
 if not exist %XPCFROOT% (echo "XPCF project root path '%XPCFROOT%' doesn't exist" & exit /b 2)
 echo "XPCF project root path used is : %XPCFROOT%"
 
-call %XPCFROOT%/scripts/win/build_xpcf.bat %XPCFROOT% %QTVERSION%
-call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfSampleComponent shared %XPCFROOT%/samples/sample_component %QTVERSION%
+if not exist %XPCFROOT%/scripts/win/build-xpcf (
+	pause
+	echo "%XPCFROOT%/scripts/win/build-xpcf path doesn't exist"
+	echo "Running build_xpcf.bat"
+	call %XPCFROOT%/scripts/win/build_xpcf.bat %XPCFROOT% %QTVERSION%
+	pause
+)
 call %XPCFROOT%/scripts/win/build_remaken_project.bat testxpcf shared %XPCFROOT%/test %QTVERSION%
-call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfcli static %XPCFROOT%/tools/cli %QTVERSION%
+call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfcli shared %XPCFROOT%/tools/cli %QTVERSION%
 
 endlocal
 goto:eof

@@ -36,11 +36,11 @@ do
 for buildMode in ${BUILDMODES}
 do
 BUILDFOLDER=$HOME/.remaken/packages/${REMAKEN_PLATFORM}/${linkMode}/${buildMode}
-if [ -d ${BUILDFOLDER}/${PKGNAME} ]
+if [ -d ${BUILDFOLDER}/${PKGNAME}_${PKGVERSION}/${PKGNAME} ]
 then
-echo "Packaging ${PKGNAME}-${PKGVERSION} from folder ${BUILDFOLDER}/${PKGNAME}"
-pushd ${BUILDFOLDER}
-zip -r -y ${PKGNAME}_${PKGVERSION}_x86_64_${linkMode}_${buildMode}.zip ${PKGNAME}
+echo "Packaging ${PKGNAME}-${PKGVERSION} from folder ${BUILDFOLDER}/${PKGNAME}_${PKGVERSION}/${PKGNAME}"
+pushd ${BUILDFOLDER}/${PKGNAME}_${PKGVERSION}
+zip -r -y ${BUILDFOLDER}/${PKGNAME}_${PKGVERSION}_x86_64_${linkMode}_${buildMode}.zip ${PKGNAME}
 popd
 fi
 done

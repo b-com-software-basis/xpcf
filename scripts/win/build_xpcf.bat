@@ -14,6 +14,7 @@ if NOT [%2]==[] set QTVERSION=%2
 
 call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcf shared %XPCFROOT% %QTVERSION%
 call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcf static %XPCFROOT% %QTVERSION%
+call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfSampleComponent shared %XPCFROOT%/samples/sample_component %QTVERSION%
 
 endlocal
 goto:eof
@@ -24,7 +25,7 @@ goto:eof
 
 :display_usage
 
-echo This script builds %PROJECT% in shared mode.
+echo This script builds XPCF in shared and static mode.
 echo It can receive two optional argument. 
 echo.
 echo Usage: param [path to xpcf project root - default='%XPCFROOT%'] [Qt kit version to use - default='%QTVERSION%']

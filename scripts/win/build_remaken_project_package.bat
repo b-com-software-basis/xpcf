@@ -48,7 +48,7 @@ echo "Project path used is : %PROJECTROOT%/%PROJECTNAME%.pro"
 
 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvars64.bat"
 
-set BUILDROOTFOLDER=build-%PROJECTNAME%
+set BUILDROOTFOLDER=build-%PROJECTNAME%-package
 
 if exist %BUILDROOTFOLDER%\%MODE% rmdir /S /Q %BUILDROOTFOLDER%\%MODE%
 if not exist %BUILDROOTFOLDER%\%MODE%\debug mkdir %BUILDROOTFOLDER%\%MODE%\debug
@@ -56,12 +56,12 @@ if not exist %BUILDROOTFOLDER%\%MODE%\release mkdir %BUILDROOTFOLDER%\%MODE%\rel
 
 echo "===========> building %PROJECTNAME% static <==========="
 pushd %BUILDROOTFOLDER%\%MODE%\debug
-%QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc CONFIG+=debug %QMAKEMODE%
+%QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc CONFIG+=debug %QMAKEMODE% CONFIG+=package_remaken
 %JOM_PATH%\jom.exe
 %JOM_PATH%\jom.exe install
 popd
 pushd %BUILDROOTFOLDER%\\%MODE%\release
-%QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc %QMAKEMODE%
+%QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc %QMAKEMODE% CONFIG+=package_remaken
 %JOM_PATH%\jom.exe
 %JOM_PATH%\jom.exe install
 popd
