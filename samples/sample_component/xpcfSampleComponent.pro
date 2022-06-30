@@ -17,11 +17,11 @@ staticlib {
 }
 
 CONFIG(debug,debug|release) {
-    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug/$${TARGET}_$${VERSION}
 }
 
 CONFIG(release,debug|release) {
-    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release/$${TARGET}_$${VERSION}
 }
 
 package_remaken {
