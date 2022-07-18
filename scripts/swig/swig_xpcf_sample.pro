@@ -5,7 +5,7 @@ CONFIG -= qt
 ## global defintions : target lib name, version
 TARGET = swig_xpcf_sample
 FRAMEWORK = $${TARGET}
-VERSION=2.5.2
+VERSION=2.6.0
 
 DEFINES += MYVERSION=$${VERSION}
 DEFINES += TEMPLATE_LIBRARY
