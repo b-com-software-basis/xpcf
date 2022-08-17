@@ -1,5 +1,5 @@
 TARGET = testxpcf
-VERSION=2.5.2
+VERSION=2.6.0
 
 CONFIG += c++1z
 CONFIG += console
@@ -46,7 +46,7 @@ SOURCES += \
     xpcf_dynamic_test.cpp \
     xpcf_threading_test.cpp
     #xpcf_dynamic_test_copy.cpp
- #   xpcf_in_code_test.cpp
+#    xpcf_in_code_test.cpp
 
 unix {
     QMAKE_CXXFLAGS += --coverage

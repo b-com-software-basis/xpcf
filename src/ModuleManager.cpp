@@ -154,9 +154,12 @@ const char * ModuleManager::getXpcfVersion(const char* moduleName, const char* m
     boost::dll::shared_library shlib = validateModule(modulePath);
 
     try {
-        boost::function<const char* (void)> getXpcfVersion = boost::dll::import<const char * (void)>(
+        boost::function<const char* (void)> getXpcfVersion = boost::dll::import_symbol<const char* (void)>(
                     modulePath, XPCF_GETXPCFVERSION, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
                     );
+/*        boost::function<const char* (void)> getXpcfVersion = boost::dll::import<const char * (void)>(
+                    modulePath, XPCF_GETXPCFVERSION, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
+                    );*/
         std::string xpcfVersion = getXpcfVersion();
         return xpcfVersion.c_str();
     }
@@ -186,16 +189,20 @@ SPtr<ModuleMetadata> ModuleManager::introspectModule(fs::path modulePath)
     boost::dll::shared_library shlib = validateModule(modulePath);
     SPtr<ModuleMetadata> moduleInfos;
     try {
-        boost::function<const char* (void)> getModuleUUID = boost::dll::import<const char * (void)>(
+//        boost::function<const char* (void)> getModuleUUID = boost::dll::import<const char * (void)>(
+        boost::function<const char* (void)> getModuleUUID = boost::dll::import_symbol<const char * (void)>(
                     modulePath, XPCF_GETMODULEUUID, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
                     );
-        boost::function<const char* (void)> getModuleName = boost::dll::import<const char * (void)>(
+//        boost::function<const char* (void)> getModuleName = boost::dll::import<const char * (void)>(
+        boost::function<const char* (void)> getModuleName = boost::dll::import_symbol<const char * (void)>(
                     modulePath, XPCF_GETMODULENAME, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
                     );
-        boost::function<const char* (void)> getModuleDescription = boost::dll::import<const char * (void)>(
+//        boost::function<const char* (void)> getModuleDescription = boost::dll::import<const char * (void)>(
+        boost::function<const char* (void)> getModuleDescription = boost::dll::import_symbol<const char * (void)>(
                     modulePath, XPCF_GETMODULEDESCRIPTION, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
                     );
-        boost::function<void (SRef<IModuleIndex>)> getModuleIndex = boost::dll::import<void (SRef<IModuleIndex>)>(
+//        boost::function<void (SRef<IModuleIndex>)> getModuleIndex = boost::dll::import<void (SRef<IModuleIndex>)>(
+        boost::function<void (SRef<IModuleIndex>)> getModuleIndex = boost::dll::import_symbol<void (SRef<IModuleIndex>)>(
                     modulePath, XPCF_GETMODULEINDEX, boost::dll::load_mode::append_decorations| boost::dll::load_mode::load_with_altered_search_path
                     );
         if (getModuleUUID && getModuleName && getModuleIndex) {
@@ -234,7 +241,8 @@ SRef<IComponentIntrospect> ModuleManager::createComponent(SPtr<ModuleMetadata> m
     SRef<IComponentIntrospect> componentRef;
     boost::dll::shared_library shlib = validateModule(moduleInfos);
     if (m_funcMap.find(moduleInfos->getUUID()) == m_funcMap.end()) {
-        m_funcMap[moduleInfos->getUUID()]=boost::dll::import<XPCFErrorCode(const uuids::uuid &, SRef<IComponentIntrospect>&)>(
+//        m_funcMap[moduleInfos->getUUID()]=boost::dll::import<XPCFErrorCode(const uuids::uuid &, SRef<IComponentIntrospect>&)>(
+        m_funcMap[moduleInfos->getUUID()]=boost::dll::import_symbol<XPCFErrorCode(const uuids::uuid &, SRef<IComponentIntrospect>&)>(
                     moduleInfos->getFullPath(), XPCF_GETCOMPONENT, boost::dll::load_mode::append_decorations | boost::dll::load_mode::load_with_altered_search_path
                     );
     }

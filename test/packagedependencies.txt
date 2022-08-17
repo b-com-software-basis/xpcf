@@ -1,4 +1,4 @@
-xpcf|2.5.2|xpcf%TEST_XPCF_BOOST|github|https://github.com/b-com-software-basis/xpcf/releases/download
-xpcf-std|2.5.2|xpcf-std%TEST_XPCF_STD|github|https://github.com/b-com-software-basis/xpcf/releases/download
+xpcf|2.6.0|xpcf%TEST_XPCF_BOOST|github|https://github.com/b-com-software-basis/xpcf/releases/download
+xpcf-std|2.6.0|xpcf-std%TEST_XPCF_STD|github|https://github.com/b-com-software-basis/xpcf/releases/download
 
 
