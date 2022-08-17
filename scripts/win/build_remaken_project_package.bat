@@ -54,12 +54,13 @@ if exist %BUILDROOTFOLDER%\%MODE% rmdir /S /Q %BUILDROOTFOLDER%\%MODE%
 if not exist %BUILDROOTFOLDER%\%MODE%\debug mkdir %BUILDROOTFOLDER%\%MODE%\debug
 if not exist %BUILDROOTFOLDER%\%MODE%\release mkdir %BUILDROOTFOLDER%\%MODE%\release
 
-echo "===========> building %PROJECTNAME% static <==========="
+echo "===========> building %PROJECTNAME% %MODE% debug <==========="
 pushd %BUILDROOTFOLDER%\%MODE%\debug
 %QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc CONFIG+=debug %QMAKEMODE% CONFIG+=package_remaken
 %JOM_PATH%\jom.exe
 %JOM_PATH%\jom.exe install
 popd
+echo "===========> building %PROJECTNAME% %MODE% release <==========="
 pushd %BUILDROOTFOLDER%\\%MODE%\release
 %QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc %QMAKEMODE% CONFIG+=package_remaken
 %JOM_PATH%\jom.exe
