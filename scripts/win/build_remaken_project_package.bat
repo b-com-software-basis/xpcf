@@ -46,7 +46,8 @@ if not %PROJECTROOT:~1,1%==: (set PROJECTROOT=../../../%PROJECTROOT%)
 echo "Project root path used is : %PROJECTROOT%"
 echo "Project path used is : %PROJECTROOT%/%PROJECTNAME%.pro"
 
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvars64.bat"
+@REM call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvars64.bat"
+call set_compiler_env.bat --year 2017 --output ./pouet.bat
 
 set BUILDROOTFOLDER=build-%PROJECTNAME%-package
 

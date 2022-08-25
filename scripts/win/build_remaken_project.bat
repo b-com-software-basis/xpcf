@@ -23,7 +23,8 @@ if NOT [%3]==[] set PROJECTROOT=%3
 if NOT [%4]==[] set QTVERSION=%4
 
 set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
-set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2017_64\bin
+REM set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2017_64\bin
+set QMAKE_PATH=C:\Qt\Tools\QtDesignStudio\qt6_design_studio_reduced_version\bin
 
 if not %MODE%==shared (if not %MODE%==static (echo "mode must be either shared or static - %MODE% is an unsupported value" & exit /b 2) )
 if %MODE%==static (
@@ -46,7 +47,12 @@ if not %PROJECTROOT:~1,1%==: (set PROJECTROOT=../../../%PROJECTROOT%)
 echo "Project root path used is : %PROJECTROOT%"
 echo "Project path used is : %PROJECTROOT%/%PROJECTNAME%.pro"
 
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvars64.bat"
+@REM setup Visual Studio environment
+set output=setup_script.txt
+call init_compiler_env_script.bat --year 2017 --output %output%
+set /p setup_script=<"%output%"
+call "%setup_script%"
+del %output%
 
 set BUILDROOTFOLDER=build-%PROJECTNAME%
 
