@@ -16,17 +16,20 @@ then
 fi 
 
 if [ $# -ge 1 ]; then
-	XPCFROOT=$1
+	QMAKEPATH=$1
 fi
-if [ $# -eq 2 ]; then
-	QTVERSION=$2
+if [ $# -ge 2 ]; then
+	XPCFROOT=$2
+fi
+if [ $# -eq 3 ]; then
+	QTVERSION=$3
 fi
 
 if [ ! -d ${XPCFROOT}/scripts/unixes/build-xpcf ]; then
 	echo "${XPCFROOT}/scripts/unixes/build-xpcf path doesn't exist"
 	echo "Running build_xpcf.sh"
-	${XPCFROOT}/scripts/unixes/build_xpcf.sh ${XPCFROOT} ${QTVERSION}
+	${XPCFROOT}/scripts/unixes/build_xpcf.sh ${QMAKEPATH} ${XPCFROOT} ${QTVERSION}
 fi
 
-${XPCFROOT}/scripts/unixes/build_remaken_project.sh testxpcf shared ${XPCFROOT}/test ${QTVERSION}
-${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfcli static ${XPCFROOT}/tools/cli ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh testxpcf shared ${QMAKEPATH} ${XPCFROOT}/test ${QTVERSION}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfcli static ${QMAKEPATH} ${XPCFROOT}/tools/cli ${QTVERSION}

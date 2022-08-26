@@ -19,8 +19,9 @@ exit /b 1
 
 set PROJECTNAME=%1
 if NOT [%2]==[] set MODE=%2
-if NOT [%3]==[] set PROJECTROOT=%3
-if NOT [%4]==[] set QTVERSION=%4
+if NOT [%3]==[] set QMAKE_PATH=%3
+if NOT [%4]==[] set PROJECTROOT=%4
+if NOT [%5]==[] set QTVERSION=%5
 
 set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
 set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2017_64\bin

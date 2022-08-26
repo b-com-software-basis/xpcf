@@ -25,19 +25,20 @@ if [ $# -ge 2 ]; then
 	MODE=$2
 fi
 if [ $# -ge 3 ]; then
-	PROJECTROOT=$3
+	QMAKE_PATH=$3
 fi
-if [ $# -eq 4 ]; then
-	QTVERSION=$4
+if [ $# -ge 4 ]; then
+	PROJECTROOT=$4
+fi
+if [ $# -eq 5 ]; then
+	QTVERSION=$5
 fi
 # default linux values
 
-QMAKE_PATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
 QMAKE_SPEC=linux-g++
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
 # overload for mac values
-	QMAKE_PATH=/Applications/Qt/${QTVERSION}/clang_64/bin
 	QMAKE_SPEC=macx-clang
 fi
 
