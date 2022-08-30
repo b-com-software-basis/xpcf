@@ -26,6 +26,8 @@ if [ $# -ge 2 ]; then
 fi
 if [ $# -ge 3 ]; then
 	QMAKE_PATH=$3
+else
+	QMAKE_PATH=$HOME/Qt/$(QTVERSION)/gcc_64/bin
 fi
 if [ $# -ge 4 ]; then
 	PROJECTROOT=$4
@@ -38,7 +40,11 @@ fi
 QMAKE_SPEC=linux-g++
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-# overload for mac values
+	if [ $# -lt 3 ] then
+		# QMAKE_PATH not defined by parameter, set default mac value.
+		QMAKE_PATH=/Application/Qt/$(QTVERSION)/clang_64/bin
+	fi
+	# overload for mac values
 	QMAKE_SPEC=macx-clang
 fi
 
