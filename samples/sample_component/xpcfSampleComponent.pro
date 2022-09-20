@@ -3,7 +3,7 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcfSampleComponent
 FRAMEWORK = $${TARGET}
-VERSION=2.5.2
+VERSION=2.5.3
 DEFINES += MYVERSION=$${VERSION}
 
 CONFIG += c++17
