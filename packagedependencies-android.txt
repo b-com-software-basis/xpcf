@@ -1,1 +1,1 @@
-grpc|1.37.1|grpc++%WITHREMOTING|http|https://github.com/b-com-software-basis/thirdparties-binaries/releases/download|static
+grpc|1.37.1|grpc++%WITHREMOTING|http|https://github.com/b-com-software-basis/thirdparties-binaries/releases/download|shared
