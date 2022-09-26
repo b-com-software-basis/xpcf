@@ -40,7 +40,7 @@ fi
 QMAKE_SPEC=linux-g++
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-	if [ $# -lt 3 ] then
+	if [ $# -lt 3 ]; then
 		# QMAKE_PATH not defined by parameter, set default mac value.
 		QMAKE_PATH=/Application/Qt/$(QTVERSION)/clang_64/bin
 	fi
