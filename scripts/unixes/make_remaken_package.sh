@@ -33,15 +33,34 @@ BUILDMODES="debug release"
 LINKMODES="static shared"
 for linkMode in ${LINKMODES}
 do
-for buildMode in ${BUILDMODES}
-do
-BUILDFOLDER=$HOME/.remaken/packages/${REMAKEN_PLATFORM}/${linkMode}/${buildMode}
-if [ -d ${BUILDFOLDER}/${PKGNAME}_${PKGVERSION}/${PKGNAME} ]
-then
-echo "Packaging ${PKGNAME}-${PKGVERSION} from folder ${BUILDFOLDER}/${PKGNAME}_${PKGVERSION}/${PKGNAME}"
-pushd ${BUILDFOLDER}/${PKGNAME}_${PKGVERSION}
-zip -r -y ${BUILDFOLDER}/${PKGNAME}_${PKGVERSION}_x86_64_${linkMode}_${buildMode}.zip ${PKGNAME}
-popd
-fi
-done
+    for buildMode in ${BUILDMODES} 
+    do
+        BUILDFOLDER=$HOME/.remaken/packages/${REMAKEN_PLATFORM}/${PKGNAME}/${PKGVERSION}
+        if [ -d ${BUILDFOLDER} -a -d ${BUILDFOLDER}/interfaces -a -d ${BUILDFOLDER}/lib/x86_64/${linkMode}/${buildMode} ] 
+        then
+            PKGROOT=${PKGNAME}/${PKGVERSION}
+            mkdir -p ${PKGROOT}
+            # Copy interfaces folder
+            cp -R ${BUILDFOLDER}/interfaces ${PKGROOT}
+            # Copy lib folder
+            mkdir -p ${PKGROOT}/lib/x86_64/${linkMode}
+            cp -R ${BUILDFOLDER}/lib/x86_64/${linkMode}/${buildMode} ${PKGROOT}/lib/x86_64/${linkMode}
+            if [ -d ${BUILDFOLDER}/wizards ];
+            then
+                # Copy wizards folder
+                cp -R ${BUILDFOLDER}/wizards ${PKGROOT}
+            fi
+            # Copy other files
+            cp ${BUILDFOLDER}/${PKGNAME}-${PKGVERSION}_remakeninfo.txt ${PKGROOT}
+            cp ${BUILDFOLDER}/remaken-${PKGNAME}.pc ${PKGROOT}
+            if [ "$linkMode" = "static" ]; then
+                cp ${BUILDFOLDER}/packagedependencies-static.txt ${PKGROOT}/packagedependencies.txt
+            else
+                cp ${BUILDFOLDER}/packagedependencies.txt ${PKGROOT} 2>/dev/null
+            fi
+            zip -q -r -y ${PKGNAME}_${PKGVERSION}_x86_64_${linkMode}_${buildMode}.zip ${PKGNAME}
+            # Clean solution
+            rm -rf ${PKGNAME}
+        fi
+    done
 done

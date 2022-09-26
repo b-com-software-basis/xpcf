@@ -28,5 +28,5 @@ ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcf shared ${XPCFRO
 ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcf static ${XPCFROOT} ${QTVERSION}
 ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcfSampleComponent shared ${XPCFROOT}/samples/sample_component ${QTVERSION}
 
-${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcf 2.6.0
-${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcfSampleComponent 2.6.0
+${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcf 2.6.1
+${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcfSampleComponent 2.6.1

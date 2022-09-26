@@ -1,5 +1,5 @@
 TARGET = xpcf_grpc_client
-VERSION = 2.6.0
+VERSION = 2.6.1
 
 CONFIG += c++1z
 CONFIG += console
