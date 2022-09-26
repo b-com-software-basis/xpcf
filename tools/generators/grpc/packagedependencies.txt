@@ -1,1 +1,1 @@
-xpcf|2.5.1|xpcf|github|https://github.com/b-com-software-basis/xpcf/releases/download
+xpcf|2.6.1|xpcf|github|https://github.com/b-com-software-basis/xpcf/releases/download
