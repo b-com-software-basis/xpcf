@@ -1,5 +1,5 @@
 ### XPCF evolutions
-- Update xpcf version to 2.6.1
+- Update xpcf version to 2.6.2
 
 ### XPCF remoting features
 add new ```grpc``` interfaces in ```interfaces/xpcf/remoting``` to manage ```grpc``` components in ```xpcf```

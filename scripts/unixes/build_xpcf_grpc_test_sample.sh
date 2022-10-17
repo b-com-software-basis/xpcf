@@ -34,5 +34,5 @@ if [ ! -d ${XPCFROOT}/scripts/unixes/build-xpcf_grpc_gen/static/release ]; then
 	exit 2
 fi
 
-${XPCFROOT}/scripts/unixes/build-xpcf_grpc_gen/static/release/${XPCF_GRPC_GEN_APPLICATION} -n xpcfSampleComponent -v 2.6.1 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/releases/download --std c++1z --database_dir ../../samples/sample_component/ --remove_comments_in_macro -o ${XPCFROOT}/scripts/unixes/build-grpc_gen_folder_sampleComponent -g protobuf -i workspace/github/xpcf/samples/sample_component
+${XPCFROOT}/scripts/unixes/build-xpcf_grpc_gen/static/release/${XPCF_GRPC_GEN_APPLICATION} -n xpcfSampleComponent -v 2.6.2 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/releases/download --std c++1z --database_dir ../../samples/sample_component/ --remove_comments_in_macro -o ${XPCFROOT}/scripts/unixes/build-grpc_gen_folder_sampleComponent -g protobuf -i workspace/github/xpcf/samples/sample_component
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfGrpcRemotingxpcfSampleComponent shared ${XPCFROOT}/scripts/unixes/build-grpc_gen_folder_sampleComponent
