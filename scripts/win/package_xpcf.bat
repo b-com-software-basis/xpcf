@@ -12,12 +12,13 @@ REM check whether user had supplied -h or --help . If yes display usage
 for %%A in ("--help" "-h") do if "%1"==%%A (call:display_usage %1 & exit /b 0)
 
 REM default win walues
-if NOT [%1]==[] set XPCFROOT=%1
-if NOT [%2]==[] set QTVERSION=%2
+if NOT [%1]==[] set QMAKEPATH=%1
+if NOT [%2]==[] set XPCFROOT=%2
+if NOT [%3]==[] set QTVERSION=%3
 
-call %XPCFROOT%/scripts/win/build_remaken_project_package.bat xpcf shared %XPCFROOT% %QTVERSION%
-call %XPCFROOT%/scripts/win/build_remaken_project_package.bat xpcf static %XPCFROOT% %QTVERSION%
-call %XPCFROOT%/scripts/win/build_remaken_project_package.bat xpcfSampleComponent shared %XPCFROOT%/samples/sample_component %QTVERSION%
+call %XPCFROOT%/scripts/win/build_remaken_project_package.bat xpcf shared %QMAKEPATH% %XPCFROOT% %QTVERSION%
+call %XPCFROOT%/scripts/win/build_remaken_project_package.bat xpcf static %QMAKEPATH% %XPCFROOT% %QTVERSION%
+call %XPCFROOT%/scripts/win/build_remaken_project_package.bat xpcfSampleComponent shared %QMAKEPATH% %XPCFROOT%/samples/sample_component %QTVERSION%
 
 call %XPCFROOT%/scripts/win/make_remaken_package.bat XPCF %PKGVERSION%
 call %XPCFROOT%/scripts/win/make_remaken_package.bat xpcfSampleComponent %PKGVERSION%
