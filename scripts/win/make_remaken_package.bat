@@ -18,45 +18,15 @@ set REMAKEN_PLATFORM=win-cl-14.1
 set BUILDMODES=debug release
 set LINKMODES=shared static
 
-set PKGROOT=%PKGNAME%\%PKGVERSION%
-mkdir %PKGROOT%
-
 for %%b in (%BUILDMODES%) do (
 	REM https://stackoverflow.com/questions/8648178/getting-substring-of-a-token-in-for-loop
 	setlocal EnableDelayedExpansion
 	for %%l in (%LINKMODES%) do (
-		SET BUILDFOLDER=%USERPROFILE%\.remaken\packages\%REMAKEN_PLATFORM%\%PKGNAME%\%PKGVERSION%
-		if exist !BUILDFOLDER! (
-			if exist !BUILDFOLDER!\interfaces (
-				if exist !BUILDFOLDER!\lib\x86_64\%%l\%%b (
-					@REM Copy interface folder
-					mkdir %PKGROOT%\interfaces
-					xcopy /y /s /E /q !BUILDFOLDER!\interfaces %PKGROOT%\interfaces
-					@REM Copy lib folder
-					mkdir %PKGROOT%\lib\x86_64\%%l\%%b
-					xcopy /y /s /E /q !BUILDFOLDER!\lib\x86_64\%%l\%%b %PKGROOT%\lib\x86_64\%%l\%%b
-					if exist !BUILDFOLDER!\wizards (
-						@REM Copy wizards folder
-						mkdir %PKGROOT%\wizards
-						xcopy /y /s /E /q !BUILDFOLDER!\wizards %PKGROOT%\wizards
-					)
-					@REM Copy other files (packagedependencies.txt, bcom<package>.pc, ...)
-					if %%l == static (
-						xcopy /y /q !BUILDFOLDER!\packagedependencies-static.txt %PKGROOT%\packagedependencies.txt
-					) else (
-						xcopy /y /q !BUILDFOLDER!\packagedependencies.txt %PKGROOT%
-					)
-					xcopy /y /q !BUILDFOLDER!\%PKGNAME%-%PKGVERSION%_remakeninfo.txt %PKGROOT%
-					xcopy /y /q !BUILDFOLDER!\remaken-%PKGNAME%.pc %PKGROOT%
-					@REM Compress archive
-					echo Packaging %PKGNAME%-%PKGVERSION% from folder %PKGROOT%
-					7z a -tzip %PKGNAME%_%PKGVERSION%_x86_64_%%l_%%b.zip %PKGROOT% >NUL
-					@REM Clean solution
-					rmdir /s /q %PKGNAME%
-					echo solution clean
-				)
-			)
-		)
+        SET BUILDFOLDER=%USERPROFILE%\.remaken\packages\%REMAKEN_PLATFORM%\%%l\%%b\%PKGNAME%_%PKGVERSION%
+        if exist !BUILDFOLDER!\%PKGNAME%\ (
+            echo Packaging %PKGNAME%-%PKGVERSION% from folder !BUILDFOLDER!\%PKGNAME%
+            7z a -tzip %PKGNAME%_%PKGVERSION%_x86_64_%%l_%%b.zip !BUILDFOLDER!\%PKGNAME% >NUL
+        )
 	)
 )
 
