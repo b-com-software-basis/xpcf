@@ -37,7 +37,7 @@ echo This script builds XPCF and xpcfSamplecomponent in shared and static mode w
 echo It also compress the various xpcf packages.
 echo It can receive one optional argument. 
 echo.
-echo Usage: param [Qt kit version to use - default='%QTVERSION%']
+echo Usage: param [path to qmake executable] [path to xpcf] [Qt kit version to use - default='%QTVERSION%']
 exit /b 0
 
 :end
