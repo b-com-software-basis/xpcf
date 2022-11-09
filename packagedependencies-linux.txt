@@ -1,2 +1,2 @@
 boost#stable|1.76.0|boost|conan|conan-center|default|zlib=False#bzip2=False
-grpc|1.37.1|grpc++%WITHREMOTING|http|https://github.com/b-com-software-basis/thirdparties-binaries/releases/download|shared
+grpc|1.37.1|grpc++%WITHREMOTING|http|https://github.com/b-com-software-basis/thirdparties-binaries/releases/download
