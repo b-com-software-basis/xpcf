@@ -5,10 +5,19 @@ PROJECTROOT=../..
 MODE=shared
 QMAKE_MODE=""
 
+# default linux values
+QMAKE_PATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
+QMAKE_SPEC=linux-g++
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	# overload for mac values
+	QMAKE_PATH=/Application/Qt/${QTVERSION}/clang_64/bin
+	QMAKE_SPEC=macx-clang
+fi
+
 display_usage() { 
 	echo "This script builds a remaken project."
-    echo "It takes the project name as first argument and can receive threes optional arguments." 
-	echo -e "\nUsage: \$0 [project name] [ build mode {shared|static} | default='${MODE}' ] [path to project root | default='${PROJECTROOT}'] [Qt kit version to use | default='${QTVERSION}'] \n" 
+    echo "It takes the project name as first argument and can receive four optional arguments." 
+	echo -e "\nUsage: \$0 [project name] [ build mode {shared|static} | default='${MODE}' ] [path to project root | default='${PROJECTROOT}'] [Qt kit version to use | default='${QTVERSION}'] [path to qmake | default='${QMAKEPATH}'] \n" 
 } 
 
 # check whether user had supplied -h or --help . If yes display usage 
@@ -25,27 +34,13 @@ if [ $# -ge 2 ]; then
 	MODE=$2
 fi
 if [ $# -ge 3 ]; then
-	QMAKE_PATH=$3
-else
-	QMAKE_PATH=$HOME/Qt/$(QTVERSION)/gcc_64/bin
+	PROJECTROOT=$3
 fi
 if [ $# -ge 4 ]; then
-	PROJECTROOT=$4
+	QTVERSION=$4
 fi
 if [ $# -eq 5 ]; then
-	QTVERSION=$5
-fi
-# default linux values
-
-QMAKE_SPEC=linux-g++
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-	if [ $# -lt 3 ] then
-		# QMAKE_PATH not defined by parameter, set default mac value.
-		QMAKE_PATH=/Application/Qt/$(QTVERSION)/clang_64/bin
-	fi
-	# overload for mac values
-	QMAKE_SPEC=macx-clang
+	QMAKE_PATH=$5
 fi
 
 if [[ ${MODE} != "shared" && ${MODE} != "static" ]]; then
