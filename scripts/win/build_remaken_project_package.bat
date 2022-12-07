@@ -19,9 +19,9 @@ exit /b 1
 
 set PROJECTNAME=%1
 if NOT [%2]==[] set MODE=%2
-if NOT [%3]==[] ( set QMAKE_PATH=%3) else ( set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2017_64\bin)
-if NOT [%4]==[] set PROJECTROOT=%4
-if NOT [%5]==[] set QTVERSION=%5
+if NOT [%3]==[] set PROJECTROOT=%3
+if NOT [%4]==[] set QTVERSION=%4
+if NOT [%5]==[] ( set QMAKE_PATH=%5)
 
 set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
 
@@ -82,9 +82,9 @@ goto:eof
 :display_usage
 
 echo This script builds a remaken project.
-echo It takes the project name as first argument and can receive threes optional arguments.
+echo It takes the project name as first argument and can receive four optional arguments.
 echo.
-echo "Usage: [project name] [ build mode {shared|static} | default='%MODE%' ] [path to qmake executable] [path to  project root - default='%PROJECTROOT%'] [Qt kit version to use - default='%QTVERSION%']"
+echo "Usage: [project name] [ build mode {shared|static} | default='%MODE%' ] [path to  project root - default='%PROJECTROOT%'] [Qt kit version to use - default='%QTVERSION%'] [path to qmake executable] - default='%QMAKEPATH%'"
 exit /b 0
 
 :end
