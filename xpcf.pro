@@ -175,7 +175,7 @@ SOURCES += \
     src/GrpcManager.cpp
 
 HEADERS += \
-    src/GrpcManager.h \
+    interfaces/private/xpcf/src/GrpcManager.h \
     interfaces/xpcf/remoting/IGrpcServerManager.h \
     interfaces/xpcf/remoting/IGrpcService.h \
     interfaces/xpcf/remoting/GrpcHelper.h
