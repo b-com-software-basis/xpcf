@@ -1,5 +1,8 @@
 @echo off
 
+set BUILDFOLDER=build-cppast
+set BUILDTYPE=release
+
 @REM Check parameters
 set argc=0
 for %%x in (%*) do set /A argc+=1
@@ -11,8 +14,8 @@ if %argc% gtr 0 (
 @REM Configure LLVM
 @REM #####################################################
 
-@REM Install llvm 15.0.3 because we already compiled llvm-config for this version.
-call choco install llvm -y --version 13.0.0
+@REM Install llvm 14.0.0 because we already compiled llvm-config for this version.
+call choco install llvm -y --version 14.0.0
 
 @REM Get llvm-config.exe
 call choco install curl -y
@@ -32,8 +35,9 @@ if not exist "c:\Program Files\LLVM\bin\llvm-config.exe" (
 @REM Compile cppAst
 call choco install cmake
 
-mkdir build
-cd build
+set BUILDPATH=%BUILDFOLDER%-%BUILDTYPE%\%TARGETPLATFORM%
+mkdir %BUILDPATH%
+cd %BUILDPATH%
 
 call cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDANT_CODE=ON -G "Unix Makefiles" ..\cppast
 call make

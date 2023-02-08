@@ -42,7 +42,7 @@ exists($${CPPAST_ROOT_BUILD}) {
     LIBS += -L$${CPPAST_ROOT_BUILD}/src -lcppast
     LIBS += -L$${CPPAST_ROOT_BUILD} -l_cppast_tiny_process
 } else {
-    error("cppast root build folder doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd " $${_PRO_FILE_PWD_} "/../../../libs/$$escape_expand(\\n)./build_cppast.sh" )
+    error("cppast root build folder ($${CPPAST_ROOT_BUILD} doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd " $${_PRO_FILE_PWD_} "/../../../libs/$$escape_expand(\\n)./build_cppast.sh" )
 }
 win32:CONFIG -= static
 win32:CONFIG += shared
@@ -105,6 +105,7 @@ linux {
     LIBS += $${LLVM_CLANG_LIBS}
     QMAKE_LFLAGS += -L$${LLVM_LIBDIR}
     QMAKE_CXXFLAGS += -std=c++17 -I$${LLVM_INCDIR}
+    DISTFILES += ../../../libs/build_cppast.sh
 }
 
 macx {
@@ -131,16 +132,22 @@ macx {
 
 win32 {
     QMAKE_LFLAGS += /MACHINE:X64
-    DEFINES += WIN64 UNICODE _UNICODE
+    # DEFINES += WIN64 UNICODE _UNICODE
     QMAKE_COMPILER_DEFINES += _WIN64
 
+    LLVM_LIBDIR = $$system(llvm-config --libdir)
+    LLVM_INCDIR = $$system(llvm-config --includedir)
+    LIBS += -L\"$${LLVM_LIBDIR}\" -llibclang -lShell32
+    # QMAKE_LFLAGS += -L\"$${LLVM_LIBDIR}\"
+    QMAKE_CXXFLAGS += -I\"$${LLVM_INCDIR}\"
+    DEFINES += _WIN32_WINNT=0x0A00
+
     # Windows Kit (msvc2013 64)
-    LIBS += -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x64 -lshell32 -lgdi32 -lComdlg32
-    INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
+    # LIBS += -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x64 -lshell32 -lgdi32 -lComdlg32
+    # INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
+    # DISTFILES += ../../../libs/build_cppast.bat
 }
 
-DISTFILES += \
-    ../../../libs/build_cppast.sh \
-    packagedependencies.txt
+DISTFILES += packagedependencies.txt
 
 
