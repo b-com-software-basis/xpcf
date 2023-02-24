@@ -37,16 +37,18 @@ DEPENDENCIESCONFIG = sharedlib recurse
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 # include ($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)
 include (../builddefs/qmake/templateappconfig.pri)
-HEADERS += \
-    TestDefines.h
+#HEADERS += \
+#    TestDefines.h
 
 SOURCES += \
     \   # xpcf_dynamic_test.cpp #\
-    xpcf_properties_test.cpp \
-    xpcf_dynamic_test.cpp \
-    xpcf_threading_test.cpp
+    #xpcf_properties_test.cpp \
+    #xpcf_dynamic_test.cpp #\
+    #xpcf_threading_test.cpp 
+    #xpcf_xml_test.cpp
     #xpcf_dynamic_test_copy.cpp
 #    xpcf_in_code_test.cpp
+    xpcf_xml_test.cpp
 
 unix {
     QMAKE_CXXFLAGS += --coverage
@@ -81,11 +83,17 @@ INCLUDEPATH += $${PWD}/../samples/sample_component
 DISTFILES += \
     packagedependencies.txt \
     xpcf_registry_test.xml \
-    xpcf_conf_test.xml
+    xpcf_conf_test.xml \
+    xpcf_xml_test_valid.xml \
+    xpcf_xml_test_missing_start_tag.xml \
+    xpcf_xml_test_missing_end_tag.xml
 
 xpcf_xml_files.path = $${USERHOMEFOLDER}/.xpcf
 xpcf_xml_files.files = $${PWD}/xpcf_registry_test.xml
 xpcf_xml_files.files += $${PWD}/xpcf_conf_test.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_valid.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_missing_start_tag.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_missing_end_tag.xml
 
 xpcf_xml_sample_structure_files.path = $${PROJECTDEPLOYDIR}/
 xpcf_xml_sample_structure_files.files = $${PWD}/xpcf_registry_test.xml

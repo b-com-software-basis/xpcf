@@ -329,6 +329,8 @@ XPCFErrorCode Factory::load(const char* folderPathStr, bool bRecurse)
 *********************************************************************************************/
 XPCFErrorCode Factory::loadLibrary(fs::path configurationFilePath)
 {
+    printf("--> loadLibrary %s\r\n", configurationFilePath.string().c_str());
+
     if ( ! fs::exists(configurationFilePath)) {
         return XPCFErrorCode::_FAIL;
     }
@@ -351,7 +353,7 @@ XPCFErrorCode Factory::loadLibrary(fs::path configurationFilePath)
             tinyxml2::XMLElement * rootElt = doc.RootElement();
             string rootName = rootElt->Value();
             if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
-                return XPCFErrorCode::_ERROR_RANGE;
+                throw ConfigurationException("Configuration failed, missing root element \"xpcf-registry\" or \"xpcf-configuration\"", XPCFErrorCode::_ERROR_RANGE);
             }
             result = XPCFErrorCode::_SUCCESS;
             const char * autoAliasProp = rootElt->Attribute("autoAlias");
@@ -379,6 +381,11 @@ XPCFErrorCode Factory::loadLibrary(fs::path configurationFilePath)
 #endif
             return XPCFErrorCode::_FAIL;
         }
+    }
+    else
+    {
+        printf("--> missing end tag: %d\r\n", loadOkay);
+        throw ConfigurationException("Configuration failed, missing end tag: ", XPCFErrorCode::_FAIL);
     }
     return result;
 }
