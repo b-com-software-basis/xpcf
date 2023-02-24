@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xpcf-registry autoAlias="true">
+    <configuration>
+        <component uuid="pouet" name="testInstance">
+                <property name="blurFactor" type="double" value="1.0"/>
+                <property name="blurScale" type="double" access="ro">
+                    <value>2.1</value>
+                    <value>2.7</value>
+                    <value>2.8</value>
+                    <value>2.1</value>
+                </property>
+                <property name="blurMatrixRepartition"  type = "structure">
+                    <property name="cols" type="long" value="2"/>
+                    <property name="rows" type="long" value="2"/><!-- rowmajormode only-->
+                    <property name="values" type="double">
+                        <value>3.1</value>
+                        <value>2.7</value>
+                        <value>2.3</value>
+                        <value>3.7</value>
+                    </property>
+                </property>
+        </component>
+    </configuration>
+</xpcf-registry>

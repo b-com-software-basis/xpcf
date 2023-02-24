@@ -111,7 +111,7 @@ boost::dll::shared_library validateModule(fs::path modulePath)// validation cach
 boost::dll::shared_library validateModule(SPtr<ModuleMetadata> moduleInfos)
 {
     if ( ! fs::exists(PathBuilder::appendModuleDecorations(moduleInfos->getFullPath()))) {
-        throw ModuleException("No module file found for module UUID" + uuids::to_string(moduleInfos->getUUID()) + " in " + moduleInfos->getFullPath());
+        throw ModuleException("No module file found for module UUID " + uuids::to_string(moduleInfos->getUUID()) + " in " + moduleInfos->getFullPath());
     }
     return validateModule(PathBuilder::getUTF8PathObserver(moduleInfos->getFullPath()));
 }
@@ -251,6 +251,11 @@ SRef<IComponentIntrospect> ModuleManager::createComponent(SPtr<ModuleMetadata> m
         XPCFErrorCode errCode = m_funcMap.at(moduleInfos->getUUID())(componentUUID, componentRef);
         if (componentRef) {
             addModuleRef(moduleInfos->getUUID());
+        } 
+        else {
+            std::string what = "Unable to find component uuid=";
+            what.append(uuids::to_string(componentUUID));
+            throw xpcf::ConfigurationException(what);
         }
     }
     return componentRef;

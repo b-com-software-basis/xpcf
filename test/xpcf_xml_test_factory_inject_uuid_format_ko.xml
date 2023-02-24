@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xpcf-registry autoAlias="true">
+    <factory>
+        <!-- custom bindings : explicit injection for a particular component -->
+        <injects>
+            <inject to="JacksonDinky6ElectricGuitar">
+                    <bind interface="ITuner" to="125f2007-1bf9-421d-9367-fbdc1210d006" properties="nashville"/>
+            </inject>
+            <inject to="VirtualGuitarist">
+                    <bind interface="IGuitar" to="JacksonDinky6ElectricGuitar" range="all" />
+            </inject>
+            <inject to="TakamineFolkGuitar">
+                    <bind interface="ITuner" to="Tuner" properties="DADGAD"/>
+            </inject>
+        </injects>
+    </factory>
+</xpcf-registry>

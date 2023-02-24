@@ -23,6 +23,7 @@
 
 #include "private/xpcf/Factory.h"
 #include <xpcf/api/IModuleManager.h>
+#include <xpcf/core/ErrorMessage.h>
 #include <xpcf/core/Exception.h>
 #include <xpcf/core/helpers.h>
 #include <boost/algorithm/string.hpp>
@@ -72,7 +73,6 @@ void FactoryContext::clear()
     specificBindings.clear();
     specificNamedBindings.clear();
 }
-
 
 Factory::Factory():ComponentBase(toUUID<Factory>())
 {
@@ -205,7 +205,6 @@ SRef<IComponentIntrospect> Factory::createComponent(const uuids::uuid & componen
     }
     return componentRef;
 }
-
 
 SRef<IComponentIntrospect> Factory::createComponent(const char * instanceName, const uuids::uuid & componentUUID)
 {
@@ -340,6 +339,7 @@ XPCFErrorCode Factory::loadLibrary(fs::path configurationFilePath)
     tinyxml2::XMLDocument doc;
     enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
     if (loadOkay == 0) {
+        std::string what = "configuration loading failed: ";
         try {
 #ifdef XPCF_WITH_LOGS
             BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<configurationFilePath<<" config file";
@@ -351,7 +351,7 @@ XPCFErrorCode Factory::loadLibrary(fs::path configurationFilePath)
             tinyxml2::XMLElement * rootElt = doc.RootElement();
             string rootName = rootElt->Value();
             if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
-                return XPCFErrorCode::_ERROR_RANGE;
+                throw ConfigurationException("missing root element \"xpcf-registry\" or \"xpcf-configuration\"", XPCFErrorCode::_ERROR_RANGE);
             }
             result = XPCFErrorCode::_SUCCESS;
             const char * autoAliasProp = rootElt->Attribute("autoAlias");
@@ -371,7 +371,8 @@ XPCFErrorCode Factory::loadLibrary(fs::path configurationFilePath)
             processXmlNode<const fs::path &>(rootElt, "properties", declarePropertiesFunc, configurationFilePath);
         }
         catch (const xpcf::Exception & e) {
-            return e.getErrorCode();
+            what.append(e.what());
+            throw ConfigurationException(what);
         }
         catch (const std::runtime_error & e) {
 #ifdef XPCF_WITH_LOGS
@@ -379,6 +380,10 @@ XPCFErrorCode Factory::loadLibrary(fs::path configurationFilePath)
 #endif
             return XPCFErrorCode::_FAIL;
         }
+    }
+    else
+    {
+        throw ConfigurationException("Configuration failed, missing end tag: ", XPCFErrorCode::_FAIL);
     }
     return result;
 }
@@ -394,7 +399,14 @@ FactoryBindInfos Factory::getComponentBindingInfos(tinyxml2::XMLElement * xmlBin
         infos.componentUUID = m_aliasManager->resolveComponentAlias(componentAttrValue);
     }
     else {
-        infos.componentUUID =  toUUID(componentAttrValue);
+        try {
+            infos.componentUUID = toUUID(componentAttrValue);
+        }
+        catch(const std::exception& ) {
+            std::string what = "UUID format invalid in \"to\" attribute";
+            what.append(xmlBindElt->Attribute("to"));
+            throw ConfigurationException(what);
+        }
     }
     const char * scopeType =  xmlBindElt->Attribute("scope");
     if (scopeType != nullptr) {
@@ -444,91 +456,163 @@ void Factory::declareMultiBind(const uuids::uuid & interfaceUUID, tinyxml2::XMLE
 
 void Factory::declareBind(tinyxml2::XMLElement * xmlBindElt)
 {
-    if (xmlBindElt->Attribute("interface") == nullptr) {
-        throw Exception("<bind interface=\"...\" /> node incomplete : attribute 'interface' is mandatory.");
-    }
-    string interfaceAttrValue =  xmlBindElt->Attribute("interface");
-    uuids::uuid interfaceUUID;
-    if (m_aliasManager->aliasExists(IAliasManager::Type::Interface, interfaceAttrValue)) {
-        interfaceUUID = m_aliasManager->resolveInterfaceAlias(interfaceAttrValue);
-    }
-    else {
-        interfaceUUID =  toUUID(interfaceAttrValue);
-    }
+    bool subElementError = false;
+    string interfaceAttrValue = "";
+    try {
+        if (xmlBindElt->Attribute("interface") == nullptr) {
+            throw Exception("node incomplete : attribute 'interface' is mandatory.");
+        }
+        interfaceAttrValue = xmlBindElt->Attribute("interface");
+        uuids::uuid interfaceUUID;
+        if (m_aliasManager->aliasExists(IAliasManager::Type::Interface, interfaceAttrValue)) {
+            interfaceUUID = m_aliasManager->resolveInterfaceAlias(interfaceAttrValue);
+        }
+        else {
+            try {
+                interfaceUUID = toUUID(interfaceAttrValue);
+            }
+            catch(const std::runtime_error& e) {
+                std::string what = "UUID format invalid in \"interface\" :";
+                what.append(xmlBindElt->Attribute("interface"));
+                throw ConfigurationException(what);
+            }
+        }
+        subElementError = true;
 
+        tinyxml2::XMLElement * xmlComponentNode = xmlBindElt->FirstChildElement("component");
+        if ((xmlBindElt->Attribute("to") == nullptr) && (xmlComponentNode == nullptr)) {
+            throw Exception("node incomplete : attributes 'to' or 'component' inner node are mandatory.");
+        }
 
-    tinyxml2::XMLElement * xmlComponentNode = xmlBindElt->FirstChildElement("component");
-    if ((xmlBindElt->Attribute("to") == nullptr) && (xmlComponentNode == nullptr)) {
-        throw Exception("<bind interface=\"...\" /> node incomplete : attributes 'to' or 'component' inner node are mandatory.");
+        if (xmlBindElt->Attribute("to") != nullptr) {
+            declareSingleBind(interfaceUUID, xmlBindElt);
+        }
+
+        if (xmlComponentNode != nullptr) {
+            declareMultiBind(interfaceUUID, xmlBindElt);
+        }
     }
-
-    if (xmlBindElt->Attribute("to") != nullptr) {
-        declareSingleBind(interfaceUUID, xmlBindElt);
-    }
-
-    if (xmlComponentNode != nullptr) {
-        declareMultiBind(interfaceUUID, xmlBindElt);
+    catch (xpcf::Exception& e) {
+        XmlErrorMessage errMsg("bind", e.what(), subElementError);
+        if(!interfaceAttrValue.empty()) {
+            errMsg.addAttribute("interface", interfaceAttrValue);
+        }
+        throw ConfigurationException(errMsg.write());
     }
 }
 
 void Factory::declareSpecificBind(tinyxml2::XMLElement * xmlBindElt, const uuids::uuid & targetComponentUUID)
 {
-    if ((xmlBindElt->Attribute("interface") == nullptr) || (xmlBindElt->Attribute("to") == nullptr)) {
-        throw Exception("<bind interface=\"...\"  to=\"...\"/> node incomplete : attributes 'interface' and 'to' are mandatory.");
-    }
-    string interfaceAttrValue =  xmlBindElt->Attribute("interface");
-    uuids::uuid interfaceUUID;
-    if (m_aliasManager->aliasExists(IAliasManager::Type::Interface, interfaceAttrValue)) {
-        interfaceUUID = m_aliasManager->resolveInterfaceAlias(interfaceAttrValue);
-    }
-    else {
-        interfaceUUID =  toUUID(interfaceAttrValue);
-    }
+    string interfaceAttrValue = "";
+    try {
+        if ((xmlBindElt->Attribute("interface") == nullptr) || (xmlBindElt->Attribute("to") == nullptr)) {
+            throw Exception("node incomplete : attributes 'interface' and 'to' are mandatory.");
+        }
+        interfaceAttrValue =  xmlBindElt->Attribute("interface");
+        uuids::uuid interfaceUUID;
+        if (m_aliasManager->aliasExists(IAliasManager::Type::Interface, interfaceAttrValue)) {
+            interfaceUUID = m_aliasManager->resolveInterfaceAlias(interfaceAttrValue);
+        }
+        else {
+            try {
+                interfaceUUID = toUUID(interfaceAttrValue);
+            }
+            catch(const std::exception& ) {
+                std::string what = "UUID format invalid in \"interface\": ";
+                what.append(xmlBindElt->Attribute("interface"));
+                throw ConfigurationException(what);
+            }
+        }
 
-    FactoryBindInfos infos = getComponentBindingInfos(xmlBindElt);
-    infos.bindingRangeMask |= BindingRange::Explicit;
-    if (xmlBindElt->Attribute("name") == nullptr) {
-        bind(targetComponentUUID, interfaceUUID, infos);
+        FactoryBindInfos infos = getComponentBindingInfos(xmlBindElt);
+        infos.bindingRangeMask |= BindingRange::Explicit;
+        if (xmlBindElt->Attribute("name") == nullptr) {
+            bind(targetComponentUUID, interfaceUUID, infos);
+        }
+        else {
+            string nameAttrValue =  xmlBindElt->Attribute("name");
+            bind(targetComponentUUID, nameAttrValue, interfaceUUID, infos);
+        }
     }
-    else {
-        string nameAttrValue =  xmlBindElt->Attribute("name");
-        bind(targetComponentUUID, nameAttrValue, interfaceUUID, infos);
+    catch (const xpcf::Exception& e) {
+        XmlErrorMessage errMsg("bind", e.what(), false);
+        if(!interfaceAttrValue.empty()) {
+            errMsg.addAttribute("interface", interfaceAttrValue);
+        }
+        throw ConfigurationException(errMsg.write());
     }
 }
 
 void Factory::declareBindings(tinyxml2::XMLElement * xmlBindingsElt)
 {
-    processXmlNode(xmlBindingsElt, XMLBINDNODE, std::bind(&Factory::declareBind, this, _1));
+    try {
+        processXmlNode(xmlBindingsElt, XMLBINDNODE, std::bind(&Factory::declareBind, this, _1));
+    }
+    catch (const xpcf::Exception& e) {
+        XmlErrorMessage errMsg("bindings", e.what(), true);
+        throw ConfigurationException(errMsg.write());
+    }
 }
 
 void Factory::declareInject(tinyxml2::XMLElement * xmlInjectElt)
 {
-    // Parse bindings : if binding already exist in default or namedBindings: ignore it
-    // for each non-existent bind, add the specificBinding
-    if (xmlInjectElt->Attribute("to") == nullptr) {
-        throw Exception("<inject  to=\"...\"/> node incomplete : attribute 'to' is mandatory.");
+    bool subElementError = false;
+    string componentAttrValue = "";
+    try {
+        // Parse bindings : if binding already exist in default or namedBindings: ignore it
+        // for each non-existent bind, add the specificBinding
+        if (xmlInjectElt->Attribute("to") == nullptr) {
+            throw Exception("node incomplete : attribute 'to' is mandatory.");
+        }
+        uuids::uuid componentUUID;
+        componentAttrValue =  xmlInjectElt->Attribute("to");
+        if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
+            componentUUID = m_aliasManager->resolveComponentAlias(componentAttrValue);
+        }
+        else {
+            try {
+                componentUUID =  toUUID(componentAttrValue);
+            }
+            catch(const std::exception& ) {
+                std::string what = "UUID format invalid in \"to\": ";
+                what.append(xmlInjectElt->Attribute("to"));
+                throw ConfigurationException(what);
+            }
+        }
+        subElementError = true;
+        std::function<void(tinyxml2::XMLElement*,  const uuids::uuid &)> declareSpecificBindingsFunc = std::bind(&Factory::declareSpecificBind, this, _1,_2);
+        processXmlNode<const uuids::uuid &>(xmlInjectElt, XMLBINDNODE, declareSpecificBindingsFunc, componentUUID);
     }
-    uuids::uuid componentUUID;
-    string componentAttrValue =  xmlInjectElt->Attribute("to");
-    if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
-        componentUUID = m_aliasManager->resolveComponentAlias(componentAttrValue);
+    catch (const xpcf::Exception& e) {
+        XmlErrorMessage errMsg("inject", e.what(), subElementError);
+        if(!componentAttrValue.empty()) {
+            errMsg.addAttribute("to", componentAttrValue);
+        }
+        throw ConfigurationException(errMsg.write());
     }
-    else {
-        componentUUID =  toUUID(componentAttrValue);
-    }
-    std::function<void(tinyxml2::XMLElement*,  const uuids::uuid &)> declareSpecificBindingsFunc = std::bind(&Factory::declareSpecificBind, this, _1,_2);
-    processXmlNode<const uuids::uuid &>(xmlInjectElt, XMLBINDNODE, declareSpecificBindingsFunc, componentUUID);
 }
 
 void Factory::declareInjects(tinyxml2::XMLElement * xmlInjectsElt)
 {
-    processXmlNode(xmlInjectsElt, XMLINJECTNODE, std::bind(&Factory::declareInject, this, _1));
+    try {
+        processXmlNode(xmlInjectsElt, XMLINJECTNODE, std::bind(&Factory::declareInject, this, _1));
+    }
+    catch (const xpcf::Exception& e) {
+        XmlErrorMessage errMsg("injects", e.what(), true);
+        throw ConfigurationException(errMsg.write());
+    }
 }
 
 void Factory::declareFactory(tinyxml2::XMLElement * xmlFactoryElt)
 {
-    processXmlNode(xmlFactoryElt, XMLBINDINGSNODE, std::bind(&Factory::declareBindings, this, _1));
-    processXmlNode(xmlFactoryElt, XMLINJECTSNODE, std::bind(&Factory::declareInjects, this, _1));
+    try {
+        processXmlNode(xmlFactoryElt, XMLBINDINGSNODE, std::bind(&Factory::declareBindings, this, _1));
+        processXmlNode(xmlFactoryElt, XMLINJECTSNODE, std::bind(&Factory::declareInjects, this, _1));
+    }
+    catch (const xpcf::Exception& e) {
+        XmlErrorMessage errMsg("factory", e.what(), true);
+        throw ConfigurationException(errMsg.write());
+    }
 }
 
 SRef<IComponentIntrospect> Factory::resolveFromModule(const uuids::uuid & componentUUID)
@@ -752,6 +836,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, std::de
 FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const std::string & name, std::deque<BindContext> contextLevels)
 {
     pair<uuids::uuid, string> key = make_pair(interfaceUUID, name);
+
     // search for the closest specific declaration of binding for interfaceUUID : the first context is the last one, the latter is the first specific context created in the tree
     // WARNING : each bindingrange in the loop is replaced with the parent bindingrange : should it be the case ? may be not !
     for (auto [contextType,contextValue] : contextLevels) {
@@ -806,6 +891,7 @@ void Factory::inject(SRef<IInjectable> component, std::deque<BindContext> contex
 #ifdef XPCF_WITH_LOGS
     BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::inject";
 #endif
+
     for (auto injectable : component->getInjectables()) {
         try {
             if (!injectable->isMulti()) {
@@ -822,72 +908,88 @@ void Factory::inject(SRef<IInjectable> component, std::deque<BindContext> contex
                 throw e;
             }
         }
+        catch (const Exception& e) {
+            throw ConfigurationException(e.what());
+        }
     }
     component->onInjected();
 }
 
 SRef<IComponentIntrospect> Factory::resolveComponent(const FactoryBindInfos & bindInfos, std::deque<BindContext> contextLevels)
 {
-    uuids::uuid componentUUID = bindInfos.componentUUID;
-    std::function<SRef<IComponentIntrospect>(void)> createComponent = [componentUUID, this]()-> SRef<IComponentIntrospect> {
-        return resolveFromModule(componentUUID);
-    };
+    try 
+    {
+        uuids::uuid componentUUID = bindInfos.componentUUID;
+        std::function<SRef<IComponentIntrospect>(void)> createComponent = [componentUUID, this]()-> SRef<IComponentIntrospect> {
+            return resolveFromModule(componentUUID);
+        };
 
-    if (mapContains(m_context->factoryMethods, componentUUID)) {
-        createComponent =  m_context->factoryMethods[componentUUID];
-    }
-    if (bindInfos.bindingRangeMask == BindingRange_Core) {
-        createComponent =  m_coreFactoryMethods[componentUUID];
-    }
-#ifdef XPCF_WITH_LOGS
-    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolveComponent component uuid="<<uuids::to_string(componentUUID);
-#endif
-    SRef<IComponentIntrospect> componentRef = createComponent();
-    inject(componentRef->bindTo<IInjectable>(), contextLevels);
-    if (componentRef->implements<IConfigurable>()) {
-        fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
-        if (! configFilePath.empty()) {
-            SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
-            XPCFErrorCode confErrCode;
-            if (bindInfos.properties.empty()) {
-                confErrCode = iconf->configure(configFilePath.string().c_str());
-            }
-            else {
-                confErrCode = iconf->configure(configFilePath.string().c_str(), bindInfos.properties.c_str());
-            }
-            if (confErrCode != XPCFErrorCode::_SUCCESS) {
-                throw ConfigurationException("Configuration failed for component uuid=" + uuids::to_string(componentUUID), confErrCode);
+        if (mapContains(m_context->factoryMethods, componentUUID)) {
+            createComponent =  m_context->factoryMethods[componentUUID];
+        }
+        if (bindInfos.bindingRangeMask == BindingRange_Core) {
+            createComponent =  m_coreFactoryMethods[componentUUID];
+        }
+    #ifdef XPCF_WITH_LOGS
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolveComponent component uuid="<<uuids::to_string(componentUUID);
+    #endif
+        SRef<IComponentIntrospect> componentRef = createComponent();
+        inject(componentRef->bindTo<IInjectable>(), contextLevels);
+        if (componentRef->implements<IConfigurable>()) {
+            fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
+            if (! configFilePath.empty()) {
+                SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
+                XPCFErrorCode confErrCode;
+                if (bindInfos.properties.empty()) {
+                    confErrCode = iconf->configure(configFilePath.string().c_str());
+                }
+                else {
+                    confErrCode = iconf->configure(configFilePath.string().c_str(), bindInfos.properties.c_str());
+                }
+                if (confErrCode != XPCFErrorCode::_SUCCESS) {
+                    throw ConfigurationException("Configuration failed for component uuid=" + uuids::to_string(componentUUID), confErrCode);
+                }
             }
         }
+        return componentRef;
     }
-    return componentRef;
+    catch (const bcom::xpcf::Exception& e) {
+        throw ConfigurationException(e.what());
+    }
 }
 
 SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, std::deque<BindContext> contextLevels)
 {
-    FactoryBindInfos bindInfos = resolveBind(interfaceUUID, contextLevels);
-#ifdef XPCF_WITH_LOGS
-    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolve interface uuid="<<uuids::to_string(interfaceUUID);
-    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<log(bindInfos).str();
-#endif
-    contextLevels.push_front({ContextType::Component, bindInfos});
-    if (bindInfos.scope == BindingScope::Singleton) {
-        if (bindInfos.bindingRangeMask != BindingRange_Core) {
-            if (! mapContains(m_singletonInstances, bindInfos.componentUUID)) {
-                SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
-                m_singletonInstances[bindInfos.componentUUID] = componentRef;
+    try
+    {
+        FactoryBindInfos bindInfos = resolveBind(interfaceUUID, contextLevels);
+    #ifdef XPCF_WITH_LOGS
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolve interface uuid="<<uuids::to_string(interfaceUUID);
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<log(bindInfos).str();
+    #endif
+        contextLevels.push_front({ContextType::Component, bindInfos});
+        if (bindInfos.scope == BindingScope::Singleton) {
+            if (bindInfos.bindingRangeMask != BindingRange_Core) {
+                if (! mapContains(m_singletonInstances, bindInfos.componentUUID)) {
+                    SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
+                    m_singletonInstances[bindInfos.componentUUID] = componentRef;
+                }
+                return m_singletonInstances.at(bindInfos.componentUUID);
             }
-            return m_singletonInstances.at(bindInfos.componentUUID);
-        }
-        else {
-            if (! mapContains(m_coreInstances, bindInfos.componentUUID)) {
-                SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
-                m_coreInstances[bindInfos.componentUUID] = componentRef;
+            else {
+                if (! mapContains(m_coreInstances, bindInfos.componentUUID)) {
+                    SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
+                    m_coreInstances[bindInfos.componentUUID] = componentRef;
+                }
+                return m_coreInstances.at(bindInfos.componentUUID);
             }
-            return m_coreInstances.at(bindInfos.componentUUID);
         }
+        SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
+        return resolveComponent(bindInfos, contextLevels);
     }
-    return resolveComponent(bindInfos, contextLevels);
+    catch ( const bcom::xpcf::Exception& e) {
+        throw ConfigurationException(e.what());
+    }
 }
 
 SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, const string & name, std::deque<BindContext> contextLevels )
@@ -905,7 +1007,6 @@ SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, c
     }
     return resolveComponent(bindInfos, contextLevels);
 }
-
 
 SRef<IComponentIntrospect> Factory::resolve(const SRef<InjectableMetadata> & injectableInfo, std::deque<BindContext> contextLevels )
 {

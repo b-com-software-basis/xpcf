@@ -149,7 +149,6 @@ XPCFErrorCode PropertyMap::wrapUnsignedLong(const char * name, uint64_t & wrappe
     return wrap<std::remove_reference<decltype(wrappedValue)>::type>(name, wrappedValue, iotype);
 }
 
-
 XPCFErrorCode PropertyMap::wrapFloat(const char * name, float & wrappedValue, IProperty::AccessSpecifier iotype)
 {
     return wrap<std::remove_reference<decltype(wrappedValue)>::type>(name, wrappedValue, iotype);
