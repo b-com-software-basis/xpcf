@@ -138,7 +138,16 @@ void AliasManager::declareAliasNode(tinyxml2::XMLElement * xmlAliasElt)
     if (aliasTypeConvertMap.find(typeStr) == aliasTypeConvertMap.end()) {
         throw Exception("Invalid type attribute : type must be a value in {component|interface|module}. No other value is allowed.");
     }
-    uuids::uuid uuid =  toUUID( xmlAliasElt->Attribute("uuid"));
+    uuids::uuid uuid;
+    try {
+        uuid = toUUID( xmlAliasElt->Attribute("uuid"));
+    }
+    catch(const std::runtime_error &) {
+        std::string what = "Configuration failed, UUID format invalid in \"uuid\" attribute of \"alias\" element: ";
+        what.append(xmlAliasElt->Attribute("uuid"));
+        throw ConfigurationException(what);
+    }
+
     AliasManager::Type type = aliasTypeConvertMap.at(typeStr);
     std::string name = xmlAliasElt->Attribute("name");
     // replace any existing auto alias with explicit one from <aliases>!

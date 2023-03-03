@@ -86,7 +86,8 @@ DISTFILES += \
     xpcf_conf_test.xml \
     xpcf_xml_test_valid.xml \
     xpcf_xml_test_missing_start_tag.xml \
-    xpcf_xml_test_missing_end_tag.xml
+    xpcf_xml_test_missing_end_tag.xml \
+    xpcf_xml_test_uuid_format_ko.xml
 
 xpcf_xml_files.path = $${USERHOMEFOLDER}/.xpcf
 xpcf_xml_files.files = $${PWD}/xpcf_registry_test.xml
@@ -94,6 +95,13 @@ xpcf_xml_files.files += $${PWD}/xpcf_conf_test.xml
 xpcf_xml_files.files += $${PWD}/xpcf_xml_test_valid.xml
 xpcf_xml_files.files += $${PWD}/xpcf_xml_test_missing_start_tag.xml
 xpcf_xml_files.files += $${PWD}/xpcf_xml_test_missing_end_tag.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_module_uuid_format_ko.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_alias_uuid_format_ko.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_factory_bindings_to_uuid_format_ko.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_factory_bindings_component_uuid_format_ko.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_factory_inject_uuid_format_ko
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_configuration_uuid_format_ko.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_properties_uuid_format_ko.xml
 
 xpcf_xml_sample_structure_files.path = $${PROJECTDEPLOYDIR}/
 xpcf_xml_sample_structure_files.files = $${PWD}/xpcf_registry_test.xml

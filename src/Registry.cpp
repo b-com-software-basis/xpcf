@@ -262,7 +262,15 @@ void Registry::declareInterfaceNode(SRef<ComponentMetadata>  componentInfo, tiny
 {
     SPtr<InterfaceMetadata> interfaceInfo;
     string interfaceUuidStr = interfaceElt->Attribute("uuid");
-    uuids::uuid interfaceUuid = toUUID(interfaceUuidStr);
+    uuids::uuid interfaceUuid;
+    try {
+        interfaceUuid = toUUID(interfaceUuidStr);
+    }
+    catch(const std::runtime_error & e) {
+        std::string what = "Configuration failed, UUID format invalid in \"uuid\" attribute of \"interface\" element: ";
+        what.append(interfaceElt->Attribute("uuid"));
+        throw ConfigurationException(what);
+    }
     componentInfo->addInterface(interfaceUuid);
     autobind(interfaceUuid,componentInfo->getUUID());
     if (! mapContains(m_context->interfacesMap,interfaceUuid)) {
@@ -281,7 +289,15 @@ void Registry::declareInterfaceNode(SRef<ComponentMetadata>  componentInfo, tiny
 void Registry::declareComponent(SRef<ModuleMetadata> moduleInfo, tinyxml2::XMLElement *componentElt)
 {
     string componentUuidStr = componentElt->Attribute("uuid");
-    uuids::uuid componentUuid = toUUID(componentUuidStr);
+    uuids::uuid componentUuid;
+    try {
+        componentUuid = toUUID(componentUuidStr);
+    }
+    catch(const std::runtime_error&) {
+        std::string what = "Configuration failed, UUID format invalid in \"uuid\" attribute of \"component\" element: ";
+        what.append(componentElt->Attribute("uuid"));
+        throw ConfigurationException(what);
+    }
     if (! mapContains(m_context->componentModuleUUIDMap,componentUuid)) {
         m_context->componentModuleUUIDMap[componentUuid] = moduleInfo->getUUID();
         string name = componentElt->Attribute("name");
@@ -310,7 +326,15 @@ void Registry::declareModule(tinyxml2::XMLElement * xmlModuleElt)
     if (xmlModuleElt->Attribute("description") != nullptr) {
         moduleDescription = xmlModuleElt->Attribute("description");
     }
-    uuids::uuid moduleUuid = toUUID( xmlModuleElt->Attribute("uuid"));
+    uuids::uuid moduleUuid;
+    try {
+        moduleUuid = toUUID( xmlModuleElt->Attribute("uuid"));
+    }
+    catch(const std::runtime_error &) {
+        std::string what = "Configuration failed, UUID format invalid in \"uuid\" attribute of \"module\" element: ";
+        what.append(xmlModuleElt->Attribute("uuid"));
+        throw ConfigurationException( what );
+    }
     moduleInfo = utils::make_shared<ModuleMetadata>(moduleName.c_str(), moduleUuid, moduleDescription.c_str(), xmlModuleElt->Attribute("path"));
     fs::path filePath = moduleInfo->getFullPath();
     // TODO : check lib existenz with file decorations

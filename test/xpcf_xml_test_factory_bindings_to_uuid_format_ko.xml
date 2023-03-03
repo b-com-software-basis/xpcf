@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xpcf-registry autoAlias="true">
+    <factory>
+        <!-- default bindings -->
+        <bindings>
+            <!--bind interface="41348765-1017-47a7-ab9f-6b59d39e4b95" to="63ff193d-93e6-4ede-9947-22f864ac843f" /-->
+            <bind interface="IGuitar" to="TakamineFolkGuitar" range="all" />
+            <bind interface="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" to="pouet" range="all"/>
+            <bind name="jacksonGuitar" interface="IElectricGuitar" to="JacksonDinky6ElectricGuitar" range="all"/>
+            <bind name="ibanezGuitar" interface="IElectricGuitar" to="Ibanez7ElectricGuitar" range="all"/>
+            <bind interface="IGuitarist" to="VirtualGuitarist" scope="Singleton" range="all"/>
+            <!-- multibind -->
+            <bind interface="IElectricGuitar">
+                <component to="JacksonDinky6ElectricGuitar" range="all"/>
+                <component to="Ibanez7ElectricGuitar" range="all"/>
+            </bind>
+        </bindings>
+    </factory>
+</xpcf-registry>

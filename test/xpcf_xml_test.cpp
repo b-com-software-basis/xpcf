@@ -56,8 +56,8 @@ BOOST_AUTO_TEST_CASE(xml_missing_start_tag)
     fs::path confPath = "xpcf_xml_test_missing_start_tag.xml";
     fs::detail::utf8_codecvt_facet utf8;
     org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_SUCCESS, "Xml parsing failed with error " << ret);
-    BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_ERROR_RANGE, "Xml parsing failed with error " << ret);
+    // BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
     xpcfComponentManager->clear();
 }
 
@@ -67,7 +67,91 @@ BOOST_AUTO_TEST_CASE(xml_missing_end_tag)
 
     fs::path confPath = "xpcf_xml_test_missing_end_tag.xml";
     fs::detail::utf8_codecvt_facet utf8;
-   	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
+   	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+    xpcfComponentManager->clear();
+}
+
+BOOST_AUTO_TEST_CASE(xml_module_uuid_format_ko)
+{
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+    fs::path confPath = "xpcf_xml_test_module_uuid_format_ko.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
+   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
+    xpcfComponentManager->clear();
+}
+
+BOOST_AUTO_TEST_CASE(xml_alias_uuid_format_ko)
+{
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+    fs::path confPath = "xpcf_xml_test_alias_uuid_format_ko.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
+   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
+    xpcfComponentManager->clear();
+}
+
+BOOST_AUTO_TEST_CASE(xml_factory_bindings_to_uuid_format_ko)
+{
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+    fs::path confPath = "xpcf_xml_test_factory_bindings_to_uuid_format_ko.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
+   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
+    xpcfComponentManager->clear();
+}
+
+BOOST_AUTO_TEST_CASE(xml_factory_bindings_component_uuid_format_ko)
+{
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+    fs::path confPath = "xpcf_xml_test_factory_bindings_component_uuid_format_ko.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
+   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
+    xpcfComponentManager->clear();
+}
+
+BOOST_AUTO_TEST_CASE(xml_factory_inject_uuid_format_ko)
+{
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+    fs::path confPath = "xpcf_xml_test_factory_inject_uuid_format_ko.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
+   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
+    xpcfComponentManager->clear();
+}
+
+BOOST_AUTO_TEST_CASE(xml_configuration_uuid_format_ko)
+{
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+    fs::path confPath = "xpcf_xml_test_configuration_uuid_format_ko.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
+   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
+    xpcfComponentManager->clear();
+}
+
+BOOST_AUTO_TEST_CASE(xml_properties_uuid_format_ko)
+{
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+    fs::path confPath = "xpcf_xml_test_properties_uuid_format_ko.xml";
+    fs::detail::utf8_codecvt_facet utf8;
+    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
+   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
     xpcfComponentManager->clear();
 }
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xpcf-registry autoAlias="true">
+    <aliases>
+            <alias name="IGuitarist" type="interface" uuid="41348765-1017-47a7-ab9f-6b59d39e4b95"/>
+            <alias name="JacksonDinky6ElectricGuitar" type="component" uuid="7cc64f89-9a81-4fc8-9695-fde123fae225"/>
+            <alias name="TakamineFolkGuitar" type="component" uuid="pouet"/>
+            <alias name="VirtualGuitarist" type="component" uuid="63ff193d-93e6-4ede-9947-22f864ac843f"/>
+    </aliases>
+</xpcf-registry>

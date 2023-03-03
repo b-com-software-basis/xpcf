@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xpcf-registry autoAlias="true">
+    <properties>
+        <configure component="Pouet">
+                <property name="blurFactor" type="double" value="2.0"/>
+                <property name="blurScale" type="double" access="ro">
+                    <value>0.2</value>
+                    <value>0.5</value>
+                    <value>0.8</value>
+                    <value>1.1</value>
+                </property>
+                <property name="blurMatrixRepartition"  type = "structure">
+                    <property name="cols" type="long" value="2"/>
+                    <property name="rows" type="long" value="2"/><!-- rowmajormode only-->
+                    <property name="values" type="double">
+                        <value>1.1</value>
+                        <value>0.7</value>
+                        <value>0.3</value>
+                        <value>2.7</value>
+                    </property>
+                </property>
+        </configure>
+        <configure component="Tuner">
+            <property name="TuneType" type="ulong" value="0"/>
+        </configure>
+        <configure component="Tuner" name="DADGAD">
+            <property name="TuneType" type="ulong" value="4"/>
+        </configure>
+        <configure component="Tuner" name="nashville">
+            <property name="TuneType" type="ulong" value="1"/>
+        </configure>
+        <configure component="Tuner" name="halftunelower">
+            <property name="TuneType" type="ulong" value="2"/>
+        </configure>
+    </properties>
+</xpcf-registry>

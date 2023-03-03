@@ -105,7 +105,15 @@ void PropertyManager::setContext(SRef<PropertyContext> context)
 void PropertyManager::declareComponent(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
 {
     string componentUuidStr = xmlElt->Attribute("uuid");
-    uuids::uuid componentUuid = toUUID(componentUuidStr);
+    uuids::uuid componentUuid;
+    try {
+        componentUuid = toUUID(componentUuidStr);
+    }
+    catch(const std::runtime_error &) {
+        std::string what = "Configuration failed, UUID format invalid in \"component\" element: ";
+        what.append(xmlElt->Attribute("uuid"));
+        throw ConfigurationException( what );
+    }
     try {
         uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
         if (m_context->moduleConfigMap.find(moduleUuid) == m_context->moduleConfigMap.end()) {
@@ -133,7 +141,14 @@ void PropertyManager::declareConfigure(tinyxml2::XMLElement * xmlElt, const fs::
         componentUuid = m_aliasManager->resolveComponentAlias(componentAttrValue);
     }
     else {
-        componentUuid =  toUUID(componentAttrValue);
+        try {
+            componentUuid =  toUUID(componentAttrValue);
+        }
+        catch(const std::runtime_error &) {
+            std::string what = "Configuration failed, UUID format invalid in \"component\" attribute of \"configure\" element: ";
+            what.append(xmlElt->Attribute("component"));
+            throw ConfigurationException( what );
+        }
     }
     try {
         uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
