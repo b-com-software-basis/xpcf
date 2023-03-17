@@ -1,8 +1,10 @@
 #include "xpcf/threading/BaseTask.h"
 
+#ifdef XPCF_USE_BOOST
 #include "boost/fiber/fiber.hpp"
 #include "boost/fiber/operations.hpp"
 #include "boost/fiber/future.hpp"
+#endif
 
 using namespace std;
 namespace bfibers = boost::fibers;
