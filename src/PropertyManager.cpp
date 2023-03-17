@@ -104,81 +104,114 @@ void PropertyManager::setContext(SRef<PropertyContext> context)
 
 void PropertyManager::declareComponent(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
 {
-    string componentUuidStr = xmlElt->Attribute("uuid");
-    uuids::uuid componentUuid;
+    std::string what = "\"component\" ";
     try {
-        componentUuid = toUUID(componentUuidStr);
-    }
-    catch(const std::runtime_error &) {
-        std::string what = "Configuration failed, UUID format invalid in \"component\" element: ";
-        what.append(xmlElt->Attribute("uuid"));
-        throw ConfigurationException( what );
-    }
-    try {
-        uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
-        if (m_context->moduleConfigMap.find(moduleUuid) == m_context->moduleConfigMap.end()) {
-            m_context->moduleConfigMap[moduleUuid] = configFilePath;
+        string componentUuidStr = xmlElt->Attribute("uuid");
+        uuids::uuid componentUuid;
+        try {
+            componentUuid = toUUID(componentUuidStr);
+            what.append(componentUuidStr);
+            what.append(" ");
         }
-        else {
-            fs::path & moduleConfigurationPath = m_context->moduleConfigMap[moduleUuid];
-            if (moduleConfigurationPath != configFilePath) {
-                m_context->componentConfigMap[componentUuid] = configFilePath;
+        catch(const std::runtime_error &) {
+            std::string what = "UUID format invalid in \"uuid\": ";
+            what.append(xmlElt->Attribute("uuid"));
+            throw ConfigurationException( what );
+        }
+        try {
+            uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
+            if (m_context->moduleConfigMap.find(moduleUuid) == m_context->moduleConfigMap.end()) {
+                m_context->moduleConfigMap[moduleUuid] = configFilePath;
+            }
+            else {
+                fs::path & moduleConfigurationPath = m_context->moduleConfigMap[moduleUuid];
+                if (moduleConfigurationPath != configFilePath) {
+                    m_context->componentConfigMap[componentUuid] = configFilePath;
+                }
             }
         }
+        catch (const ModuleNotFoundException & e) {
+            // no associated module in current configuration :
+            // add config path to component configuration as the component can be declared from bindLocal
+            m_context->componentConfigMap[componentUuid] = configFilePath;
+        }
     }
-    catch (const ModuleNotFoundException & e) {
-        // no associated module in current configuration :
-        // add config path to component configuration as the component can be declared from bindLocal
-        m_context->componentConfigMap[componentUuid] = configFilePath;
+    catch (const xpcf::Exception& e) {
+        what.append(e.what());
+        throw ConfigurationException(what);
     }
 }
 
 void PropertyManager::declareConfigure(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
 {
-    string componentAttrValue = xmlElt->Attribute("component");
-    uuids::uuid componentUuid;
-    if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
-        componentUuid = m_aliasManager->resolveComponentAlias(componentAttrValue);
-    }
-    else {
-        try {
-            componentUuid =  toUUID(componentAttrValue);
-        }
-        catch(const std::runtime_error &) {
-            std::string what = "Configuration failed, UUID format invalid in \"component\" attribute of \"configure\" element: ";
-            what.append(xmlElt->Attribute("component"));
-            throw ConfigurationException( what );
-        }
-    }
+    std::string what="\"configure\" ";
     try {
-        uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
-        if (m_context->moduleConfigMap.find(moduleUuid) == m_context->moduleConfigMap.end()) {
-            m_context->moduleConfigMap[moduleUuid] = configFilePath;
+        string componentAttrValue = xmlElt->Attribute("component");
+        uuids::uuid componentUuid;
+
+        if (m_aliasManager->aliasExists(IAliasManager::Type::Component, componentAttrValue)) {
+            componentUuid = m_aliasManager->resolveComponentAlias(componentAttrValue);
         }
         else {
-            fs::path & moduleConfigurationPath = m_context->moduleConfigMap[moduleUuid];
-            if (moduleConfigurationPath != configFilePath) {
-                m_context->componentConfigMap[componentUuid] = configFilePath;
+            try {
+                componentUuid =  toUUID(componentAttrValue);
+            }
+            catch(const std::runtime_error &) {
+                std::string what = "UUID format invalid in \"component\": ";
+                what.append(xmlElt->Attribute("component"));
+                throw ConfigurationException( what );
             }
         }
+        what.append(componentAttrValue);
+        what.append(" ");
+        try {
+            uuids::uuid moduleUuid = m_registry->getModuleUUID(componentUuid);
+            if (m_context->moduleConfigMap.find(moduleUuid) == m_context->moduleConfigMap.end()) {
+                m_context->moduleConfigMap[moduleUuid] = configFilePath;
+            }
+            else {
+                fs::path & moduleConfigurationPath = m_context->moduleConfigMap[moduleUuid];
+                if (moduleConfigurationPath != configFilePath) {
+                    m_context->componentConfigMap[componentUuid] = configFilePath;
+                }
+            }
+        }
+        catch (const ModuleNotFoundException & e) {
+            // no associated module in current configuration :
+            // add config path to component configuration as the component can be declared from bindLocal
+            m_context->componentConfigMap[componentUuid] = configFilePath;
+        }
     }
-    catch (const ModuleNotFoundException & e) {
-        // no associated module in current configuration :
-        // add config path to component configuration as the component can be declared from bindLocal
-        m_context->componentConfigMap[componentUuid] = configFilePath;
+    catch (const xpcf::Exception& e) {
+        what.append(e.what());
+        throw ConfigurationException(what);
     }
 }
 
 void PropertyManager::declareConfiguration(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
 {
-    std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareComponentFunc = std::bind(&PropertyManager::declareComponent, this, _1,_2);
-    processXmlNode<const fs::path &>(xmlElt, XMLCOMPONENTNODE, declareComponentFunc, configFilePath);
+    std::string what="\"configuration\"->";
+    try {
+        std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareComponentFunc = std::bind(&PropertyManager::declareComponent, this, _1,_2);
+        processXmlNode<const fs::path &>(xmlElt, XMLCOMPONENTNODE, declareComponentFunc, configFilePath);
+    }
+    catch(const xpcf::Exception& e) {
+        what.append(e.what());
+        throw ConfigurationException(what);
+    }
 }
 
 void PropertyManager::declareProperties(tinyxml2::XMLElement * xmlElt, const fs::path & configFilePath)
 {
-    std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareConfigureFunc = std::bind(&PropertyManager::declareConfigure, this, _1,_2);
-    processXmlNode<const fs::path &>(xmlElt, XMLCONFIGURENODE, declareConfigureFunc, configFilePath);
+    std::string what = "\"properties\"->";
+    try {
+        std::function<void(tinyxml2::XMLElement*,  const fs::path &)> declareConfigureFunc = std::bind(&PropertyManager::declareConfigure, this, _1,_2);
+        processXmlNode<const fs::path &>(xmlElt, XMLCONFIGURENODE, declareConfigureFunc, configFilePath);
+    }
+    catch (const xpcf::Exception& e) {
+        what.append(e.what());
+        throw ConfigurationException(what);
+    }
 }
 
 fs::path PropertyManager::getConfigPath(uuids::uuid componentUUID) const
@@ -205,29 +238,31 @@ fs::path PropertyManager::getConfigPath(uuids::uuid componentUUID) const
 XPCFErrorCode configureValue(string valueStr, SRef<IProperty> property,uint32_t valueIndex)
 {
     if ( valueStr.empty() ) {
-        return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
+        string what = "No value defined";
+        throw ConfigurationException(what);
     }
 
     try {
+        size_t processedValue = 0;
+
         switch (property->getType()) {
         case IProperty::IProperty_INTEGER:
-            property->setIntegerValue(std::stol(valueStr,nullptr,0), valueIndex);
+            property->setIntegerValue(std::stol(valueStr,&processedValue,0), valueIndex);
             break;
         case IProperty::IProperty_UINTEGER:
-            property->setUnsignedIntegerValue(std::stoul(valueStr,nullptr,0), valueIndex);
+            property->setUnsignedIntegerValue(std::stoul(valueStr,&processedValue,0), valueIndex);
             break;
-
         case IProperty::IProperty_LONG:
-            property->setLongValue(std::stoll(valueStr,nullptr,0), valueIndex);
+            property->setLongValue(std::stoll(valueStr,&processedValue,0), valueIndex);
             break;
         case IProperty::IProperty_ULONG:
-            property->setUnsignedLongValue(std::stoull(valueStr,nullptr,0), valueIndex);
+            property->setUnsignedLongValue(std::stoull(valueStr,&processedValue,0), valueIndex);
             break;
         case IProperty::IProperty_FLOAT:
-            property->setFloatingValue(std::stof(valueStr,nullptr), valueIndex);
+            property->setFloatingValue(std::stof(valueStr,&processedValue), valueIndex);
             break;
         case IProperty::IProperty_DOUBLE:
-            property->setDoubleValue(std::stod(valueStr,nullptr), valueIndex);
+            property->setDoubleValue(std::stod(valueStr,&processedValue), valueIndex);
             break;
         case IProperty::IProperty_CHARSTR:
             property->setStringValue(valueStr.c_str(), valueIndex);
@@ -240,9 +275,23 @@ XPCFErrorCode configureValue(string valueStr, SRef<IProperty> property,uint32_t 
             return XPCFErrorCode::_ERROR_TYPE;
             break;
         }
+
+        if(valueStr.size() != processedValue) {
+            string what = "Unexpected value type for \"";
+            what.append( valueStr );
+            what.append("\", \"");
+            what.append(propertyTypeToStrMap[property->getType()]);
+            what.append("\" expected");
+            throw ConfigurationException(what);
+        }
     }
     catch (const std::invalid_argument & e) {
-        return XPCFErrorCode::_ERROR_TYPE;
+        string what = "Unexpected value type for \"";
+        what.append( valueStr );
+        what.append("\", \"");
+        what.append(propertyTypeToStrMap[property->getType()]);
+        what.append("\" expected");
+        throw ConfigurationException(what);
     }
     return XPCFErrorCode::_SUCCESS;
 }
@@ -251,6 +300,8 @@ XPCFErrorCode configureElement(tinyxml2::XMLElement *element, SRef<IPropertyMap>
 
 XPCFErrorCode configureProperty(tinyxml2::XMLElement *propertyElt, SRef<IPropertyMap> nodeElement)
 {
+    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
+
     string propertyName = propertyElt->Attribute("name");
     if ( propertyName.empty() ) {
         return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
@@ -258,40 +309,55 @@ XPCFErrorCode configureProperty(tinyxml2::XMLElement *propertyElt, SRef<IPropert
 
     SRef<IProperty> currentProperty = nodeElement->at(propertyName.c_str());
     if (! currentProperty) {
-        return XPCFErrorCode::_ERROR_NULL_POINTER;
-    }
-
-    string propertyType = propertyElt->Attribute("type");
-    if ( propertyType.empty() ) {
+        std::string what = "Property unknown: ";
+        what.append(propertyName.c_str());
+        throw ConfigurationException(what);
         return XPCFErrorCode::_ERROR_INVALID_ARGUMENT;
     }
 
-    if (propertyType == "structure") {
-        if (currentProperty->getType() != IProperty::IProperty_STRUCTURE) {
-            return XPCFErrorCode::_ERROR_TYPE;
+    string what = "Property ";
+    what.append(propertyName.c_str());
+    what.append(": ");
+    try {
+        string propertyType = propertyElt->Attribute("type");
+        if ( propertyType.empty() ) {
+            what.append(" Unknown type \"");
+            what.append(propertyElt->Attribute("type"));
+            what.append("\"");
+            throw ConfigurationException(what);
         }
 
-        SRef<IPropertyMap> propertyNode = currentProperty->getStructureValue();
-        return configureElement(propertyElt,propertyNode);
+        if (propertyType == "structure") {
+            if (currentProperty->getType() != IProperty::IProperty_STRUCTURE) {
+                what.append("\"structure\" expected.");
+                throw ConfigurationException(what);
+            }
+
+            SRef<IPropertyMap> propertyNode = currentProperty->getStructureValue();
+            return configureElement(propertyElt,propertyNode);
+        }
+
+        const char * propertyCharStr = propertyElt->Attribute("value");
+        if (propertyCharStr != nullptr) {
+            string propertyValue = propertyCharStr;
+            return configureValue(propertyValue,currentProperty,0);
+        }
+
+        tinyxml2::XMLElement *valueElt = propertyElt->FirstChildElement("value");
+        uint32_t index = 0;
+        while (valueElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
+            string propertyValue = valueElt->GetText();
+            result = configureValue(propertyValue,currentProperty,index);
+            index++;
+            valueElt = valueElt->NextSiblingElement("value");
+        }
+    } 
+    catch  (const xpcf::Exception & e) {
+        what.append(e.what());
+        throw ConfigurationException( what );
     }
 
-    const char * propertyCharStr = propertyElt->Attribute("value");
-    if (propertyCharStr != nullptr) {
-        string propertyValue = propertyCharStr;
-        return configureValue(propertyValue,currentProperty,0);
-    }
-
-    XPCFErrorCode result = XPCFErrorCode::_SUCCESS;
-    tinyxml2::XMLElement *valueElt = propertyElt->FirstChildElement("value");
-    uint32_t index = 0;
-    while (valueElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
-        string propertyValue = valueElt->GetText();
-        result = configureValue(propertyValue,currentProperty,index);
-        index++;
-        valueElt = valueElt->NextSiblingElement("value");
-    }
     return result;
-
 }
 
 XPCFErrorCode configureElement(tinyxml2::XMLElement *element, SRef<IPropertyMap> nodeElement)
@@ -319,21 +385,22 @@ XPCFErrorCode PropertyManager::configure(std::function<bool(tinyxml2::XMLElement
     //TODO: filepath must be wrapped in an utf8 observer !
     enum tinyxml2::XMLError loadOkay = doc.LoadFile(filepath);
     if (loadOkay == 0) {
-        try {
 #ifdef XPCF_WITH_LOGS
-            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<filepath<<" config file";
-            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Parsing XML from "<<filepath<<" config file";
+        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"NOTE : Command line arguments are overloaded with config file parameters";
 #endif
-            //TODO : check each element exists before using it !
-            // a check should be performed upon announced module uuid and inner module uuid
-            tinyxml2::XMLElement * rootElt = doc.RootElement();
-            tinyxml2::XMLElement * xmlConfigElt = rootElt->FirstChildElement("configuration");
-            tinyxml2::XMLElement * xmlPropsElt = rootElt->FirstChildElement("properties");
-            if ((xmlConfigElt == nullptr) && (xmlPropsElt == nullptr)) {
-                return XPCFErrorCode::_SUCCESS;
-            }
-            if (xmlConfigElt != nullptr) {
-                tinyxml2::XMLElement * xmlComponentElt = xmlConfigElt->FirstChildElement("component");
+        //TODO : check each element exists before using it !
+        // a check should be performed upon announced module uuid and inner module uuid
+        tinyxml2::XMLElement * rootElt = doc.RootElement();
+        tinyxml2::XMLElement * xmlConfigElt = rootElt->FirstChildElement("configuration");
+        tinyxml2::XMLElement * xmlPropsElt = rootElt->FirstChildElement("properties");
+        if ((xmlConfigElt == nullptr) && (xmlPropsElt == nullptr)) {
+            return XPCFErrorCode::_SUCCESS;
+        }
+        if (xmlConfigElt != nullptr) {
+            std::string what="\"configuration\": ";
+            tinyxml2::XMLElement * xmlComponentElt = xmlConfigElt->FirstChildElement("component");
+            try {
                 while (xmlComponentElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
                     string uuid = xmlComponentElt->Attribute("uuid");
                     if (xmlNodePredicate(xmlComponentElt)) {
@@ -344,8 +411,28 @@ XPCFErrorCode PropertyManager::configure(std::function<bool(tinyxml2::XMLElement
                     xmlComponentElt = xmlComponentElt->NextSiblingElement("component");
                 }
             }
-            if (xmlPropsElt != nullptr) {
-                tinyxml2::XMLElement * xmlConfigureElt = xmlPropsElt->FirstChildElement("configure");
+            catch (const xpcf::Exception & e) {
+                what.append("component uuid=");
+                what.append(xmlComponentElt->Attribute("uuid"));
+                std::string componentName = xmlComponentElt->Attribute("name");
+                if(!componentName.empty()) {
+                    what.append(" name=");
+                    what.append(componentName);
+                }
+                what.append(": ");
+                what.append(e.what());
+                throw ConfigurationException(what);
+            }
+            catch (const std::runtime_error & e) {
+                what.append("invalid component uuid ");
+                what.append(xmlComponentElt->Attribute("uuid"));
+                throw ConfigurationException(what);
+            }
+        }
+        if (xmlPropsElt != nullptr) {
+            std::string what="\"properties\": ";
+            tinyxml2::XMLElement * xmlConfigureElt = xmlPropsElt->FirstChildElement("configure");
+            try {
                 while (xmlConfigureElt != nullptr && result == XPCFErrorCode::_SUCCESS) {
                     string componentAttrValue =  xmlConfigureElt->Attribute("component");
                     uuids::uuid uuid;
@@ -363,15 +450,23 @@ XPCFErrorCode PropertyManager::configure(std::function<bool(tinyxml2::XMLElement
                     xmlConfigureElt = xmlConfigureElt->NextSiblingElement("configure");
                 }
             }
-        }
-        catch (const xpcf::Exception & e) {
-            return e.getErrorCode();
-        }
-        catch (const std::runtime_error & e) {
-#ifdef XPCF_WITH_LOGS
-            BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"XML parsing file "<<filepath<<" failed with error : "<<e.what();
-#endif
-            return XPCFErrorCode::_FAIL;
+            catch (const xpcf::Exception & e) {
+                what.append("component ");
+                what.append(xmlConfigureElt->Attribute("component"));
+                std::string componentName = xmlConfigureElt->Attribute("name");
+                if(!componentName.empty()) {
+                    what.append(" name=");
+                    what.append(componentName);
+                }
+                what.append(": ");
+                what.append(e.what());
+                throw ConfigurationException(what);
+            }
+            catch (const std::runtime_error & e) {
+                what.append("invalid component uuid ");
+                what.append(xmlConfigureElt->Attribute("component"));
+                throw ConfigurationException(what);
+            }
         }
     }
     return result;
@@ -389,7 +484,6 @@ XPCFErrorCode PropertyManager::configure(const uuids::uuid & componentUUID, SRef
 
     return configure(unnamedPredicate, componentUUID, componentRef, filepath);
 }
-
 
 XPCFErrorCode PropertyManager::configure(const char * instanceName, const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef,const char * filepath)
 {
@@ -526,6 +620,5 @@ XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef
     }
     return result;
 }
-
 
 }}} //namespace org::bcom::xpcf

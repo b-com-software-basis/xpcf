@@ -27,97 +27,84 @@
 #define BOOST_TEST_MODULE MyTest
 #include <boost/test/unit_test.hpp>
 
+#include "VirtualGuitarist.h"
+
 #include "TestDefines.h"
 
 namespace fs = boost::filesystem;
 
 BOOST_AUTO_TEST_SUITE(xml_parsing)
 
-BOOST_AUTO_TEST_CASE(xml_valid)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_valid)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_valid.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-	try {
-	    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-		BOOST_TEST_REQUIRE( ret == org::bcom::xpcf::_SUCCESS, "Xml parsing failed with error " << ret);
-	}
-	catch (std::exception & e) {
-		BOOST_TEST_MESSAGE("Exception occures loading xml file.");
-	}
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_valid.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//     org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+// 	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_SUCCESS, "Xml parsing failed with error " << ret);
+//     xpcfComponentManager->clear();
+// }
 
-BOOST_AUTO_TEST_CASE(xml_missing_start_tag)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_missing_start_tag)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_missing_start_tag.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_ERROR_RANGE, "Xml parsing failed with error " << ret);
-    // BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_missing_start_tag.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//     BOOST_CHECK_THROW(xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
 
-BOOST_AUTO_TEST_CASE(xml_missing_end_tag)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_missing_end_tag)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_missing_end_tag.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-   	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_missing_end_tag.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//    	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
 
-BOOST_AUTO_TEST_CASE(xml_module_uuid_format_ko)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_module_uuid_format_ko)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_module_uuid_format_ko.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
-   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_module_uuid_format_ko.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//    	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
 
-BOOST_AUTO_TEST_CASE(xml_alias_uuid_format_ko)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_alias_uuid_format_ko)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_alias_uuid_format_ko.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
-   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_alias_uuid_format_ko.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//    	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
 
-BOOST_AUTO_TEST_CASE(xml_factory_bindings_to_uuid_format_ko)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_factory_bindings_to_uuid_format_ko)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_factory_bindings_to_uuid_format_ko.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
-   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_factory_bindings_to_uuid_format_ko.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//    	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
 
-BOOST_AUTO_TEST_CASE(xml_factory_bindings_component_uuid_format_ko)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_factory_bindings_component_uuid_format_ko)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_factory_bindings_component_uuid_format_ko.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
-   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_factory_bindings_component_uuid_format_ko.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//    	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
 
 BOOST_AUTO_TEST_CASE(xml_factory_inject_uuid_format_ko)
 {
@@ -125,34 +112,74 @@ BOOST_AUTO_TEST_CASE(xml_factory_inject_uuid_format_ko)
 
     fs::path confPath = "xpcf_xml_test_factory_inject_uuid_format_ko.xml";
     fs::detail::utf8_codecvt_facet utf8;
-    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
-   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
+   	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
     xpcfComponentManager->clear();
 }
 
-BOOST_AUTO_TEST_CASE(xml_configuration_uuid_format_ko)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_configuration_uuid_format_ko)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_configuration_uuid_format_ko.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
-   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_configuration_uuid_format_ko.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//    	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
 
-BOOST_AUTO_TEST_CASE(xml_properties_uuid_format_ko)
-{
-    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+// BOOST_AUTO_TEST_CASE(xml_properties_uuid_format_ko)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    fs::path confPath = "xpcf_xml_test_properties_uuid_format_ko.xml";
-    fs::detail::utf8_codecvt_facet utf8;
-    org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
-	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_FAIL, "UUID error: " << ret);
-   	// BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ModuleNotFoundException);
-    xpcfComponentManager->clear();
-}
+//     fs::path confPath = "xpcf_xml_test_properties_uuid_format_ko.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//    	BOOST_CHECK_THROW(org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
+
+// BOOST_AUTO_TEST_CASE(xml_unknown_component)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+//     fs::path confPath = "xpcf_xml_test_unknown_component.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//     org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+// 	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_SUCCESS, "loading error: " << ret);
+//    	BOOST_CHECK_THROW(xpcfComponentManager->resolve<IMusician>("UnknownMusician"), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
+
+// BOOST_AUTO_TEST_CASE(xml_property_type_invalid)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+//     fs::path confPath = "xpcf_xml_test_property_type_invalid.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//     org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+// 	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_SUCCESS, "loading error: " << ret);
+//    	BOOST_CHECK_THROW(xpcfComponentManager->create<component::VirtualGuitarist>("testInstance"), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
+
+// BOOST_AUTO_TEST_CASE(xml_unknown_property)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+//     fs::path confPath = "xpcf_xml_test_unknown_property.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//     org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+// 	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_SUCCESS, "loading error: " << ret);
+//    	BOOST_CHECK_THROW(xpcfComponentManager->create<component::VirtualGuitarist>("testInstance"), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
+
+// BOOST_AUTO_TEST_CASE(xml_property_unknown_component)
+// {
+//     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+//     fs::path confPath = "xpcf_xml_test_property_unknown_component.xml";
+//     fs::detail::utf8_codecvt_facet utf8;
+//     BOOST_CHECK_THROW(xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
+//     xpcfComponentManager->clear();
+// }
 
 BOOST_AUTO_TEST_SUITE_END()

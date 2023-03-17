@@ -102,6 +102,11 @@ xpcf_xml_files.files += $${PWD}/xpcf_xml_test_factory_bindings_component_uuid_fo
 xpcf_xml_files.files += $${PWD}/xpcf_xml_test_factory_inject_uuid_format_ko
 xpcf_xml_files.files += $${PWD}/xpcf_xml_test_configuration_uuid_format_ko.xml
 xpcf_xml_files.files += $${PWD}/xpcf_xml_test_properties_uuid_format_ko.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_unknown_component.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_property_type_invalid.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_unknown_property.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_property_unknown_component.xml
+xpcf_xml_files.files += $${PWD}/xpcf_xml_test_factory_inject_uuid_format_ko.xml
 
 xpcf_xml_sample_structure_files.path = $${PROJECTDEPLOYDIR}/
 xpcf_xml_sample_structure_files.files = $${PWD}/xpcf_registry_test.xml
