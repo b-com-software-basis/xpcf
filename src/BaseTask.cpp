@@ -109,6 +109,8 @@ void DelegateTask::yield()
     BaseTask::yield();
 }
 
+#ifdef XPCF_USE_BOOST
+
 class FiberTask::FiberTaskImpl {
 public:
     bfibers::fiber m_fiber;
@@ -161,5 +163,6 @@ void FiberTask::yield()
 {
     boost::this_fiber::yield();
 }
+#endif
 
 }}}
