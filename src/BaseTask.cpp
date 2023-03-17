@@ -4,11 +4,11 @@
 #include "boost/fiber/fiber.hpp"
 #include "boost/fiber/operations.hpp"
 #include "boost/fiber/future.hpp"
+
+namespace bfibers = boost::fibers;
 #endif
 
 using namespace std;
-namespace bfibers = boost::fibers;
-
 namespace org { namespace bcom { namespace xpcf {
 
 
