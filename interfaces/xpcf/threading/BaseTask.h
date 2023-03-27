@@ -29,6 +29,7 @@
 #include <thread>
 #include <future>
 #include <functional>
+#include <vector>
 
 namespace org { namespace bcom { namespace xpcf {
 
