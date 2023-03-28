@@ -5,6 +5,7 @@
 #include "xpcf/core/XPCFErrorCode.h"
 
 #include <exception>
+#include <stdexcept>
 #include <string>
 namespace org { namespace bcom { namespace xpcf {
 
