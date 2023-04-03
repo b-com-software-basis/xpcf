@@ -24,6 +24,7 @@
 #include "private/xpcf/ModuleManager.h"
 #include "private/xpcf/Registry.h"
 #include "xpcf/component/ComponentFactory.h"
+#include "xpcf/core/ErrorMessage.h"
 #include "xpcf/core/Exception.h"
 #include "xpcf/core/helpers.h"
 #include "private/xpcf/PathBuilder.h"
@@ -257,13 +258,18 @@ void Registry::declareModuleMetadata(SPtr<ModuleMetadata> moduleInfos)
     }
 }
 
-
 void Registry::declareInterfaceNode(SRef<ComponentMetadata>  componentInfo, tinyxml2::XMLElement *interfaceElt)
 {
-    std::string what = "\"interface\" ";
+    string interfaceUuidStr = "";
+    string interfaceName = "";
     try {
         SPtr<InterfaceMetadata> interfaceInfo;
-        string interfaceUuidStr = interfaceElt->Attribute("uuid");
+        if(interfaceElt->Attribute("uuid") != nullptr) {
+            interfaceUuidStr = interfaceElt->Attribute("uuid");
+        }
+        if(interfaceElt->Attribute("name") != nullptr) {
+            interfaceName = interfaceElt->Attribute("name");
+        }
         uuids::uuid interfaceUuid;
         try {
             interfaceUuid = toUUID(interfaceUuidStr);
@@ -276,7 +282,6 @@ void Registry::declareInterfaceNode(SRef<ComponentMetadata>  componentInfo, tiny
         componentInfo->addInterface(interfaceUuid);
         autobind(interfaceUuid,componentInfo->getUUID());
         if (! mapContains(m_context->interfacesMap,interfaceUuid)) {
-            string interfaceName = interfaceElt->Attribute("name");
             string interfaceDescription = interfaceElt->Attribute("description");
             if (m_autoAlias) {
                 if (!m_aliasManager->aliasExists(IAliasManager::Type::Interface, interfaceName)) {
@@ -288,39 +293,49 @@ void Registry::declareInterfaceNode(SRef<ComponentMetadata>  componentInfo, tiny
         }
     }
     catch (const xpcf::Exception& e) {
-        throw ConfigurationException(what);
+        XmlErrorMessage errMsg("interface", e.what(), false);
+        if(!interfaceUuidStr.empty()) {
+            errMsg.addAttribute("uuid", interfaceUuidStr);
+        }
+        if(!interfaceName.empty()) {
+            errMsg.addAttribute("name", interfaceName);
+        }
+        throw ConfigurationException(errMsg.write());
     }
 }
 
 void Registry::declareComponent(SRef<ModuleMetadata> moduleInfo, tinyxml2::XMLElement *componentElt)
 {
-    std::string what = "component ";
+    string componentUuidStr = "";
+    string componentName = "";
+    bool subElementError = false;
     try {
-        string componentUuidStr = componentElt->Attribute("uuid");
+        if(componentElt->Attribute("uuid") != nullptr) {
+            componentUuidStr = componentElt->Attribute("uuid");
+        }
+        if(componentElt->Attribute("name") != nullptr) {
+            componentName = componentElt->Attribute("name");
+        }
         uuids::uuid componentUuid;
         try {
             componentUuid = toUUID(componentUuidStr);
-            what.append(componentUuidStr);
-            what.append(" ");
+            subElementError = true;
         }
         catch(const std::runtime_error&) {
-            std::string what = ": UUID format invalid in \"uuid\": ";
+            std::string what = "UUID format invalid in \"uuid\": ";
             what.append(componentElt->Attribute("uuid"));
             throw ConfigurationException(what);
         }
         if (! mapContains(m_context->componentModuleUUIDMap,componentUuid)) {
             m_context->componentModuleUUIDMap[componentUuid] = moduleInfo->getUUID();
-            string name = componentElt->Attribute("name");
-            what.append(name);
             string description = componentElt->Attribute("description");
-            SPtr<ComponentMetadata> componentInfo = utils::make_shared<ComponentMetadata>(name.c_str(), componentUuid, description.c_str());
+            SPtr<ComponentMetadata> componentInfo = utils::make_shared<ComponentMetadata>(componentName.c_str(), componentUuid, description.c_str());
             if (m_autoAlias) {
-                if (!m_aliasManager->aliasExists(IAliasManager::Type::Component, name)) {
-                    m_aliasManager->declareAlias(IAliasManager::Type::Component, name, componentUuid);
+                if (!m_aliasManager->aliasExists(IAliasManager::Type::Component, componentName)) {
+                    m_aliasManager->declareAlias(IAliasManager::Type::Component, componentName, componentUuid);
                 }
             }
             moduleInfo->addComponent(componentInfo);
-            what.append("->");
             tinyxml2::XMLElement *interfaceElt = componentElt->FirstChildElement("interface");
             while (interfaceElt != nullptr) {
                 //TODO : check the same IF doesn't appear twice in the vector !! ???
@@ -330,35 +345,44 @@ void Registry::declareComponent(SRef<ModuleMetadata> moduleInfo, tinyxml2::XMLEl
         }
     }
     catch (const xpcf::Exception& e) {
-        what.append(e.what());
-        throw ConfigurationException(what);
+        XmlErrorMessage errMsg("component", e.what(), subElementError);
+        if(!componentUuidStr.empty()) {
+            errMsg.addAttribute("uuid", componentUuidStr);
+        }
+        if(!componentName.empty()) {
+            errMsg.addAttribute("name", componentName);
+        }
+        throw ConfigurationException(errMsg.write());
     }
 }
 
 void Registry::declareModule(tinyxml2::XMLElement * xmlModuleElt)
 {
-    std::string what = "\"module\" ";
+    std::string moduleName = "";
+    std::string moduleUuidStr = "";
+    bool subElementError = false;
     try {
         SPtr<ModuleMetadata> moduleInfo;
-        std::string moduleName = xmlModuleElt->Attribute("name");
-        what.append(moduleName);
-        what.append(" ");
+        if(xmlModuleElt->Attribute("name")!= nullptr) {
+            moduleName = xmlModuleElt->Attribute("name");
+        }
         std::string moduleDescription = "";
         if (xmlModuleElt->Attribute("description") != nullptr) {
             moduleDescription = xmlModuleElt->Attribute("description");
         }
         uuids::uuid moduleUuid;
+        if(xmlModuleElt->Attribute("uuid")!=nullptr) {
+            moduleUuidStr = xmlModuleElt->Attribute("uuid");
+        }
         try {
-            moduleUuid = toUUID( xmlModuleElt->Attribute("uuid"));
-            what.append(xmlModuleElt->Attribute("uuid"));
-            what.append(" ");
+            moduleUuid = toUUID(moduleUuidStr);
+            subElementError = true;
         }
         catch(const std::runtime_error &) {
-            std::string what = ": UUID format invalid in \"uuid\": ";
+            std::string what = "UUID format invalid in \"uuid\": ";
             what.append(xmlModuleElt->Attribute("uuid"));
             throw ConfigurationException( what );
         }
-        what.append("->");
         moduleInfo = utils::make_shared<ModuleMetadata>(moduleName.c_str(), moduleUuid, moduleDescription.c_str(), xmlModuleElt->Attribute("path"));
         fs::path filePath = moduleInfo->getFullPath();
         // TODO : check lib existenz with file decorations
@@ -380,8 +404,14 @@ void Registry::declareModule(tinyxml2::XMLElement * xmlModuleElt)
         }
     }
     catch (const xpcf::Exception& e) {
-        what.append(e.what());
-        throw ConfigurationException(what);
+        XmlErrorMessage errMsg("module", e.what(), subElementError);
+        if(!moduleUuidStr.empty()) {
+            errMsg.addAttribute("uuid", moduleUuidStr);
+        }
+        if(!moduleName.empty()) {
+            errMsg.addAttribute("name", moduleName);
+        }
+        throw ConfigurationException(errMsg.write());
     }
 }
 

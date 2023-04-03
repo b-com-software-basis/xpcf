@@ -47,7 +47,6 @@ ModuleMetadata::ModuleMetadata(const char* name, const uuid& moduleID,
                                const char * description, const char *modulePath):
     InterfaceMetadata(name, moduleID, description),m_pimpl(new ModuleMetadataImpl())
 {
-
     //TODO : null pointer exception ??? partial construction to avoid !!!
     setPath(modulePath);
 }

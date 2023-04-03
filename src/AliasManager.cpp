@@ -23,6 +23,7 @@
 
 #include "private/xpcf/AliasManager.h"
 #include <xpcf/api/IModuleManager.h>
+#include <xpcf/core/ErrorMessage.h>
 #include <xpcf/core/Exception.h>
 #include <functional>
 
@@ -131,17 +132,12 @@ bool AliasManager::aliasExists(Type type, const std::string & name)
 
 void AliasManager::declareAliasNode(tinyxml2::XMLElement * xmlAliasElt)
 {
-    std::string what = "\"alias\" ";
+    const char* aliasName = xmlAliasElt->Attribute("name");
+    const char* aliasUuid = xmlAliasElt->Attribute("uuid");
     try {
-        const char* aliasName = xmlAliasElt->Attribute("name");
-        const char* aliasUuid = xmlAliasElt->Attribute("uuid");
         if (( aliasName == nullptr) || (xmlAliasElt->Attribute("type") == nullptr) || ( aliasUuid == nullptr)) {
             throw Exception("node incomplete : attributes name, type and uuid are mandatory.");
         }
-        what.append(aliasName);
-        what.append(" ");
-        what.append(aliasUuid);
-        what.append(" ");
         std::string typeStr = xmlAliasElt->Attribute("type");
         if (aliasTypeConvertMap.find(typeStr) == aliasTypeConvertMap.end()) {
             throw Exception("Invalid type attribute : type must be a value in {component|interface|module}. No other value is allowed.");
@@ -151,32 +147,36 @@ void AliasManager::declareAliasNode(tinyxml2::XMLElement * xmlAliasElt)
             uuid = toUUID( aliasUuid);
         }
         catch(const std::runtime_error &) {
-            what.append("UUID format invalid in \"uuid\": ");
+            std::string what = "UUID format invalid in \"uuid\": ";
             what.append(aliasUuid);
             throw ConfigurationException(what);
         }
 
         AliasManager::Type type = aliasTypeConvertMap.at(typeStr);
-        std::string name = xmlAliasElt->Attribute("name");
         // replace any existing auto alias with explicit one from <aliases>!
         declareExplicitAlias(type, aliasName, uuid);
     }
     catch (const xpcf::Exception& e) {
-        what.append(e.what());
-        throw ConfigurationException(what);
+        XmlErrorMessage msgErr("alias", e.what(), true);
+        if(aliasUuid != nullptr) {
+            msgErr.addAttribute("uuid", aliasUuid);
+        }
+        if(aliasName != nullptr) {
+            msgErr.addAttribute("name", aliasName);
+        }
+        throw ConfigurationException(msgErr.write());
     }
 }
 
 
 void AliasManager::declareAliases(tinyxml2::XMLElement * xmlAliasManagerElt)
 {
-    std::string what = "\"aliases\"->";
     try {
         processXmlNode(xmlAliasManagerElt, XMLALIASNODE, std::bind(&AliasManager::declareAliasNode, this, _1));
     }
     catch(const xpcf::Exception& e) {
-        what.append(e.what());
-        throw ConfigurationException(what);
+        XmlErrorMessage msgErr("aliases", e.what(), true);
+        throw ConfigurationException(msgErr.write());
     }
 }
 
