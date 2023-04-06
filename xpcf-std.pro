@@ -3,7 +3,7 @@ CONFIG -= app_bundle qt
 
 TARGET = xpcf-std
 FRAMEWORK = $${TARGET}
-VERSION=2.6.2
+VERSION=2.6.3
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z

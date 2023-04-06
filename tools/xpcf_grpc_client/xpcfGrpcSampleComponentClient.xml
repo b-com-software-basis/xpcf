@@ -1,5 +1,5 @@
 <xpcf-registry>
-     <module uuid="9a861602-e83e-461d-abfb-7d2aaf00ac69" name="xpcfGrpcRemotingxpcfSampleComponent" description="xpcf remoting module for project xpcfSampleComponent" path="$REMAKENROOT/xpcfGrpcRemotingxpcfSampleComponent/2.6.2/lib/x86_64/shared">
+     <module uuid="9a861602-e83e-461d-abfb-7d2aaf00ac69" name="xpcfGrpcRemotingxpcfSampleComponent" description="xpcf remoting module for project xpcfSampleComponent" path="$REMAKENROOT/xpcfGrpcRemotingxpcfSampleComponent/2.6.3/lib/x86_64/shared">
         <component uuid="b433029e-a2cb-4ef1-8c06-e4aff4b24bd3" name="IElectricGuitar_grpcProxy" description="IElectricGuitar_grpcProxy grpc client proxy component">
             <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface.
 Provides:
@@ -55,7 +55,7 @@ Provides:
             <interface uuid="1fc313b3-fae3-4bca-b4be-222efd24e607" name="ITuner" description="defines guitar tune modes"/>
         </component>
     </module>
-    <!--module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.6.2/lib/x86_64/shared">
+    <!--module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.6.3/lib/x86_64/shared">
     <component uuid="5644b791-b684-4203-8479-391776f3f623" name="Tuner" description="Tuner is Configurable, it implements ITuner interface">
         <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
         <interface uuid="1FC313B3-FAE3-4BCA-B4BE-222EFD24E607" name="ITuner" description="provides ITuner specific methods"/>

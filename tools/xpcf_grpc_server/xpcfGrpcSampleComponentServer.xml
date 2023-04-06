@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <xpcf-registry autoAlias="true">
-<module uuid="{7344f49d-7956-4767-b051-a025a0555299}" name="xpcfGrpcRemotingxpcfSampleComponent" description="xpcf remoting module for project xpcfSampleComponent" path="$REMAKENROOT/xpcfGrpcRemotingxpcfSampleComponent/2.6.2/lib/x86_64/shared">
+<module uuid="{7344f49d-7956-4767-b051-a025a0555299}" name="xpcfGrpcRemotingxpcfSampleComponent" description="xpcf remoting module for project xpcfSampleComponent" path="$REMAKENROOT/xpcfGrpcRemotingxpcfSampleComponent/2.6.3/lib/x86_64/shared">
 <component uuid="b2ff5795-69ba-42e2-b3bf-417ad6fd023f" name="IElectricGuitar_grpcServer" description="IElectricGuitar_grpcServer grpc server component">
   <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
   <interface uuid="baab5e42-2c24-48de-953b-07237af419e4" name="org::bcom::xpcf::IGrpcService" description="xpcf GrpcService interface"/>
@@ -26,7 +26,7 @@
   <interface uuid="baab5e42-2c24-48de-953b-07237af419e4" name="org::bcom::xpcf::IGrpcService" description="xpcf GrpcService interface"/>
 </component>
 </module>
-<module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.6.2/lib/x86_64/shared">
+<module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.6.3/lib/x86_64/shared">
 <component uuid="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" name="HumanMusician component - not configurable" description="HumanMusician is not Configurable, it implements I0 and I1 interfaces">
     <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
     <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" name="IHuman" description="provides human related methods"/>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <xpcf-registry autoAlias="true">
-    <module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="grpcServiceModule" description="Sample component module" path="$REMAKENROOT/grpcServiceModule/2.6.2/lib/x86_64/shared">
+    <module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="grpcServiceModule" description="Sample component module" path="$REMAKENROOT/grpcServiceModule/2.6.3/lib/x86_64/shared">
     <component uuid="ae9d10bb-4bd1-462b-8c01-43f1815c6ae0" name="grpcServiceComponent1" description="">
         <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
         <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" name="IGrpcService" description=""/>

@@ -51,7 +51,7 @@ namespace xpcf = org::bcom::xpcf;
 /// Usage samples:
 /// --database_file /path/to/database_dir/compile_commands.json --database_dir /path/to/database_dir/ --remove_comments_in_macro --std c++1z
 
-//$ ./xpcf_grpc_gen -n xpcfSampleComponent -v 2.6.2 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/releases/download --std c++1z --database_dir ../../../xpcf/samples/build-xpcfSampleComponent-Desktop_Qt_5_12_5_clang_64bit-Debug/ --remove_comments_in_macro -o ~/tmp/grpc_gen_folder_sampleComponent -g protobuf
+//$ ./xpcf_grpc_gen -n xpcfSampleComponent -v 2.6.3 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/releases/download --std c++1z --database_dir ../../../xpcf/samples/build-xpcfSampleComponent-Desktop_Qt_5_12_5_clang_64bit-Debug/ --remove_comments_in_macro -o ~/tmp/grpc_gen_folder_sampleComponent -g protobuf
 
 //$ ./xpcf_grpc_server -f ~/tmp/grpc_gen_folder_sampleComponent/xpcfGrpcRemotingxpcfSampleComponent.xml
 // note server URL should be available either in xpcf conf or in XPCF_GRPC_SERVER_URL env var : to add to grpc_server for env var
@@ -66,7 +66,7 @@ namespace xpcf = org::bcom::xpcf;
 //Linux sample grpc process:
 //server side
 //. ~/workspace/linux-github/linux-xpcf/scripts/set_linux_env.sh
-//export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ltouraine/.conan/data/boost/1.74.0/_/_/package/eeef031d45a4b3fccb233a8660e3255a183c617c/lib:~/.remaken/packages/linux-gcc/xpcf/2.6.2/lib/x86_64/shared/debug/
+//export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ltouraine/.conan/data/boost/1.74.0/_/_/package/eeef031d45a4b3fccb233a8660e3255a183c617c/lib:~/.remaken/packages/linux-gcc/xpcf/2.6.3/lib/x86_64/shared/debug/
 //export XPCF_GRPC_SERVER_URL=0.0.0.0:34123
 //./xpcf_grpc_server -f xpcfGrpcSampleComponentServer.xml
 
@@ -120,7 +120,7 @@ try
 "2/ launch xpcf_grpc_gen with:\n"
 "xpcf_grpc_gen -n [framework name] -v [framework version] -r @github -u [framework binary release github url] --std c++1z --database_dir [compilation database folder path] --remove_comments_in_macro -o [code generation destination folder path] -g protobuf -i [relative framework interfaces path beneath the project starting at $HOME - this path will be removed from #include directives]\n\n"
 "Example: to generate grpc code from xpcf SampleComponent interfaces the command is (if the xpcf folder is located in the $HOME user folder):\n"
-"xpcf_grpc_gen -n xpcfSampleComponent -v 2.6.2 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/download --std c++1z --database_dir xpcf/samples/build-xpcfSampleComponent-Desktop_Qt_5_12_10_clang_64bit-Debug/ --remove_comments_in_macro -o ~/tmp/grpc_gen_sampleComponent -g protobuf -i xpcf/samples/sample_component");
+"xpcf_grpc_gen -n xpcfSampleComponent -v 2.6.3 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/download --std c++1z --database_dir xpcf/samples/build-xpcfSampleComponent-Desktop_Qt_5_12_10_clang_64bit-Debug/ --remove_comments_in_macro -o ~/tmp/grpc_gen_sampleComponent -g protobuf -i xpcf/samples/sample_component");
         // clang-format off
     option_list.add_options()
             ("h,help", "display this help and exit")

@@ -1,5 +1,6 @@
 ### XPCF evolutions
-- Update xpcf version to 2.6.2
+- Update xpcf version to 2.6.3
+- Configuration error occures by Exception in Factory::loadLibrary.
 
 ### XPCF remoting features
 add new ```grpc``` interfaces in ```interfaces/xpcf/remoting``` to manage ```grpc``` components in ```xpcf```

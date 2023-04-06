@@ -1,1 +1,1 @@
-swig_xpcf_sample|2.6.2|swig_xpcf_sample|github|https://github.com/
+swig_xpcf_sample|2.6.3|swig_xpcf_sample|github|https://github.com/

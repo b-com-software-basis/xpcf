@@ -3,7 +3,7 @@
 QTVERSION=5.15.2
 
 PLATFORM="linux-gcc"
-XPCF_VERSION=2.6.2
+XPCF_VERSION=2.6.3
 TARGET_LANG="csharp"
 DESTFOLDER="swig-xpcf-cxx"
 DESTSAMPLEFOLDER="swig-xpcf-sample-cxx"

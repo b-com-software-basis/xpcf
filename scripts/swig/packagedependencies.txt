@@ -1,2 +1,2 @@
-xpcf|2.6.2|xpcf%USE_XPCF_BOOST|github|https://github.com/
-xpcf-std|2.6.2|xpcf-std%USE_XPCF_STD|github|https://github.com/
+xpcf|2.6.3|xpcf%USE_XPCF_BOOST|github|https://github.com/
+xpcf-std|2.6.3|xpcf-std%USE_XPCF_STD|github|https://github.com/

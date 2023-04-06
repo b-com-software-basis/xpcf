@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <xpcf-registry autoAlias="true">
-    <module uuid="{pouet}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.6.2/lib/x86_64/shared">
+    <module uuid="{pouet}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/2.6.3/lib/x86_64/shared">
     </module>
 </xpcf-registry>
