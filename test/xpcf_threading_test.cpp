@@ -170,7 +170,9 @@ BOOST_AUTO_TEST_CASE( test_threading_multiconsumer)
         try {
             buffer->push(currentIndex++);
             //std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            #ifdef XPCF_USE_BOOST
             //xpcf::utils::this_fiber::sleep_for(std::chrono::milliseconds(50));
+            #endif
            // BOOST_TEST_MESSAGE("Provider: values pushed !!!");
         }
         catch (xpcf::Exception & e) {
@@ -191,7 +193,9 @@ BOOST_AUTO_TEST_CASE( test_threading_multiconsumer)
             return;
         }
         //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        #ifdef XPCF_USE_BOOST
         //xpcf::utils::this_fiber::sleep_for(std::chrono::milliseconds(1000));
+        #endif
     };
 
     std::function<void(void)> consumerFunc1 = [&multi, &consumer1,&out2Fifo](){
@@ -271,7 +275,7 @@ BOOST_AUTO_TEST_CASE( test_threading_multiconsumer)
     BOOST_TEST_MESSAGE("MultiConsumer::out2Fifo values: "<<values);
 }
 
-
+#ifdef XPCF_USE_BOOST
 BOOST_AUTO_TEST_CASE( test_threading_fibers, * boost::unit_test::disabled())
 {
     SRef<xpcf::IFifo<int>> inFifo = xpcf::createFifo<xpcf::SharedFifo,int,xpcf::FiberThreadedNamespace>();
@@ -371,7 +375,7 @@ BOOST_AUTO_TEST_CASE( test_threading_fibers, * boost::unit_test::disabled())
      threadTask->stop();
 
 }
-
+#endif
 
 
 */
