@@ -26,7 +26,7 @@
 #include <condition_variable>
 #include <mutex>
 #include "xpcf/core/refs.h"
-#include "xpcf/core/Exception.h"
+#include "xpcf/core/BaseException.h"
 
 namespace org { namespace bcom { namespace xpcf {
 

@@ -4,6 +4,7 @@
 #include "xpcf/core/Exception.h"
 namespace org { namespace bcom { namespace xpcf {
 
+
 std::map<XPCFErrorCode, std::string> xpcfErrorCodeToMessageMap = {
     { XPCFErrorCode::_SUCCESS , "SUCCESS" },
     { XPCFErrorCode::_FAIL , "FAIL" },
@@ -32,124 +33,6 @@ std::map<XPCFErrorCode, std::string> xpcfErrorCodeToMessageMap = {
     { XPCFErrorCode::_ERROR_INJECTABLE_NOBIND , "ERROR: no binding declared for injectable" },
 };
 
-
-Exception::Exception(XPCFErrorCode errCode):
-    std::runtime_error(xpcfErrorCodeToMessageMap[errCode]),m_errCode(errCode)
-{
-}
-
-Exception::Exception(const char *what, XPCFErrorCode errCode):
-    std::runtime_error(what),m_errCode(errCode)
-{
-}
-
-Exception::Exception(const std::string & what, XPCFErrorCode errCode):
-    std::runtime_error(what),m_errCode(errCode)
-{
-}
-
-Exception::~Exception()
-{
-}
-
-ConfigurationException::ConfigurationException(XPCFErrorCode errCode):
-    Exception(errCode)
-{
-}
-ConfigurationException::ConfigurationException(const char * what, XPCFErrorCode errCode):
-    Exception(what, errCode)
-{
-}
-
-ConfigurationException::ConfigurationException(const std::string & what, XPCFErrorCode errCode):
-    Exception(what, errCode)
-{
-}
-
-AccessDeniedException::AccessDeniedException():
-    Exception(XPCFErrorCode::_ERROR_ACCESS_DENIED)
-{
-}
-
-AccessDeniedException::AccessDeniedException(const char * what):
-    Exception(what, XPCFErrorCode::_ERROR_ACCESS_DENIED)
-{
-}
-
-AccessDeniedException::AccessDeniedException(const std::string & what):
-    Exception(what, XPCFErrorCode::_ERROR_ACCESS_DENIED)
-{
-}
-
-IllegalStateException::IllegalStateException():
-    Exception(XPCFErrorCode::_ERROR_ACCESS_DENIED)
-{
-}
-
-IllegalStateException::IllegalStateException(const char * what):
-    Exception(what, XPCFErrorCode::_ERROR_ACCESS_DENIED)
-{
-}
-
-IllegalStateException::IllegalStateException(const std::string & what):
-    Exception(what, XPCFErrorCode::_ERROR_ILLEGAL_STATE)
-{
-}
-
-ModuleException::ModuleException():Exception(XPCFErrorCode::_ERROR_MODULE_MISSINGXPCF_ENTRY)
-{
-}
-
-ModuleException::ModuleException(const char * what, XPCFErrorCode errCode):
-    Exception(what, errCode)
-{
-}
-
-ModuleException::ModuleException(const std::string & what, XPCFErrorCode errCode):
-    Exception(what, errCode)
-{
-}
-
-
-NotImplementedException::NotImplementedException():Exception(XPCFErrorCode::_ERROR_NOT_IMPLEMENTED)
-{
-}
-
-NotImplementedException::NotImplementedException(const char * what):Exception(what)
-{
-}
-
-NotImplementedException::NotImplementedException(const std::string & what):Exception(what)
-{
-}
-
-NullPointerException::NullPointerException():Exception(XPCFErrorCode::_ERROR_NULL_POINTER)
-{
-}
-
-NullPointerException::NullPointerException(const char * what):
-    Exception(what)
-{
-}
-
-NullPointerException::NullPointerException(const std::string & what):
-    Exception(what)
-{
-}
-
-TimeoutException::TimeoutException():Exception(XPCFErrorCode::_ERROR_TIMEOUT)
-{
-}
-
-TimeoutException::TimeoutException(const char * what):
-    Exception(what)
-{
-}
-
-TimeoutException::TimeoutException(const std::string & what):
-    Exception(what)
-{
-}
 
 UUIDNotFoundException::UUIDNotFoundException(const uuids::uuid & uuid)
     :UUIDNotFoundException("xpcf::UUIDNotFoundException: " + uuids::to_string(uuid))
@@ -198,6 +81,19 @@ InterfaceNotImplementedException::InterfaceNotImplementedException(const std::st
 {
 }
 
+ModuleException::ModuleException():Exception(XPCFErrorCode::_ERROR_MODULE_MISSINGXPCF_ENTRY)
+{
+}
+
+ModuleException::ModuleException(const char * what, XPCFErrorCode errCode):
+    Exception(what, errCode)
+{
+}
+
+ModuleException::ModuleException(const std::string & what, XPCFErrorCode errCode):
+    Exception(what, errCode)
+{
+}
 
 ModuleNotFoundException::ModuleNotFoundException(const uuids::uuid & moduleUUID)
     :ModuleNotFoundException("xpcf::ModuleNotFoundException: " + uuids::to_string(moduleUUID))
