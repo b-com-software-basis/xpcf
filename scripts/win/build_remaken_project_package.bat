@@ -22,8 +22,7 @@ if NOT [%2]==[] set MODE=%2
 if NOT [%3]==[] set PROJECTROOT=%3
 if NOT [%4]==[] set QTVERSION=%4
 if NOT [%5]==[] ( set QMAKE_PATH=%5)
-
-set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
+if NOT [%6]==[] ( set JOM_PATH=%6) else ( set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom)
 
 if not %MODE%==shared (if not %MODE%==static (echo "mode must be either shared or static - %MODE% is an unsupported value" & exit /b 2) )
 if %MODE%==static (
