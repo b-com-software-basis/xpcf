@@ -178,21 +178,4 @@ InjectableDeclarationException::InjectableDeclarationException(const std::string
 {
 }
 
-RemotingException::RemotingException(const std::string & componentName,
-                                     const std::string & rpcName,
-                                     uint32_t status)
-    :RemotingException("Error trying to call " + componentName + "::" + rpcName + " status=" + std::to_string(status))
-{
-}
-
-RemotingException::RemotingException(const char * what):
-    Exception(what, XPCFErrorCode::_ERROR_REMOTING)
-{
-}
-
-RemotingException::RemotingException(const std::string & what):
-    Exception(what, XPCFErrorCode::_ERROR_REMOTING)
-{
-}
-
 }}}

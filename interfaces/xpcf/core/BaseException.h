@@ -7,6 +7,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+
 namespace org { namespace bcom { namespace xpcf {
 
 // the base xpcf exception can serve as a base that holds also an error code.
