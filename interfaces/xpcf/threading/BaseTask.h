@@ -29,6 +29,7 @@
 #include <thread>
 #include <future>
 #include <functional>
+#include <vector>
 
 namespace org { namespace bcom { namespace xpcf {
 
@@ -101,6 +102,8 @@ private:
     std::thread m_thread;
 };
 
+#ifdef XPCF_USE_BOOST
+
 class XPCF_EXPORT_API FiberTask : public AbstractDelegateTask
 {
 public:
@@ -117,6 +120,7 @@ private:
     UniqueRef<FiberTaskImpl> m_pimpl;
 };
 
+#endif
 // TBB task ??
 
 template <typename T>
