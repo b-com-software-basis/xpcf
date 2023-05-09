@@ -16,10 +16,10 @@ jobs:
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
       # Visual Studio 2017 Community
-      - name: Visual Studio 2017
-        run: choco install --allow-empty-checksums visualstudio2017community
-      - name: Visual C++ 2017
-        run: choco install visualstudio2017-workload-nativedesktop
+      - name: Visual Studio 2019
+        run: choco install --allow-empty-checksums visualstudio2019community
+      - name: Visual C++ 2019
+        run: choco install visualstudio2019-workload-nativedesktop
       - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
         run: .\vswhere.exe
       - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
@@ -34,8 +34,8 @@ jobs:
       - run: conan remote add conan-solar https://repository.solarframework.org/conan --insert 0
       - run: conan profile new default --detect
       - run: conan profile update settings.compiler.cppstd=17 default
-      - run: conan profile update settings.compiler.version=15 default
-      - run: conan profile update settings.compiler.toolset=v141 default
+      - run: conan profile update settings.compiler.version=16 default
+      - run: conan profile update settings.compiler.toolset=v142 default
       # - run: conan profile show default
 
       # Remaken v1.9.5
@@ -49,7 +49,7 @@ jobs:
       - run: .\Setup_Remaken_1.9.5.exe /S
       # - configuration
       - run: echo "c:\Program Files\Remaken\" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
-      - run: remaken.exe profile init --cpp-std 17 -b cl-14.1 -o win -a x86_64
+      - run: remaken.exe profile init --cpp-std 17 -b cl-14.2 -o win -a x86_64
       # - run: remaken.exe profile display
 
       # Qt tools: qmake and jom
@@ -78,8 +78,8 @@ jobs:
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Install dependencies
-      - run: remaken.exe -v install --cpp-std 17 -b cl-14.1 -o win -a x86_64 packagedependencies.txt
-      - run: remaken.exe install -c debug --cpp-std 17 -b cl-14.1 -o win -a x86_64 packagedependencies.txt -f -e
+      - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
+      - run: remaken.exe install -c debug --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt -f -e
       - run: remaken.exe -v install --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
       - run: remaken.exe install -c debug --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
 
@@ -146,15 +146,15 @@ jobs:
       - run: conan profile new default --detect
       - run: conan profile update settings.compiler.libcxx=libstdc++11 default
       - run: conan profile update settings.compiler.cppstd=17 default
-      - run: conan profile update settings.compiler.version=7 default
+      - run: conan profile update settings.compiler.version=11 default
       # - run: conan profile show default
 
       # Install dependencies
       - run: conan remote list
       - run: remaken install packagedependencies.txt
       - run: remaken install -c debug packagedependencies.txt -f -e
-      # - run: remaken install --condition USE_XPCF_BOOST=true --cpp-std 17 -b gcc -o linux -a x86_64 samples/sample_component/packagedependencies.txt
-      # - run: remaken install -c debug --condition USE_XPCF_BOOST=true --cpp-std 17 -b gcc -o linux -a x86_64 samples/sample_component/packagedependencies.txt
+      # - run: remaken install --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
+      # - run: remaken install -c debug --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
 
       # Build solution
       - working-directory: ./scripts/unixes

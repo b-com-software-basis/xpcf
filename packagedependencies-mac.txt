@@ -1,2 +1,2 @@
-boost#stable|1.76.0|boost|conan|conan-center|default|zlib=False#bzip2=False
+boost#stable|1.78.0|boost|conan|conan-center|default|
 grpc|1.44.0|grpc++%WITHREMOTING|brew@system|
