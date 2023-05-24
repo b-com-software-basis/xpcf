@@ -65,14 +65,26 @@ if not exist %BUILDROOTFOLDER%\%MODE%\release mkdir %BUILDROOTFOLDER%\%MODE%\rel
 echo "===========> building %PROJECTNAME% %MODE% debug <==========="
 pushd %BUILDROOTFOLDER%\%MODE%\debug
 %QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc CONFIG+=debug %QMAKEMODE% CONFIG+=package_remaken
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> qmake ok"
 %JOM_PATH%\jom.exe
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> jom ok"
 %JOM_PATH%\jom.exe install
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> jom install ok"
 popd
 echo "===========> building %PROJECTNAME% %MODE% release <==========="
 pushd %BUILDROOTFOLDER%\\%MODE%\release
 %QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc %QMAKEMODE% CONFIG+=package_remaken
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> qmake ok"
 %JOM_PATH%\jom.exe
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> jom ok"
 %JOM_PATH%\jom.exe install
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> jom install ok"
 popd
 
 endlocal
