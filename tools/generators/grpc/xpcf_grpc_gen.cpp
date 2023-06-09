@@ -35,6 +35,7 @@
 #include <cppast/cpp_array_type.hpp>
 #include "ClassDescriptor.h"
 #include <xpcf/api/IComponentManager.h>
+#include <xpcf/core/Exception.h>
 #include <xpcf/core/helpers.h>
 #include "RemoteServiceGenerator.h"
 #include "GRPCProtoGenerator.h"
@@ -94,6 +95,7 @@ SRef<xpcf::IComponentManager> bindXpcfComponents() {
     cmpMgr->bindLocal<IRPCGenerator, ServerGenerator>("server");
     cmpMgr->bindLocal<IRPCGenerator, ProjectGenerator>("project");
 #else
+
     // chained injection through base class composite approach :
     cmpMgr->bindLocal<IRPCGenerator, RemoteServiceGenerator, xpcf::BindingScope::Singleton, xpcf::BindingRange::Named|xpcf::BindingRange::Explicit>("service");
     cmpMgr->bindLocal<GRPCProtoGenerator, IRPCGenerator, ProxyGenerator, xpcf::BindingScope::Transient, xpcf::BindingRange::Explicit|xpcf::BindingRange::Default>();
@@ -243,6 +245,7 @@ try
             if (result != 0)
                 return result;
         }
+
         //update types : try to qualify non fqdn types in parameters ... from classes found during parsing
         for (auto & [name,c] : astParser->getParsedInterfaces()) {
             for (auto & m: c->methods()) {
@@ -282,11 +285,13 @@ try
         }
         serviceGenerator->finalize(astParser->metadata());
     }
-
-
 }
 catch (const cppast::libclang_error& ex)
 {
     print_error(std::string("[fatal parsing error] ") + ex.what());
     return 2;
+}
+catch (org::bcom::xpcf::Exception e) 
+{
+    std::cout << "Xpcf exception: " << e.what() << std::endl;
 }

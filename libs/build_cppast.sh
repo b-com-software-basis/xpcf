@@ -5,11 +5,11 @@ BUILDFOLDER=build-cppast
 LLVMBREWPATH=/usr/local
 TARGETPLATFORM=mac-clang
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    sudo apt-get install -y llvm-10 clang-10 libclang-10-dev
+    sudo apt-get install -y llvm-15 clang-15 libclang-15-dev
     LLVMBREWPATH=/home/linuxbrew/.linuxbrew
-    LLVMCONFIGPATH=/usr/bin/llvm-config-10
+    LLVMCONFIGPATH=/usr/bin/llvm-config-15
     TARGETPLATFORM=linux-gcc
-    CPPASTCMAKECOMPILER="-DCMAKE_CXX_COMPILER=clang++-10"
+    CPPASTCMAKECOMPILER="-DCMAKE_CXX_COMPILER=clang++-15"
     if test ! $(which brew); then
 	echo "brew is not installed, first install brew then relaunch this script\n";
 	exit 1

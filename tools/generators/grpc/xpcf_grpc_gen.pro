@@ -98,8 +98,8 @@ linux {
     QMAKE_CXXFLAGS += -fPIC
 #    LLVM_BINARIES = /home/linuxbrew/.linuxbrew/opt/llvm/bin
     LLVM_BINARIES = /usr/bin
-    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-10 --libdir)
-    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-10 --includedir)
+    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-15 --libdir)
+    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-15 --includedir)
     LIBS += -L$${LLVM_LIBDIR} -lclang
     LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
     LIBS += $${LLVM_CLANG_LIBS}
@@ -135,8 +135,8 @@ win32 {
     # DEFINES += WIN64 UNICODE _UNICODE
     QMAKE_COMPILER_DEFINES += _WIN64
 
-    LLVM_LIBDIR = $$system(llvm-config --libdir)
-    LLVM_INCDIR = $$system(llvm-config --includedir)
+    LLVM_LIBDIR = $$system(llvm-config.exe --libdir)
+    LLVM_INCDIR = $$system(llvm-config.exe --includedir)
     LIBS += -L\"$${LLVM_LIBDIR}\" -llibclang -lShell32
     # QMAKE_LFLAGS += -L\"$${LLVM_LIBDIR}\"
     QMAKE_CXXFLAGS += -I\"$${LLVM_INCDIR}\"

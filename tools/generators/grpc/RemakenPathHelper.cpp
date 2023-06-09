@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #else
 #include <pwd.h>
+#include <map>
 #include <sys/types.h>
 #endif
 

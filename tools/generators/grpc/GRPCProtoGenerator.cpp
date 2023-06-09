@@ -89,6 +89,7 @@ static const std::map<std::string,std::string> protoReservedKeywordsTranscriptio
 
 GRPCProtoGenerator::GRPCProtoGenerator():AbstractGenerator(xpcf::toMap<GRPCProtoGenerator>())
 {
+
 }
 
 
@@ -290,40 +291,107 @@ std::map<IRPCGenerator::MetadataType,std::string> GRPCProtoGenerator::generateIm
     return metadata;
 }
 
+std::string getPackageId(bp::ipstream& packageDescription)
+{
+    std::string result="";
+    std::string line="";
+
+    bool bFound=false;
+    std::getline(packageDescription, line);
+    while(!bFound){
+        size_t pos = line.find("Package_ID: ");
+        if(pos != std::string::npos) {
+            result=line.substr(pos+12, line.find_last_of('\n'));
+            bFound=true;
+        } else {
+            std::getline(packageDescription, line);
+        }
+    }
+    return result;
+}
+
+std::string getRequiredPackageId(std::string requiredPackageName, bp::ipstream& packageDescription)
+{
+    std::string result="";
+    std::string line="";
+
+    // Find "[requires]" part
+    bool bFound=false;
+    std::getline(packageDescription, line);
+    while(!bFound && !packageDescription.eof()){
+        size_t pos = line.find("[requires]");
+        if(pos != std::string::npos) {
+            bFound=true;
+        } else {
+            std::getline(packageDescription, line);
+        }
+    }
+
+    // Find required package name <requiredPackageName>/<packageVersion>:<packageId>\n
+    bFound=false;
+    while(!bFound && !packageDescription.eof()){
+        size_t pos = line.find(requiredPackageName);
+        if(pos != std::string::npos) {
+            result=line.substr(line.find_last_of(':')+1, line.find_last_of('\n'));
+            bFound=true;
+        } else {
+            std::getline(packageDescription, line);
+        }
+    }
+
+    return result;
+}
+
 void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadata)
 {
-    fs::path remakenGrpcRoot = RemakenPathHelper::computeRemakenRootPackageDir();
     std::vector<fs::path> envPath = boost::this_process::path();
-    remakenGrpcRoot /= "grpc/1.37.1";
-    fs::path grpcBin = remakenGrpcRoot;
-    grpcBin /= "/bin/x86_64/shared/release/";
-    fs::path grpcLibs = remakenGrpcRoot;
-    grpcLibs /= "/lib/x86_64/shared/release/";
+    fs::path remakenGrpcRoot = RemakenPathHelper::computeRemakenRootPackageDir();
+
+    bp::ipstream out;
+    bp::system("conan search grpc/1.50.1@ -q \"build_type=Release AND shared=False\"", bp::std_out > out);
+    std::string grpcPackageId = getPackageId(out);
+    std::string protobufPackageId = getRequiredPackageId("protobuf", out);
+
+    fs::path conanDataPath = RemakenPathHelper::getHomePath();
+    conanDataPath /= ".conan/data/";
+    fs::path grpcLibs = conanDataPath;
+    grpcLibs /= "grpc/1.50.1/_/_/package/";
+    grpcLibs /= grpcPackageId;
+    grpcLibs /= "/lib/";
+    fs::path grpcBin = conanDataPath;
+    grpcBin /= "grpc/1.50.1/_/_/package/";
+    grpcBin /= grpcPackageId;
+    grpcBin /= "/bin/";
+    fs::path protocBin = conanDataPath;
+    protocBin /= "protobuf/3.21.9/_/_/package/";
+    protocBin /= protobufPackageId;
+    protocBin /= "/bin/";
     std::string SharedLibraryPathEnvName(RemakenPathHelper::sharedLibraryPathEnvName());
 
     auto env = boost::this_process::environment();
     bp::environment runEnv = env;
     fs::detail::utf8_codecvt_facet utf8;
     std::cout << "Searching protobuf compiler (protoc) from path: " << std::endl;
-    std::cout << "===> "<< grpcBin.generic_string(utf8) << std::endl;
+    std::cout << "===> "<< protocBin.generic_string(utf8) << std::endl;
 
     bool isRemakenGrpc = true;
-    if (!fs::exists(grpcBin) || !fs::exists(grpcLibs)) {
+    if (!fs::exists(protocBin) || !fs::exists(grpcLibs) || !fs::exists(grpcBin)) {
         isRemakenGrpc = false;
-     // else search in brew paths on unixes, what about win ?
+        // else search in brew paths on unixes, what about win ?
 #ifdef BOOST_OS_MACOS_AVAILABLE
-    grpcBin = "/usr/local/bin/";
-    grpcLibs = "/usr/local/lib";
+        protocBin = "/usr/local/bin/";
+        grpcLibs = "/usr/local/lib";
 #endif
 #ifdef BOOST_OS_LINUX_AVAILABLE
-    grpcBin = "/home/linuxbrew/.linuxbrew/bin/";
-    grpcLibs = "/home/linuxbrew/.linuxbrew/lib";
+        protocBin = "/home/linuxbrew/.linuxbrew/bin/";
+        grpcLibs = "/home/linuxbrew/.linuxbrew/lib";
 #endif
 #ifdef BOOST_OS_WIN_AVAILABLE
-    std::cerr<<"Error grpc protoc compiler not found : check your grpc installation !"<<std::endl;
-    return;
+        std::cerr<<"Error grpc protoc compiler not found : check your grpc installation !"<<std::endl;
+        return;
 #endif
     }
+    envPath.push_back(protocBin);
     envPath.push_back(grpcBin);
     runEnv[SharedLibraryPathEnvName] += grpcLibs.generic_string(utf8);
     fs::path toolPath = bp::search_path("protoc", envPath);
@@ -337,9 +405,10 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
         return;
     }
     std::cout << "Using protobuf compiler (protoc) from path: " << std::endl;
-    std::cout << "===> "<< grpcBin.generic_string(utf8) << std::endl;
+    std::cout << "===> "<< protocBin.generic_string(utf8) << std::endl;
 
     int result = -1;
+    std::cout << "m_protoNameFilesPathMap.size()=" << m_protoNameFilesPathMap.size() << std::endl;
     for (auto [name, protoFile] : m_protoNameFilesPathMap) {
         std::cout << "generating grpc service and messages for " << name << " from .proto "<< protoFile.generic_string(utf8) << std::endl;
         std::string protoPath = "--proto_path=";
