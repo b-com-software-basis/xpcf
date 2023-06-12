@@ -1,5 +1,5 @@
 TARGET = xpcf_grpc_gen
-VERSION = 2.6.3
+VERSION = 2.7.0
 
 CONFIG += c++1z
 CONFIG += console
