@@ -1,2 +1,2 @@
 boost#stable|1.78.0|boost|conan|conan-center|default|
-grpc|1.37.1|grpc++%WITHREMOTING|conan|conancenter|
+grpc|1.50.1|grpc++%WITHREMOTING|conan|conancenter|static
