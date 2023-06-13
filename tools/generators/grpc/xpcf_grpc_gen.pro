@@ -36,11 +36,11 @@ exists($${CPPAST_ROOT_BUILD}) {
 # in this case, rebuild cppast and xpcf_grpc_gen
     CPPAST_ROOT=$${_PRO_FILE_PWD_}/../../../libs/cppast
     INCLUDEPATH += $${CPPAST_ROOT}/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/cxxopts/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/type_safe/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/type_safe/external/debug_assert
+    INCLUDEPATH += $${CPPAST_ROOT_BUILD}/_deps/cxxopts-src/include
+    INCLUDEPATH += $${CPPAST_ROOT_BUILD}/_deps/type_safe-src/include
+    INCLUDEPATH += $${CPPAST_ROOT_BUILD}/_deps/type_safe-src/external/debug_assert
     LIBS += -L$${CPPAST_ROOT_BUILD}/src -lcppast
-    LIBS += -L$${CPPAST_ROOT_BUILD} -l_cppast_tiny_process
+    LIBS += -L$${CPPAST_ROOT_BUILD}/external/tpl -ltiny-process-library
 } else {
     error("cppast root build folder ($${CPPAST_ROOT_BUILD} doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd " $${_PRO_FILE_PWD_} "/../../../libs/$$escape_expand(\\n)./build_cppast.sh" )
 }
