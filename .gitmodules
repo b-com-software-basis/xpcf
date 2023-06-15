@@ -6,4 +6,4 @@
 	url = https://github.com/mariusbancila/stduuid.git
 [submodule "libs/cppast"]
 	path = libs/cppast
-	url = https://github.com/foonathan/cppast.git
+	url = https://github.com/b-com-software-basis/cppast.git
