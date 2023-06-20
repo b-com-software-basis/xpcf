@@ -27,6 +27,13 @@ if [ $# -ge 1 ]; then
 fi
 if [ $# -ge 2 ]; then
 	QTVERSION=$2
+
+	# default linux values
+	QMAKEPATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# overload for mac values
+		QMAKE_PATH=/Application/Qt/${QTVERSION}/clang_64/bin
+	fi
 fi
 if [ $# -eq 3 ]; then
 	QMAKEPATH=$3
