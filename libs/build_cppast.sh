@@ -3,18 +3,25 @@
 BUILDFOLDER=build-cppast
 
 LLVMBREWPATH=/usr/local
+LLVMVERSION=15
 TARGETPLATFORM=mac-clang
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    sudo apt-get install -y llvm-15 clang-15 libclang-15-dev
+    VERSIONID=`cat /etc/os-release | grep -i "VERSION_ID"`
+    arr=(${VERSIONID//=/ })
+    LINUXVERSION=${arr[1]}
+    if [ ${LINUXVERSION} = "\"18.04\"" ]; then
+        LLVMVERSION=10
+    fi
+    sudo apt-get install -y llvm-${LLVMVERSION} clang-${LLVMVERSION} libclang-${LLVMVERSION}-dev
     LLVMBREWPATH=/home/linuxbrew/.linuxbrew
-    LLVMCONFIGPATH=/usr/bin/llvm-config-15
+    LLVMCONFIGPATH=/usr/bin/llvm-config-${LLVMVERSION}
     TARGETPLATFORM=linux-gcc
-    CPPASTCMAKECOMPILER="-DCMAKE_CXX_COMPILER=clang++-15"
+    CPPASTCMAKECOMPILER="-DCMAKE_CXX_COMPILER=clang++-10"
     if test ! $(which brew); then
 	echo "brew is not installed, first install brew then relaunch this script\n";
 	exit 1
     fi
-    echo "installing llvm"
+    # echo "installing llvm"
 #    brew install llvm
     # ...
 elif [[ "$OSTYPE" == "darwin"* ]]; then
