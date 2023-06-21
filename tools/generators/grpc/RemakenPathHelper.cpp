@@ -5,9 +5,9 @@
 
 #ifdef WIN32
 #include <stdlib.h>
+#include <map>
 #else
 #include <pwd.h>
-#include <map>
 #include <sys/types.h>
 #endif
 

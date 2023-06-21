@@ -51,6 +51,11 @@ DEPENDENCIESCONFIG = static recurse
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (../../../builddefs/qmake/templateappconfig.pri)
 
+win32 {
+    # for boost static dependency (https://github.com/microsoft/vcpkg/issues/22495)
+    DEFINES += BOOST_USE_WINAPI_VERSION=BOOST_WINAPI_VERSION_WIN7
+}
+
 HEADERS += \ \
     ASTParser.h \
     AbstractGenerator.h \
