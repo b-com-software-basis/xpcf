@@ -159,5 +159,5 @@ jobs:
       # Build solution
       - working-directory: ./scripts/unixes
         run: ./build_remaken_project.sh xpcf static ../.. 5.15.2 /usr/bin
-      # - working-directory: ./scripts/unixes
-      #   run: ./build_remaken_project.sh xpcf shared ../.. 5.15.2 /usr/bin
+      - working-directory: ./scripts/unixes
+        run: ./build_remaken_project.sh xpcf shared ../.. 5.15.2 /usr/bin
