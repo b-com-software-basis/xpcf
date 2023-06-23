@@ -226,12 +226,12 @@ SPtr<ModuleMetadata> ModuleManager::introspectModule(fs::path modulePath)
     return moduleInfos;
 }
 
-void ModuleManager::addModuleRef(const uuids::uuid& moduleUUID)
+void ModuleManager::addModuleRef(const uuids::uuid& )
 {
 
 }
 
-void ModuleManager::releaseModuleRef(const uuids::uuid& moduleUUID)
+void ModuleManager::releaseModuleRef(const uuids::uuid& )
 {
 
 }
@@ -248,7 +248,7 @@ SRef<IComponentIntrospect> ModuleManager::createComponent(SPtr<ModuleMetadata> m
     }
 
     if (m_funcMap.at(moduleInfos->getUUID())) {
-        XPCFErrorCode errCode = m_funcMap.at(moduleInfos->getUUID())(componentUUID, componentRef);
+        m_funcMap.at(moduleInfos->getUUID())(componentUUID, componentRef);
         if (componentRef) {
             addModuleRef(moduleInfos->getUUID());
         } 
@@ -322,7 +322,7 @@ XPCFErrorCode ModuleManager::saveModuleInformations(const char * xmlFilePath, co
             }
         }
         xmlRoot->InsertEndChild(xmlModuleElt);
-        tinyxml2::XMLError eResult = xmlDoc.SaveFile(xmlFilePath);
+        xmlDoc.SaveFile(xmlFilePath);
     }
     catch (const std::runtime_error & e) {
 #ifdef XPCF_WITH_LOGS

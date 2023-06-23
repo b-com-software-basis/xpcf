@@ -223,7 +223,7 @@ private:
 
 template <class ExternType, class HoldingType>
 PropertyWrapper<ExternType, HoldingType>::PropertyWrapper(const char* name, HoldingType & paramWrapped,
-                                                        IProperty::AccessSpecifier iotype):m_name(name), m_wrappedValue(paramWrapped), m_accessSpecifier(iotype)
+                                                        IProperty::AccessSpecifier iotype):m_wrappedValue(paramWrapped), m_name(name),m_accessSpecifier(iotype)
 {
 }
 
@@ -292,7 +292,7 @@ inline const wchar_t * PropertyWrapper<const wchar_t *>::getValue(uint32_t itemI
 
 
 template<class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setIntegerValue (int32_t val, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setIntegerValue (int32_t , uint32_t )
 {
 
 }
@@ -305,7 +305,7 @@ inline void PropertyWrapper<int32_t, int32_t>::setIntegerValue (int32_t value, u
 
 
 template<class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setUnsignedIntegerValue (uint32_t val, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setUnsignedIntegerValue (uint32_t , uint32_t )
 {
 
 }
@@ -317,7 +317,7 @@ inline void PropertyWrapper<uint32_t>::setUnsignedIntegerValue (uint32_t value, 
 }
 
 template<class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setLongValue (int64_t val, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setLongValue (int64_t , uint32_t )
 {
 
 }
@@ -329,7 +329,7 @@ inline void PropertyWrapper<int64_t, int64_t>::setLongValue (int64_t value, uint
 }
 
 template<class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setUnsignedLongValue (uint64_t val, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setUnsignedLongValue (uint64_t , uint32_t )
 {
 
 }
@@ -341,7 +341,7 @@ inline void PropertyWrapper<uint64_t>::setUnsignedLongValue (uint64_t value, uin
 }
 
 template<class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setFloatingValue (float value, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setFloatingValue (float , uint32_t )
 {
 
 }
@@ -353,7 +353,7 @@ inline void PropertyWrapper<float>::setFloatingValue (float value, uint32_t item
 }
 
 template<class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setDoubleValue (double value, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setDoubleValue (double , uint32_t )
 {
 
 }
@@ -366,26 +366,26 @@ inline void PropertyWrapper<double>::setDoubleValue (double value, uint32_t item
 
 
 template < class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setStringValue (const char* val, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setStringValue (const char* , uint32_t )
 {
 
 }
 
 template<>
-inline void PropertyWrapper<const char *>::setStringValue (const char* value, uint32_t itemIndex)
+inline void PropertyWrapper<const char *>::setStringValue (const char* value, uint32_t )
 {
     m_wrappedValue = value;
 }
 
 
 template<class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setUnicodeStringValue (const wchar_t* val, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setUnicodeStringValue (const wchar_t* , uint32_t )
 {
 
 }
 
 template<>
-inline void PropertyWrapper<const wchar_t *>::setUnicodeStringValue (const wchar_t* value, uint32_t itemIndex)
+inline void PropertyWrapper<const wchar_t *>::setUnicodeStringValue (const wchar_t* value, uint32_t )
 {
     m_wrappedValue = value;
 }
@@ -393,7 +393,7 @@ inline void PropertyWrapper<const wchar_t *>::setUnicodeStringValue (const wchar
 
 
 template<class ExternType, class HoldingType>
-void PropertyWrapper<ExternType, HoldingType>::setStructureValue (SRef<IPropertyMap> val, uint32_t itemIndex)
+void PropertyWrapper<ExternType, HoldingType>::setStructureValue (SRef<IPropertyMap> , uint32_t )
 {
 
 }
@@ -406,7 +406,7 @@ inline void PropertyWrapper<SRef<IPropertyMap>>::setStructureValue (SRef<IProper
 
 
 template<class ExternType, class HoldingType>
-int32_t PropertyWrapper<ExternType, HoldingType>::getIntegerValue (uint32_t itemIndex) const
+int32_t PropertyWrapper<ExternType, HoldingType>::getIntegerValue (uint32_t ) const
 {
     return 0;
 }
@@ -419,7 +419,7 @@ inline int32_t PropertyWrapper<int32_t>::getIntegerValue (uint32_t itemIndex) co
 
 
 template<class ExternType, class HoldingType>
-uint32_t PropertyWrapper<ExternType, HoldingType>::getUnsignedIntegerValue (uint32_t itemIndex) const
+uint32_t PropertyWrapper<ExternType, HoldingType>::getUnsignedIntegerValue (uint32_t ) const
 {
     return 0;
 }
@@ -431,7 +431,7 @@ inline uint32_t PropertyWrapper<uint32_t>::getUnsignedIntegerValue (uint32_t ite
 }
 
 template<class ExternType, class HoldingType>
-int64_t PropertyWrapper<ExternType, HoldingType>::getLongValue (uint32_t itemIndex) const
+int64_t PropertyWrapper<ExternType, HoldingType>::getLongValue (uint32_t ) const
 {
     return 0;
 }
@@ -444,7 +444,7 @@ inline int64_t PropertyWrapper<int64_t>::getLongValue (uint32_t itemIndex) const
 
 
 template<class ExternType, class HoldingType>
-uint64_t PropertyWrapper<ExternType, HoldingType>::getUnsignedLongValue (uint32_t itemIndex) const
+uint64_t PropertyWrapper<ExternType, HoldingType>::getUnsignedLongValue (uint32_t ) const
 {
     return 0;
 }
@@ -456,7 +456,7 @@ inline uint64_t PropertyWrapper<uint64_t>::getUnsignedLongValue (uint32_t itemIn
 }
 
 template<class ExternType, class HoldingType>
-const char* PropertyWrapper<ExternType, HoldingType>::getStringValue (uint32_t itemIndex) const
+const char* PropertyWrapper<ExternType, HoldingType>::getStringValue (uint32_t ) const
 {
     return nullptr;
 }
@@ -469,7 +469,7 @@ inline const char* PropertyWrapper<const char *>::getStringValue (uint32_t itemI
 
 
 template<class ExternType, class HoldingType>
-const wchar_t* PropertyWrapper<ExternType, HoldingType>::getUnicodeStringValue (uint32_t itemIndex) const
+const wchar_t* PropertyWrapper<ExternType, HoldingType>::getUnicodeStringValue (uint32_t ) const
 {
     return nullptr;
 }
@@ -481,7 +481,7 @@ inline const wchar_t* PropertyWrapper<const wchar_t *>::getUnicodeStringValue (u
 }
 
 template<class ExternType, class HoldingType>
-float PropertyWrapper<ExternType, HoldingType>::getFloatingValue (uint32_t itemIndex) const
+float PropertyWrapper<ExternType, HoldingType>::getFloatingValue (uint32_t ) const
 {
     return 0;
 }
@@ -493,7 +493,7 @@ inline float PropertyWrapper<float>::getFloatingValue (uint32_t itemIndex) const
 }
 
 template<class ExternType, class HoldingType>
-double PropertyWrapper<ExternType, HoldingType>::getDoubleValue (uint32_t itemIndex) const
+double PropertyWrapper<ExternType, HoldingType>::getDoubleValue (uint32_t ) const
 {
     return 0;
 }
@@ -505,13 +505,13 @@ inline double PropertyWrapper<double>::getDoubleValue (uint32_t itemIndex) const
 }
 
 template<class ExternType, class HoldingType>
-SRef<IPropertyMap> PropertyWrapper<ExternType, HoldingType>::getStructureValue (uint32_t itemIndex) const
+SRef<IPropertyMap> PropertyWrapper<ExternType, HoldingType>::getStructureValue (uint32_t ) const
 {
     return nullptr;
 }
 
 template<>
-inline SRef<IPropertyMap> PropertyWrapper<SRef<IPropertyMap>>::getStructureValue (uint32_t itemIndex) const
+inline SRef<IPropertyMap> PropertyWrapper<SRef<IPropertyMap>>::getStructureValue (uint32_t ) const
 {
     return m_wrappedValue;
 }

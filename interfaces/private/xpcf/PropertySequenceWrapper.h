@@ -117,7 +117,7 @@ private:
 // TODO : add method to check accessspecifier upon setter/getters
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-PropertySequenceWrapper<Sequence, ExternType, HoldingType>::PropertySequenceWrapper(const char* name, Sequence<HoldingType, ::std::allocator<HoldingType>> & paramWrapped, IProperty::AccessSpecifier iotype):m_name(name), m_wrappedValue(paramWrapped), m_accessSpecifier(iotype)
+PropertySequenceWrapper<Sequence, ExternType, HoldingType>::PropertySequenceWrapper(const char* name, Sequence<HoldingType, ::std::allocator<HoldingType>> & paramWrapped, IProperty::AccessSpecifier iotype):m_wrappedValue(paramWrapped), m_name(name), m_accessSpecifier(iotype)
 {
 }
 
@@ -182,7 +182,7 @@ inline const wchar_t * PropertySequenceWrapper<std::deque, const wchar_t *>::get
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setIntegerValue (int32_t val, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setIntegerValue (int32_t , uint32_t )
 {
 }
 
@@ -199,7 +199,7 @@ inline void PropertySequenceWrapper<std::deque, int32_t, int32_t>::setIntegerVal
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setUnsignedIntegerValue (uint32_t val, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setUnsignedIntegerValue (uint32_t , uint32_t )
 {
 }
 
@@ -216,7 +216,7 @@ inline void PropertySequenceWrapper<std::deque, uint32_t>::setUnsignedIntegerVal
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setLongValue (int64_t val, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setLongValue (int64_t , uint32_t )
 {
 }
 
@@ -233,7 +233,7 @@ inline void PropertySequenceWrapper<std::deque, int64_t, int64_t>::setLongValue 
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setUnsignedLongValue (uint64_t val, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setUnsignedLongValue (uint64_t , uint32_t )
 {
 }
 
@@ -250,7 +250,7 @@ inline void PropertySequenceWrapper<std::deque, uint64_t>::setUnsignedLongValue 
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setFloatingValue (float value, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setFloatingValue (float , uint32_t )
 {
 }
 
@@ -267,7 +267,7 @@ inline void PropertySequenceWrapper<std::deque, float>::setFloatingValue (float 
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setDoubleValue (double value, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setDoubleValue (double , uint32_t )
 {
 }
 
@@ -284,7 +284,7 @@ inline void PropertySequenceWrapper<std::deque, double>::setDoubleValue (double 
 }
 
 template < template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setStringValue (const char* val, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setStringValue (const char* , uint32_t )
 {
 }
 
@@ -302,7 +302,7 @@ inline void PropertySequenceWrapper<std::deque, const char *>::setStringValue (c
 
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setUnicodeStringValue (const wchar_t* val, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setUnicodeStringValue (const wchar_t* , uint32_t )
 {
 }
 
@@ -319,7 +319,7 @@ inline void PropertySequenceWrapper<std::deque, const wchar_t *>::setUnicodeStri
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setStructureValue (SRef<IPropertyMap> val, uint32_t itemIndex)
+void PropertySequenceWrapper<Sequence, ExternType, HoldingType>::setStructureValue (SRef<IPropertyMap> , uint32_t )
 {
 }
 
@@ -336,7 +336,7 @@ inline void PropertySequenceWrapper<std::deque, SRef<IPropertyMap>>::setStructur
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-int32_t PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getIntegerValue (uint32_t itemIndex) const
+int32_t PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getIntegerValue (uint32_t ) const
 {
     return 0;
 }
@@ -355,7 +355,7 @@ inline int32_t PropertySequenceWrapper<std::deque, int32_t>::getIntegerValue (ui
 
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-uint32_t PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getUnsignedIntegerValue (uint32_t itemIndex) const
+uint32_t PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getUnsignedIntegerValue (uint32_t ) const
 {
     return 0;
 }
@@ -373,7 +373,7 @@ inline uint32_t PropertySequenceWrapper<std::deque, uint32_t>::getUnsignedIntege
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-int64_t PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getLongValue (uint32_t itemIndex) const
+int64_t PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getLongValue (uint32_t ) const
 {
     return 0;
 }
@@ -392,7 +392,7 @@ inline int64_t PropertySequenceWrapper<std::deque, int64_t>::getLongValue (uint3
 
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-uint64_t PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getUnsignedLongValue (uint32_t itemIndex) const
+uint64_t PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getUnsignedLongValue (uint32_t ) const
 {
     return 0;
 }
@@ -410,7 +410,7 @@ inline uint64_t PropertySequenceWrapper<std::deque, uint64_t>::getUnsignedLongVa
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-const char* PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getStringValue (uint32_t itemIndex) const
+const char* PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getStringValue (uint32_t ) const
 {
     return nullptr;
 }
@@ -429,7 +429,7 @@ inline const char* PropertySequenceWrapper<std::deque, const char *>::getStringV
 
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-const wchar_t* PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getUnicodeStringValue (uint32_t itemIndex) const
+const wchar_t* PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getUnicodeStringValue (uint32_t ) const
 {
     return nullptr;
 }
@@ -447,7 +447,7 @@ inline const wchar_t* PropertySequenceWrapper<std::deque, const wchar_t *>::getU
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-float PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getFloatingValue (uint32_t itemIndex) const
+float PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getFloatingValue (uint32_t ) const
 {
     return 0;
 }
@@ -465,7 +465,7 @@ inline float PropertySequenceWrapper<std::deque, float>::getFloatingValue (uint3
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-double PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getDoubleValue (uint32_t itemIndex) const
+double PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getDoubleValue (uint32_t ) const
 {
     return 0;
 }
@@ -483,7 +483,7 @@ inline double PropertySequenceWrapper<std::deque, double>::getDoubleValue (uint3
 }
 
 template <template<typename, typename> class Sequence, class ExternType, class HoldingType>
-SRef<IPropertyMap> PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getStructureValue (uint32_t itemIndex) const
+SRef<IPropertyMap> PropertySequenceWrapper<Sequence, ExternType, HoldingType>::getStructureValue (uint32_t ) const
 {
     return nullptr;
 }

@@ -126,7 +126,7 @@ private:
 };
 
 ConfigurableBase::ConfigurableBase(const uuids::uuid & uuid,
-                                   const SRef<IPropertyMap> configuration)
+                                   const SRef<IPropertyMap> )
     :ComponentBase(uuid), m_internalImpl(new InternalImpl())
 {
 #ifdef XPCF_WITH_LOGS
@@ -138,7 +138,7 @@ ConfigurableBase::ConfigurableBase(const uuids::uuid & uuid,
 }
 
 ConfigurableBase::ConfigurableBase(std::map<std::string,std::string> componentTrait,
-                                   const SRef<IPropertyMap> configuration)
+                                   const SRef<IPropertyMap> )
     :ComponentBase(componentTrait) ,m_internalImpl(new InternalImpl())
 {
 #ifdef XPCF_WITH_LOGS

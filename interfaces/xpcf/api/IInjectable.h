@@ -137,7 +137,6 @@ void IInjectable::inject(SRef<IEnumerable<SRef<IComponentIntrospect>>> & instanc
                   "Interface type passed to createComponent is not a derived class of IComponentIntrospect !!");
     utils::any objSet =  retrieveMultiInjectable(toUUID<I>());
     SRef<ICollection<SRef<I>>> injectableSet = utils::any_cast<SRef<ICollection<SRef<I>>>>(objSet);
-    uint32_t nbInjectableElements = injectableSet->size();
     if (injectableSet->size() > instanceCollection->size()) {
         //throw
         return;

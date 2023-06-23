@@ -102,7 +102,7 @@ bool InterfaceMetadata::operator==(const InterfaceMetadata & c)
 }
 
 InterfaceMetadata::InterfaceMetadataImpl::InterfaceMetadataImpl(const char * name, const uuids::uuid& interfaceUUID, const char * description):
-    m_name(name),m_uuid(interfaceUUID),m_description(description)
+    m_name(name),m_description(description),m_uuid(interfaceUUID)
 {
 }
 
