@@ -574,7 +574,7 @@ void serializeParameter(tinyxml2::XMLDocument & xmlDoc, tinyxml2::XMLElement * n
     nodeElement->InsertEndChild(xmlPropertyElt);
 }
 
-XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath, uint32_t mode)
+XPCFErrorCode PropertyManager::serialize(const uuids::uuid & componentUUID, SRef<IConfigurable> componentRef, const char * filepath, uint32_t )
 {
 
     XPCFErrorCode result = XPCFErrorCode::_SUCCESS;

@@ -1,5 +1,5 @@
 TARGET = xpcf_grpc_server
-VERSION = 2.6.3
+VERSION = 2.7.0
 
 CONFIG += c++1z
 CONFIG += console
@@ -12,10 +12,20 @@ DEFINES += WITHREMOTING
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
     DEFINES += DEBUG=1
+    CPPAST_ROOT_BUILD=$${_PRO_FILE_PWD_}/../../libs/build-cppast-Debug
 }
 
 CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
+    CPPAST_ROOT_BUILD=$${_PRO_FILE_PWD_}/../../libs/build-cppast-Release
+}
+
+linux {
+    CPPAST_ROOT_BUILD=$${CPPAST_ROOT_BUILD}/linux-gcc
+}
+
+macx {
+    CPPAST_ROOT_BUILD=$${CPPAST_ROOT_BUILD}/mac-clang
 }
 
 win32:CONFIG -= static
@@ -60,7 +70,7 @@ win32 {
     INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
 }
 
-INCLUDEPATH += ../../libs/cppast/external/cxxopts/include
+INCLUDEPATH += $${CPPAST_ROOT_BUILD}/_deps/cxxopts-src/include
 
 DISTFILES += \
     grpc_server_sample.xml \

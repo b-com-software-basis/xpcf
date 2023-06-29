@@ -80,8 +80,8 @@ jobs:
       # Install dependencies
       - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
       - run: remaken.exe install -c debug --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt -f -e
-      - run: remaken.exe -v install --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
-      - run: remaken.exe install -c debug --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
+      # - run: remaken.exe -v install --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
+      # - run: remaken.exe install -c debug --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
 
       # Build solution
       - run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
@@ -89,8 +89,8 @@ jobs:
         run: .\build_remaken_project.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       - working-directory: ./scripts/win
         run: .\build_remaken_project.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-      - working-directory: ./scripts/win
-        run: .\build_remaken_project.bat xpcfSampleComponent shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      # - working-directory: ./scripts/win
+      #   run: .\build_remaken_project.bat xpcfSampleComponent shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
 
   linux-ci:
     runs-on: ubuntu-22.04

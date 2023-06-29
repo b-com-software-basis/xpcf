@@ -1,10 +1,12 @@
 #include "RemakenPathHelper.h"
 #include <boost/predef.h>
 #include <iostream>
+#include <map>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 
 #ifdef WIN32
 #include <stdlib.h>
+#include <map>
 #else
 #include <pwd.h>
 #include <sys/types.h>

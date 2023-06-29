@@ -89,7 +89,7 @@ inline bool Enumerator<T, S>::endReached() {
     return m_endReached;
 }
 template <class T, template<typename, typename> class S>
-bool Enumerator<T, S>::operator ==(IEnumerator<T> & it) const {
+bool Enumerator<T, S>::operator ==(IEnumerator<T> & ) const {
 return false;
 }
 

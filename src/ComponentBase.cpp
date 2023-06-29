@@ -84,7 +84,7 @@ private:
 };
 
 ComponentBase::ComponentBase(const uuids::uuid & uuid)
-    :m_UUID(uuid), m_pimpl(new InternalImpl(uuid)), m_usageRefCount(0)
+    :m_pimpl(new InternalImpl(uuid)), m_UUID(uuid), m_usageRefCount(0)
 {
 #ifdef XPCF_WITH_LOGS
     m_pimpl->getLogger().add_attribute("ClassName", boost::log::attributes::constant<std::string>("ComponentBase"));

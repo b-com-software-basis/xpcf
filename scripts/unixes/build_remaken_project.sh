@@ -88,7 +88,7 @@ mkdir -p ${BUILDROOTFOLDER}/${MODE}/debug
 mkdir -p ${BUILDROOTFOLDER}/${MODE}/release
 echo "===========> building ${PROJECTNAME} project <==========="
 pushd ${BUILDROOTFOLDER}/${MODE}/debug
-`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
+`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug CONFIG+=XPCF_DISABLE_ATTRIBUTES && /usr/bin/make qmake_all`
 RESULT=$?
 if [[ ! ${RESULT} -eq 127 ]]; then
 	echo "pouet"

@@ -1,5 +1,5 @@
 ### XPCF evolutions
-- Update xpcf version to 2.6.3
+- Update xpcf version to 2.7.0
 - Configuration error occures by Exception in Factory::loadLibrary.
 
 ### XPCF remoting features

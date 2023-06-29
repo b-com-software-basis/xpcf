@@ -60,7 +60,7 @@ public:
         return 0;//sm_it - rhs.m_it;
     }
 
-    inline bool operator !=(const Iterator<T> & it) {
+    inline bool operator !=(const Iterator<T> & ) {
         return !m_enumerator->endReached();
     }
 

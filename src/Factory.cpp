@@ -871,6 +871,7 @@ FactoryBindInfos Factory::resolveBind(const uuids::uuid & interfaceUUID, const s
             !(contextLevels.back().second.bindingRangeMask & (BindingRange::Default|BindingRange::All))) {
         throw InjectableNotFoundException("No default named binding found to resolve component from interface UUID = " + uuids::to_string(interfaceUUID) + " named " + name);
     }
+
     return resolveBind(interfaceUUID, contextLevels);
 }
 
@@ -909,7 +910,9 @@ void Factory::inject(SRef<IInjectable> component, std::deque<BindContext> contex
             }
         }
         catch (const Exception& e) {
-            throw ConfigurationException(e.what());
+            if (!injectable->optional()) { // only throw when injectable is mandatory
+                throw ConfigurationException(e.what());
+            }
         }
     }
     component->onInjected();
@@ -917,79 +920,67 @@ void Factory::inject(SRef<IInjectable> component, std::deque<BindContext> contex
 
 SRef<IComponentIntrospect> Factory::resolveComponent(const FactoryBindInfos & bindInfos, std::deque<BindContext> contextLevels)
 {
-    try 
-    {
-        uuids::uuid componentUUID = bindInfos.componentUUID;
-        std::function<SRef<IComponentIntrospect>(void)> createComponent = [componentUUID, this]()-> SRef<IComponentIntrospect> {
-            return resolveFromModule(componentUUID);
-        };
+    uuids::uuid componentUUID = bindInfos.componentUUID;
+    std::function<SRef<IComponentIntrospect>(void)> createComponent = [componentUUID, this]()-> SRef<IComponentIntrospect> {
+        return resolveFromModule(componentUUID);
+    };
 
-        if (mapContains(m_context->factoryMethods, componentUUID)) {
-            createComponent =  m_context->factoryMethods[componentUUID];
-        }
-        if (bindInfos.bindingRangeMask == BindingRange_Core) {
-            createComponent =  m_coreFactoryMethods[componentUUID];
-        }
-    #ifdef XPCF_WITH_LOGS
-        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolveComponent component uuid="<<uuids::to_string(componentUUID);
-    #endif
-        SRef<IComponentIntrospect> componentRef = createComponent();
-        inject(componentRef->bindTo<IInjectable>(), contextLevels);
-        if (componentRef->implements<IConfigurable>()) {
-            fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
-            if (! configFilePath.empty()) {
-                SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
-                XPCFErrorCode confErrCode;
-                if (bindInfos.properties.empty()) {
-                    confErrCode = iconf->configure(configFilePath.string().c_str());
-                }
-                else {
-                    confErrCode = iconf->configure(configFilePath.string().c_str(), bindInfos.properties.c_str());
-                }
-                if (confErrCode != XPCFErrorCode::_SUCCESS) {
-                    throw ConfigurationException("Configuration failed for component uuid=" + uuids::to_string(componentUUID), confErrCode);
-                }
+    if (mapContains(m_context->factoryMethods, componentUUID)) {
+        createComponent =  m_context->factoryMethods[componentUUID];
+    }
+    if (bindInfos.bindingRangeMask == BindingRange_Core) {
+        createComponent =  m_coreFactoryMethods[componentUUID];
+    }
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolveComponent component uuid="<<uuids::to_string(componentUUID);
+#endif
+    SRef<IComponentIntrospect> componentRef = createComponent();
+    inject(componentRef->bindTo<IInjectable>(), contextLevels);
+    if (componentRef->implements<IConfigurable>()) {
+        fs::path configFilePath = m_propertyManager->getConfigPath(componentUUID);
+        if (! configFilePath.empty()) {
+            SRef<IConfigurable> iconf = componentRef->bindTo<IConfigurable>();
+            XPCFErrorCode confErrCode;
+            if (bindInfos.properties.empty()) {
+                confErrCode = iconf->configure(configFilePath.string().c_str());
+            }
+            else {
+                confErrCode = iconf->configure(configFilePath.string().c_str(), bindInfos.properties.c_str());
+            }
+            if (confErrCode != XPCFErrorCode::_SUCCESS) {
+                throw ConfigurationException("Configuration failed for component uuid=" + uuids::to_string(componentUUID), confErrCode);
             }
         }
-        return componentRef;
     }
-    catch (const bcom::xpcf::Exception& e) {
-        throw ConfigurationException(e.what());
-    }
+    return componentRef;
 }
 
 SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, std::deque<BindContext> contextLevels)
 {
-    try
-    {
-        FactoryBindInfos bindInfos = resolveBind(interfaceUUID, contextLevels);
-    #ifdef XPCF_WITH_LOGS
-        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolve interface uuid="<<uuids::to_string(interfaceUUID);
-        BOOST_LOG_SEV(m_logger, logging::trivial::info)<<log(bindInfos).str();
-    #endif
-        contextLevels.push_front({ContextType::Component, bindInfos});
-        if (bindInfos.scope == BindingScope::Singleton) {
-            if (bindInfos.bindingRangeMask != BindingRange_Core) {
-                if (! mapContains(m_singletonInstances, bindInfos.componentUUID)) {
-                    SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
-                    m_singletonInstances[bindInfos.componentUUID] = componentRef;
-                }
-                return m_singletonInstances.at(bindInfos.componentUUID);
+    FactoryBindInfos bindInfos = resolveBind(interfaceUUID, contextLevels);
+#ifdef XPCF_WITH_LOGS
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<"Factory::resolve interface uuid="<<uuids::to_string(interfaceUUID);
+    BOOST_LOG_SEV(m_logger, logging::trivial::info)<<log(bindInfos).str();
+#endif
+    contextLevels.push_front({ContextType::Component, bindInfos});
+    if (bindInfos.scope == BindingScope::Singleton) {
+        if (bindInfos.bindingRangeMask != BindingRange_Core) {
+            if (! mapContains(m_singletonInstances, bindInfos.componentUUID)) {
+                SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
+                m_singletonInstances[bindInfos.componentUUID] = componentRef;
             }
-            else {
-                if (! mapContains(m_coreInstances, bindInfos.componentUUID)) {
-                    SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
-                    m_coreInstances[bindInfos.componentUUID] = componentRef;
-                }
-                return m_coreInstances.at(bindInfos.componentUUID);
-            }
+            return m_singletonInstances.at(bindInfos.componentUUID);
         }
-        SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
-        return resolveComponent(bindInfos, contextLevels);
+        else {
+            if (! mapContains(m_coreInstances, bindInfos.componentUUID)) {
+                SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
+                m_coreInstances[bindInfos.componentUUID] = componentRef;
+            }
+            return m_coreInstances.at(bindInfos.componentUUID);
+        }
     }
-    catch ( const bcom::xpcf::Exception& e) {
-        throw ConfigurationException(e.what());
-    }
+    SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
+    return resolveComponent(bindInfos, contextLevels);
 }
 
 SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, const string & name, std::deque<BindContext> contextLevels )

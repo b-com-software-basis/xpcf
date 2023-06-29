@@ -28,7 +28,7 @@
 namespace org { namespace bcom { namespace xpcf {
 
 Property::Property ()
-    : m_type(IProperty_NONE), m_attribute(IProperty_INOUT), m_name("none")
+    : m_name("none"), m_type(IProperty_NONE), m_attribute(IProperty_INOUT)
 {
 }
 
