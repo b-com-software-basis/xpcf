@@ -1,6 +1,0 @@
-[requires]
-openssl/1.1.1k
-[generators]
-cmake
-[options]
-openssl:shared=False
