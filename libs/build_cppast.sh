@@ -16,7 +16,7 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
     LLVMBREWPATH=/home/linuxbrew/.linuxbrew
     LLVMCONFIGPATH=/usr/bin/llvm-config-${LLVMVERSION}
     TARGETPLATFORM=linux-gcc
-    CPPASTCMAKECOMPILER="-DCMAKE_CXX_COMPILER=clang++-10"
+    CPPASTCMAKECOMPILER="-DCMAKE_CXX_COMPILER=clang++-${LLVMVERSION}"
     if test ! $(which brew); then
 	echo "brew is not installed, first install brew then relaunch this script\n";
 	exit 1

@@ -979,7 +979,6 @@ SRef<IComponentIntrospect> Factory::resolve(const uuids::uuid & interfaceUUID, s
             return m_coreInstances.at(bindInfos.componentUUID);
         }
     }
-    SRef<IComponentIntrospect> componentRef = resolveComponent(bindInfos, contextLevels);
     return resolveComponent(bindInfos, contextLevels);
 }
 

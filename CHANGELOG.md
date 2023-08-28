@@ -1,6 +1,9 @@
 ### XPCF evolutions
-- Update xpcf version to 2.7.0
+- Update xpcf version to 2.7.0 compliant with Ubuntu 22.04
 - Configuration error occures by Exception in Factory::loadLibrary.
+- New version of Grpc (v1.50.1) which is retrieved from conan yet.
+- New version of cppast.
+- New version of tinyxml
 
 ### XPCF remoting features
 add new ```grpc``` interfaces in ```interfaces/xpcf/remoting``` to manage ```grpc``` components in ```xpcf```
