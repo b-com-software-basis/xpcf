@@ -1,6 +1,7 @@
 #!/bin/bash
 QTVERSION=6.4.2
 XPCFROOT=../..
+XPCF_VERSION=2.6.3
 
 # default linux values
 QMAKEPATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
@@ -45,10 +46,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 	XPCF_GRPC_GEN_APPLICATION=xpcf_grpc_gen.app/Contents/MacOS/xpcf_grpc_gen
 fi
 
-if [ ! -d ${XPCFROOT}/scripts/unixes/build-xpcf_grpc_gen/static/release ]; then
-	echo "${XPCFROOT}/scripts/unixes/build-xpcf_grpc_gen/static/release path doesn't exist: please run build_xpcf_grpc_tools.sh before building test sample"
+if [ ! -d ${XPCF_MODULE_ROOT}/xpcf_grpc_gen/${XPCF_VERSION}/bin/x86_64/static/release ]; then
+	echo "${XPCF_MODULE_ROOT}/xpcf_grpc_gen/${XPCF_VERSION}/bin/x86_64/static/release path doesn't exist: please run build_xpcf_grpc_tools.sh before building test sample"
 	exit 2
 fi
 
-${XPCFROOT}/scripts/unixes/build-xpcf_grpc_gen/static/release/${XPCF_GRPC_GEN_APPLICATION} -n xpcfSampleComponent -v 2.7.0 -r @github -u https://github.com/b-com-software-basis/xpcf/releases/releases/download --std c++1z --database_dir ../../samples/sample_component/ --remove_comments_in_macro -o ${XPCFROOT}/scripts/unixes/build-grpc_gen_folder_sampleComponent -g protobuf -i workspace/github/xpcf/samples/sample_component
+${XPCF_MODULE_ROOT}/xpcf_grpc_gen/${XPCF_VERSION}/bin/x86_64/static/release/${XPCF_GRPC_GEN_APPLICATION} -n xpcfSampleComponent -v ${XPCF_VERSION} -r @github -u https://github.com/b-com-software-basis/xpcf/releases/releases/download --std c++1z --database_dir ../../samples/sample_component/ --remove_comments_in_macro -o ${XPCFROOT}/scripts/unixes/build-grpc_gen_folder_sampleComponent -g protobuf -i workspace/github/xpcf/samples/sample_component
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfGrpcRemotingxpcfSampleComponent shared ${XPCFROOT}/scripts/unixes/build-grpc_gen_folder_sampleComponent ${QTVERSION} ${QMAKEPATH}
