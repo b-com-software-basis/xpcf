@@ -1,5 +1,5 @@
 #!/bin/bash
-QTVERSION=5.15.2
+QTVERSION=6.4.2
 XPCFROOT=../..
 
 # default linux values
@@ -28,6 +28,12 @@ if [ $# -ge 1 ]; then
 fi
 if [ $# -ge 2 ]; then
 	QTVERSION=$2
+
+	QMAKEPATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# overload for mac values
+		QMAKE_PATH=/Application/Qt/${QTVERSION}/clang_64/bin
+	fi
 fi
 if [ $# -eq 3 ]; then
 	QMAKEPATH=$3
@@ -37,5 +43,5 @@ ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcf shared ${XPCFRO
 ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcf static ${XPCFROOT} ${QTVERSION} ${QMAKEPATH}
 ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcfSampleComponent shared ${XPCFROOT}/samples/sample_component ${QTVERSION} ${QMAKEPATH}
 
-${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcf 2.6.3
-${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcfSampleComponent 2.6.3
+${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcf 2.7.0
+${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcfSampleComponent 2.7.0
