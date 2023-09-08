@@ -89,12 +89,42 @@ mkdir -p ${BUILDROOTFOLDER}/${MODE}/release
 echo "===========> building ${PROJECTNAME} project <==========="
 pushd ${BUILDROOTFOLDER}/${MODE}/debug
 `${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
+RESULT=$?
+if [[ ! ${RESULT} -eq 127 ]]; then
+	echo "pouet"
+ 	exit ${RESULT}
+fi
+echo "===> qmake done"
 make
+RESULT=$?
+if [[ ! ${RESULT} -eq 0 ]]; then
+ 	exit ${RESULT}
+fi
+echo "===> make done"
 make install
+RESULT=$?
+if [[ ! ${RESULT} -eq 0 ]]; then
+ 	exit ${RESULT}
+fi
+echo "===> make install done"
 popd
 pushd ${BUILDROOTFOLDER}/${MODE}/release
 `${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
+RESULT=$?
+if [[ ! ${RESULT} -eq 127 ]]; then
+ 	exit ${RESULT}
+fi
+echo "===> qmake done"
 make
+RESULT=$?
+if [[ ! ${RESULT} -eq 0 ]]; then
+ 	exit ${RESULT}
+fi
+echo "===> make done"
 make install
+RESULT=$?
+if [[ ! ${RESULT} -eq 0 ]]; then
+ 	exit ${RESULT}
+fi
+echo "===> make install done"
 popd
-

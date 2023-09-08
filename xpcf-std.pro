@@ -59,7 +59,8 @@ SOURCES += \
     src/Exception.cpp \
     src/PropertyManager.cpp \
     src/ConfigurableBase.cpp \
-    src/BaseTask.cpp
+    src/BaseTask.cpp \
+    src/BaseException.cpp
 
 HEADERS += \
     interfaces/swig/xpcf_api.i \
@@ -90,6 +91,7 @@ HEADERS += \
     src/PropertyManager.h \
     src/BlockEnumerator.h \
     interfaces/xpcf/core/Result.h \
+    interfaces/xpcf/core/BaseException.h \
     interfaces/xpcf/core/Exception.h \
     interfaces/xpcf/core/XPCFErrorCode.h \
     interfaces/xpcf/core/refs.h \

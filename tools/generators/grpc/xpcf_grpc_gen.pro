@@ -36,11 +36,11 @@ exists($${CPPAST_ROOT_BUILD}) {
 # in this case, rebuild cppast and xpcf_grpc_gen
     CPPAST_ROOT=$${_PRO_FILE_PWD_}/../../../libs/cppast
     INCLUDEPATH += $${CPPAST_ROOT}/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/cxxopts/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/type_safe/include
-    INCLUDEPATH += $${CPPAST_ROOT}/external/type_safe/external/debug_assert
+    INCLUDEPATH += $${CPPAST_ROOT_BUILD}/_deps/cxxopts-src/include
+    INCLUDEPATH += $${CPPAST_ROOT_BUILD}/_deps/type_safe-src/include
+    INCLUDEPATH += $${CPPAST_ROOT_BUILD}/_deps/type_safe-src/external/debug_assert
     LIBS += -L$${CPPAST_ROOT_BUILD}/src -lcppast
-    LIBS += -L$${CPPAST_ROOT_BUILD} -l_cppast_tiny_process
+    LIBS += -L$${CPPAST_ROOT_BUILD}/external/tpl -ltiny-process-library
 } else {
     error("cppast root build folder ($${CPPAST_ROOT_BUILD} doesn't exist: create cppast root build folder and build cppast prior to running qmake.$$escape_expand(\\n)To build cppast do :$$escape_expand(\\n)cd " $${_PRO_FILE_PWD_} "/../../../libs/$$escape_expand(\\n)./build_cppast.sh" )
 }
@@ -50,6 +50,11 @@ QMAKE_TARGET.arch = x86_64 #must be defined prior to include
 DEPENDENCIESCONFIG = static recurse
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (../../../builddefs/qmake/templateappconfig.pri)
+
+win32 {
+    # for boost static dependency (https://github.com/microsoft/vcpkg/issues/22495)
+    DEFINES += BOOST_USE_WINAPI_VERSION=BOOST_WINAPI_VERSION_WIN7
+}
 
 HEADERS += \ \
     ASTParser.h \
@@ -98,8 +103,9 @@ linux {
     QMAKE_CXXFLAGS += -fPIC
 #    LLVM_BINARIES = /home/linuxbrew/.linuxbrew/opt/llvm/bin
     LLVM_BINARIES = /usr/bin
-    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-10 --libdir)
-    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-10 --includedir)
+    # TO DO : detect ubuntu version to select the good corresponding llvm version
+    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-14 --libdir)
+    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-14 --includedir)
     LIBS += -L$${LLVM_LIBDIR} -lclang
     LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
     LIBS += $${LLVM_CLANG_LIBS}

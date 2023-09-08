@@ -1,12 +1,14 @@
 #include "xpcf/threading/BaseTask.h"
 
+#ifdef XPCF_USE_BOOST
 #include "boost/fiber/fiber.hpp"
 #include "boost/fiber/operations.hpp"
 #include "boost/fiber/future.hpp"
 
-using namespace std;
 namespace bfibers = boost::fibers;
+#endif
 
+using namespace std;
 namespace org { namespace bcom { namespace xpcf {
 
 
@@ -109,6 +111,8 @@ void DelegateTask::yield()
     BaseTask::yield();
 }
 
+#ifdef XPCF_USE_BOOST
+
 class FiberTask::FiberTaskImpl {
 public:
     bfibers::fiber m_fiber;
@@ -161,5 +165,6 @@ void FiberTask::yield()
 {
     boost::this_fiber::yield();
 }
+#endif
 
 }}}

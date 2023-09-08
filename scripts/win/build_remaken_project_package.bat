@@ -22,8 +22,7 @@ if NOT [%2]==[] set MODE=%2
 if NOT [%3]==[] set PROJECTROOT=%3
 if NOT [%4]==[] set QTVERSION=%4
 if NOT [%5]==[] ( set QMAKE_PATH=%5)
-
-set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
+if NOT [%6]==[] ( set JOM_PATH=%6) else ( set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom)
 
 if not %MODE%==shared (if not %MODE%==static (echo "mode must be either shared or static - %MODE% is an unsupported value" & exit /b 2) )
 if %MODE%==static (
@@ -45,10 +44,14 @@ REM check path is relative or absolute
 if not %PROJECTROOT:~1,1%==: (set PROJECTROOT=../../../%PROJECTROOT%)
 echo "Project root path used is : %PROJECTROOT%"
 echo "Project path used is : %PROJECTROOT%/%PROJECTNAME%.pro"
-
 @REM setup Visual Studio environment
 set output=setup_script.txt
-call init_compiler_env_script.bat --year 2017 --output %output%
+call init_compiler_env_script.bat --year 2019 --output %output%
+if not exist %output% call init_compiler_env_script.bat --year 2022 --output %output%
+if not exist %output% (
+    echo "None available Visual Studion version (2019, 2022)"
+    goto:end
+)
 set /p setup_script=<"%output%"
 call "%setup_script%"
 del %output%
@@ -62,14 +65,26 @@ if not exist %BUILDROOTFOLDER%\%MODE%\release mkdir %BUILDROOTFOLDER%\%MODE%\rel
 echo "===========> building %PROJECTNAME% %MODE% debug <==========="
 pushd %BUILDROOTFOLDER%\%MODE%\debug
 %QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc CONFIG+=debug %QMAKEMODE% CONFIG+=package_remaken
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> qmake ok"
 %JOM_PATH%\jom.exe
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> jom ok"
 %JOM_PATH%\jom.exe install
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> jom install ok"
 popd
 echo "===========> building %PROJECTNAME% %MODE% release <==========="
 pushd %BUILDROOTFOLDER%\\%MODE%\release
 %QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc %QMAKEMODE% CONFIG+=package_remaken
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> qmake ok"
 %JOM_PATH%\jom.exe
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> jom ok"
 %JOM_PATH%\jom.exe install
+if not %errorlevel%==0 ( exit /b %errorlevel% )
+echo "====> jom install ok"
 popd
 
 endlocal

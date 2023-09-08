@@ -1,0 +1,163 @@
+name: XPCF CI
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
+jobs:
+  windows-ci:
+    runs-on: windows-2022
+    steps:
+      # Xpcf
+      - name: Xpcf code download
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      # Pkgconfig
+      - name: Pkgconfig
+        run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
+
+      # Visual Studio 2017 Community
+      - name: Visual Studio 2019
+        run: choco install --allow-empty-checksums visualstudio2019community
+      - name: Visual C++ 2019
+        run: choco install visualstudio2019-workload-nativedesktop
+      - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
+        run: .\vswhere.exe
+      - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
+        run: .\vswhere.exe -requires Microsoft.Component.MSBuild -property installationPath
+
+      # Conan v1.59
+      # - Install
+      - run: pip install --upgrade conan==1.59.0
+      - run: echo "C:\Program Files\Conan\conan" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+      # - run: conan --version
+      # - Configuration
+      - run: conan remote add conan-solar https://repository.solarframework.org/conan --insert 0
+      - run: conan profile new default --detect
+      - run: conan profile update settings.compiler.cppstd=17 default
+      - run: conan profile update settings.compiler.version=16 default
+      - run: conan profile update settings.compiler.toolset=v142 default
+      # - run: conan profile show default
+
+      # Remaken v1.9.5
+      # - Install
+      - uses: suisei-cn/actions-download-file@v1.3.0
+        id: downloadfile  # Remember to give an ID if you need the output filename
+        name: Download the file
+        with:
+          url: "https://github.com/b-com-software-basis/remaken/releases/download/1.9.5/Setup_Remaken_1.9.5.exe"
+          target: ./
+      - run: .\Setup_Remaken_1.9.5.exe /S
+      # - configuration
+      - run: echo "c:\Program Files\Remaken\" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+      - run: remaken.exe profile init --cpp-std 17 -b cl-14.2 -o win -a x86_64
+      # - run: remaken.exe profile display
+
+      # Qt tools: qmake and jom
+      - run: mkdir ${{ github.workspace }}/example/
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '5.15.2'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          dir: '${{ github.workspace }}/tools'
+          install-deps: 'true'
+          modules: 'qtcharts qtwebengine'
+          archives: 'qtbase qtsvg'
+          cache: 'false'
+          cache-key-prefix: 'install-qt-action'
+          setup-python: 'true'
+          tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
+          set-env: 'true'
+          tools-only: 'false'
+          aqtversion: '==2.1.*'
+          py7zrversion: '==0.19.*'
+          extra: '--external 7z'
+      - run: echo "${{ github.workspace }}/tools/Qt/Tools/QtCreator/bin/jom" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+      - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+
+      # Install dependencies
+      - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
+      - run: remaken.exe install -c debug --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt -f -e
+      # - run: remaken.exe -v install --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
+      # - run: remaken.exe install -c debug --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
+
+      # Build solution
+      - run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      - working-directory: ./scripts/win
+        run: .\build_remaken_project.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      - working-directory: ./scripts/win
+        run: .\build_remaken_project.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      - working-directory: ./scripts/win
+        run: .\build_remaken_project.bat xpcfSampleComponent shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+
+  linux-ci:
+    runs-on: ubuntu-22.04
+    steps:
+      # Xpcf
+      - name: Xpcf code download
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      # Pkgconfig
+      - name: Pkgconfig
+        run: pip install pkgconfig
+      # - run: pkg-config --version
+
+      - uses: suisei-cn/actions-download-file@v1.3.0
+        id: downloadfile  # Remember to give an ID if you need the output filename
+        name: Download Linux setup
+        with:
+          url: "https://github.com/b-com-software-basis/remaken/releases/download/Remaken_Linux_Installer_conan1.X/Remaken_Linux_Installer.zip"
+          target: ./
+      - run: ls -al
+      - run: unzip Remaken_Linux_Installer.zip
+
+      # Brew
+      # - Install
+      - name: Install Brew
+        run: |
+          ./installBrew.sh
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+
+      # Remaken
+      # - Install
+      - name: Install Remaken
+        run: |
+          ./installRemaken.sh
+          echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
+          source ~/.profile
+
+      # - configuration
+      - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+      - run: remaken profile display
+
+      # Qt tools: qmake and jom
+      - run: sudo apt-get install qtbase5-dev
+      # - run: qmake --help
+
+      # Conan v1.59
+      # - Configuration
+      # - run: conan --version
+      - run: conan remote add conan-solar https://repository.solarframework.org/conan --insert 0
+      # - run: conan remote list
+      - run: conan profile new default --detect
+      - run: conan profile update settings.compiler.libcxx=libstdc++11 default
+      - run: conan profile update settings.compiler.cppstd=17 default
+      - run: conan profile update settings.compiler.version=11 default
+      # - run: conan profile show default
+
+      # Install dependencies
+      - run: conan remote list
+      - run: remaken install packagedependencies.txt
+      - run: remaken install -c debug packagedependencies.txt -f -e
+      # - run: remaken install --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
+      # - run: remaken install -c debug --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
+
+      # Build solution
+      - working-directory: ./scripts/unixes
+        run: ./build_remaken_project.sh xpcf static ../.. 5.15.2 /usr/bin
+      - working-directory: ./scripts/unixes
+        run: ./build_remaken_project.sh xpcf shared ../.. 5.15.2 /usr/bin

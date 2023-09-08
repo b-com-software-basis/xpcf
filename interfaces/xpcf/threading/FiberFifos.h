@@ -22,6 +22,7 @@
 #ifndef ORG_BCOM_XPCF_FIBERFIFOS_H
 #define ORG_BCOM_XPCF_FIBERFIFOS_H
 
+#ifdef XPCF_USE_BOOST
 #include "xpcf/threading/SharedCircularBuffer.h"
 #include "xpcf/core/refs.h"
 #include "boost/fiber/mutex.hpp"
@@ -46,5 +47,7 @@ template <class T> SRef<IFifo<T>> createFiberFifo() {
 }*/
 
 }}}
+
+#endif
 
 #endif

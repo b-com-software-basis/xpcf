@@ -1,5 +1,5 @@
 #!/bin/bash
-QTVERSION=5.15.2
+QTVERSION=6.4.2
 XPCFROOT=../..
 
 # default linux values
@@ -27,6 +27,12 @@ if [ $# -ge 1 ]; then
 fi
 if [ $# -ge 2 ]; then
 	QTVERSION=$2
+
+	QMAKEPATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# overload for mac values
+		QMAKE_PATH=/Application/Qt/${QTVERSION}/clang_64/bin
+	fi
 fi
 if [ $# -eq 3 ]; then
 	QMAKEPATH=$3

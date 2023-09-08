@@ -106,7 +106,8 @@ SOURCES += \
     src/PropertyManager.cpp \
     src/ConfigurableBase.cpp \
     src/BaseTask.cpp \
-    src/ErrorMessage.cpp
+    src/ErrorMessage.cpp \
+    src/BaseException.cpp
 
 HEADERS += \
     interfaces/xpcf/api/IAliasManager.h \
@@ -132,6 +133,7 @@ HEADERS += \
     interfaces/private/xpcf/PropertyManager.h \
     interfaces/xpcf/core/Result.h \
     interfaces/xpcf/core/ErrorMessage.h \
+    interfaces/xpcf/core/BaseException.h \
     interfaces/xpcf/core/Exception.h \
     interfaces/xpcf/core/XPCFErrorCode.h \
     interfaces/xpcf/core/refs.h \
