@@ -103,8 +103,8 @@ linux {
     QMAKE_CXXFLAGS += -fPIC
 #    LLVM_BINARIES = /home/linuxbrew/.linuxbrew/opt/llvm/bin
     LLVM_BINARIES = /usr/bin
-    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-15 --libdir)
-    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-15 --includedir)
+    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-14 --libdir)
+    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-14 --includedir)
     LIBS += -L$${LLVM_LIBDIR} -lclang
     LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
     LIBS += $${LLVM_CLANG_LIBS}
