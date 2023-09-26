@@ -36,8 +36,8 @@ staticlib {
     REMAKEN_PKGSUBDIR=static
 } else {
     DEFINES += XPCF_SHARED
-    DEFINES += BOOST_ALL_DYN_LINK
-    DEPENDENCIESCONFIG = sharedlib
+ #   DEFINES += BOOST_ALL_DYN_LINK
+    DEPENDENCIESCONFIG = static #sharedlib
     REMAKEN_PKGSUBDIR=shared
 }
 
@@ -79,7 +79,7 @@ CONFIG(release,debug|release) {
     DEFINES += XPCFSUBDIRSEARCH=\\\"release\\\"
 }
 
-DEFINES += BOOST_ALL_NO_LIB
+#DEFINES += BOOST_ALL_NO_LIB
 
 
 DEFINES += TIXML_USE_STL
