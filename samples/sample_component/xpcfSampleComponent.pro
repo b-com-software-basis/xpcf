@@ -41,8 +41,8 @@ DEPENDENCIESCONFIG = shared
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (../../builddefs/qmake/templatelibconfig.pri)
 
-DEFINES += BOOST_ALL_NO_LIB
-DEFINES += BOOST_ALL_DYN_LINK
+#DEFINES += BOOST_ALL_NO_LIB
+#DEFINES += BOOST_ALL_DYN_LINK
 
 SOURCES += \
     Ibanez7ElectricGuitar.cpp \
@@ -104,4 +104,5 @@ header_files.files += xpcfSampleComponent_traits.h
 INSTALLS += header_files
 DISTFILES += \
     Makefile \
-    swig/XPCF_SampleComponent.i
+    swig/XPCF_SampleComponent.i \
+    packagedependencies.txt
