@@ -12,6 +12,12 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
     if [ ${LINUXVERSION} = "\"18.04\"" ]; then
         LLVMVERSION=10
     fi
+    if [ ${LINUXVERSION} = "\"20.04\"" ]; then
+        LLVMVERSION=11
+    fi
+    if [ ${LINUXVERSION} = "\"22.04\"" ]; then
+        LLVMVERSION=14
+    fi
     sudo apt-get install -y llvm-${LLVMVERSION} clang-${LLVMVERSION} libclang-${LLVMVERSION}-dev
     LLVMBREWPATH=/home/linuxbrew/.linuxbrew
     LLVMCONFIGPATH=/usr/bin/llvm-config-${LLVMVERSION}
