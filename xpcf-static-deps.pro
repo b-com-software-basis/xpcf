@@ -1,47 +1,33 @@
 QT       -= core gui
 CONFIG -= app_bundle qt
-
-TARGET = xpcf
+TARGET = xpcf-static-deps
 FRAMEWORK = $${TARGET}
 VERSION=2.7.0
 
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
+#CONFIG += staticlib
 #CONFIG += verbose
-!staticlib {
+#!staticlib {
     CONFIG += shared
-} else {
-    CONFIG -= shared
-}
+#} else {
+#    CONFIG -= shared
+#}
 #message($${CONFIG})
 #CONFIG += verbose
 
 # Uncomment following line to prepare remaken package
 #CONFIG += package_remaken
 
-macx {
-    #CONFIG += use_brew_llvm
-    # howto setup conan to use brew llvm ?
-}
-
 DEFINES += WITHREMOTING
 DEFINES += XPCF_USE_BOOST
-#DEFINES += XPCF_WITH_LOGS
 
-staticlib {
-    DEFINES += XPCF_STATIC
-    DEPENDENCIESCONFIG = staticlib
-    REMAKEN_PKGSUBDIR=static
-} else {
-    DEFINES += XPCF_SHARED
-    DEFINES += BOOST_ALL_DYN_LINK
-    DEPENDENCIESCONFIG = sharedlib
-    REMAKEN_PKGSUBDIR=shared
-}
+DEFINES += XPCF_SHARED
+DEPENDENCIESCONFIG = staticlib #sharedlib
+REMAKEN_PKGSUBDIR=shared
 
 CONFIG(debug,debug|release) {
-#    DEFINES += XPCF_WITH_LOGS
     DEFINES += "XPCFDEBUG"
     DEFINES += XPCFSUBDIRSEARCH=\\\"debug\\\"
     REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug/$${TARGET}_$${VERSION}
@@ -59,17 +45,10 @@ package_remaken {
 
 message("CONFIG="$${CONFIG})
 
-macx {
-    # EXPERIMENTAL : needs to use remaken configure first
-    # REMAKENCONFIG += use_remaken_parser
-}
-
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibbundle.pri inclusion
 include (builddefs/qmake/templatelibconfig.pri)
 
-
 CONFIG(debug,debug|release) {
-#    DEFINES += XPCF_WITH_LOGS
     DEFINES += "XPCFDEBUG"
     DEFINES += XPCFSUBDIRSEARCH=\\\"debug\\\"
 }
@@ -77,9 +56,6 @@ CONFIG(debug,debug|release) {
 CONFIG(release,debug|release) {
     DEFINES += XPCFSUBDIRSEARCH=\\\"release\\\"
 }
-
-DEFINES += BOOST_ALL_NO_LIB
-
 
 DEFINES += TIXML_USE_STL
 
@@ -187,16 +163,6 @@ HEADERS += \
 linux {
     QMAKE_LFLAGS += -ldl
     #LIBS += -L/home/linuxbrew/.linuxbrew/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
-}
-
-macx {
-    DEFINES += _MACOS_TARGET_
-    QMAKE_MAC_SDK= macosx
-    QMAKE_CFLAGS += -mmacosx-version-min=10.7 #-x objective-c++
-    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7  -std=c++17 -fPIC#-x objective-c++
-    QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
-    LIBS += -lstdc++ -lc -lpthread
-    LIBS += -L/usr/local/lib # temporary fix caused by grpc with -lre2 ... without -L in grpc.pc
 }
 
 win32 {

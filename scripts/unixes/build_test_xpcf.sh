@@ -45,4 +45,4 @@ if [ ! -d ${XPCFROOT}/scripts/unixes/build-xpcf ]; then
 fi
 
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh testxpcf shared ${XPCFROOT}/test ${QTVERSION} ${QMAKEPATH}
-${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfcli static ${XPCFROOT}/tools/cli ${QTVERSION} ${QMAKEPATH}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh testxpcf-static-deps static ${XPCFROOT}/test ${QTVERSION} ${QMAKEPATH}
