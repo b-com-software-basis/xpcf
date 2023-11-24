@@ -90,7 +90,7 @@ jobs:
       - working-directory: ./scripts/win
         run: .\build_remaken_project.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       - working-directory: ./scripts/win
-        run: .\build_remaken_project.bat xpcf shared-static-deps ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        run: .\build_remaken_project.bat xpcf-static-deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       # - working-directory: ./scripts/win
       #   run: .\build_remaken_project.bat xpcfSampleComponent shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       # - working-directory: ./scripts/win
@@ -165,3 +165,5 @@ jobs:
         run: ./build_remaken_project.sh xpcf static ../.. 5.15.2 /usr/bin
       - working-directory: ./scripts/unixes
         run: ./build_remaken_project.sh xpcf shared ../.. 5.15.2 /usr/bin
+        - working-directory: ./scripts/unixes
+        run: ./build_remaken_project.sh xpcf-static-deps shared ../.. 5.15.2 /usr/bin
