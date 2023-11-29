@@ -1,6 +1,6 @@
 QT       -= core gui
 CONFIG -= app_bundle qt
-TARGET = xpcf-static-deps
+TARGET = xpcf_static_deps
 FRAMEWORK = $${TARGET}
 VERSION=2.7.0
 

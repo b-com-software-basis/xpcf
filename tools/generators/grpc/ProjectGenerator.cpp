@@ -23,7 +23,7 @@ std::string findRemakenRulesStr = "# Author(s) : Loic Touraine, Stephane Leduc\n
 "}\n\nmessage(\"Remaken qmake build rules used : \" $$QMAKE_REMAKEN_RULES_ROOT)\n";
 
 // TODO : package information should depend upon the generator used ! and grpc/protobuf version should be added from metadata !
-std::string pkgdepsStr = "xpcf|2.7.0|xpcf\%XPCF_SHARED|@github|https://github.com/SolarFramework/binaries/releases/download\nxpcf-static-deps|2.7.0|xpcf-static-deps\%XPCF_STATIC_DEPS|@github|https://github.com/SolarFramework/binaries/releases/download\n";
+std::string pkgdepsStr = "xpcf|2.7.0|xpcf\%XPCF_SHARED_DEPS|@github|https://github.com/SolarFramework/binaries/releases/download\nxpcf_static_deps|2.7.0|xpcf_static_deps\%XPCF_STATIC_DEPS|@github|https://github.com/SolarFramework/binaries/releases/download\n";
 
 ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenerator>())
 {
@@ -136,15 +136,15 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
     projectFilePathShared = m_folder/projectFilePathShared;
     std::ofstream projectFileShared(projectFilePathShared.generic_string(utf8).c_str(), std::ios::out);
     projectFileShared << "TARGET = xpcfGrpcRemoting"<< metadata[MetadataType::PROJECT_NAME] << "\n";
-    projectFileShared << "DEFINES += XPCF_SHARED\n\n";
+    projectFileShared << "DEFINES += XPCF_SHARED_DEPS\n\n";
     projectFileShared << "include (" << priBaseFileName << ")\n\n" ;
     projectFileShared.close();
 
     // Pro using static deps xpcf
-    fs::path projectFilePathStatDeps("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "-static-deps.pro",utf8);
+    fs::path projectFilePathStatDeps("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "_static_deps.pro",utf8);
     projectFilePathStatDeps = m_folder/projectFilePathStatDeps;
     std::ofstream projectFileStatDeps(projectFilePathStatDeps.generic_string(utf8).c_str(), std::ios::out);
-    projectFileStatDeps << "TARGET = xpcfGrpcRemoting"<< metadata[MetadataType::PROJECT_NAME]<< "-static-deps" << "\n";
+    projectFileStatDeps << "TARGET = xpcfGrpcRemoting"<< metadata[MetadataType::PROJECT_NAME]<< "_static_deps" << "\n";
     projectFileStatDeps << "DEFINES += XPCF_STATIC_DEPS\n    DEFINES += XPCF_USE_BOOST\n\n";
     projectFileStatDeps << "include (" << priBaseFileName << ")\n\n" ;
     projectFileStatDeps.close();

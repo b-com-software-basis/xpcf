@@ -35,6 +35,7 @@ staticlib {
     REMAKEN_PKGSUBDIR=static
 } else {
     DEFINES += XPCF_SHARED
+    DEFINES += XPCF_SHARED_DEPS
     DEFINES += BOOST_ALL_DYN_LINK
     DEPENDENCIESCONFIG = sharedlib
     REMAKEN_PKGSUBDIR=shared

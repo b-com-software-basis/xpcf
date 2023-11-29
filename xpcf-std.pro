@@ -22,6 +22,7 @@ staticlib {
     DEFINES += XPCF_STATIC
 } else {
     DEFINES += XPCF_SHARED
+    DEFINES += XPCF_SHARED_DEPS
 }
 
 CONFIG(debug,debug|release) {

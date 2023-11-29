@@ -1,4 +1,4 @@
-TARGET = xpcfSampleComponent-static-deps
+TARGET = xpcfSampleComponent_static_deps
 
 REMAKEN_PKGSUBDIR=shared
 DEPENDENCIESCONFIG -= sharedlib
