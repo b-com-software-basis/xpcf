@@ -1,11 +1,5 @@
 ### XPCF evolutions
-- Update xpcf version to 2.7.0 compliant with Ubuntu 22.04
-- Add of an hybrid link with xpcf in a shared library but its dependencies are static.
-- Configuration error occures by Exception in Factory::loadLibrary.
-- New version of boost (v1.78.0)
-- New version of Grpc (v1.50.1) which is retrieved from conan yet.
-- New version of cppast.
-- New version of tinyxml
+- Add packaging for xpcf_grpc_gen
 
 ### XPCF remoting features
 add new ```grpc``` interfaces in ```interfaces/xpcf/remoting``` to manage ```grpc``` components in ```xpcf```

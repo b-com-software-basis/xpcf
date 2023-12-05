@@ -9,18 +9,25 @@ DEFINES += MYVERSION=$${VERSION}
 DEFINES += MYVERSIONSTRING=\\\"$${VERSION}\\\"
 
 #DEFINES += XPCF_NAMEDINJECTIONAPPROACH
+REMAKEN_PKGSUBDIR=static
 
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
     DEFINES += DEBUG=1
     CPPAST_ROOT_BUILD=$${_PRO_FILE_PWD_}/../../../libs/build-cppast-Debug
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug/$${TARGET}_$${VERSION}
 }
 
 CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
     CPPAST_ROOT_BUILD=$${_PRO_FILE_PWD_}/../../../libs/build-cppast-Release
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release/$${TARGET}_$${VERSION}
 }
 
+package_remaken {
+    message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
+    INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
+}
 
 linux {
     CPPAST_ROOT_BUILD=$${CPPAST_ROOT_BUILD}/linux-gcc
