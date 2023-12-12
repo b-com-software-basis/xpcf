@@ -1,3 +1,4 @@
+include(../../version.pri)
 ## remove Qt dependencies
 QT       -= core gui
 CONFIG -= qt
@@ -5,7 +6,7 @@ CONFIG -= qt
 ## global defintions : target lib name, version
 TARGET = swig_xpcf
 FRAMEWORK = $${TARGET}
-VERSION=2.7.0
+VERSION=XPCF_VERSION
 
 DEFINES += MYVERSION=$${VERSION}
 DEFINES += TEMPLATE_LIBRARY

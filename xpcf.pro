@@ -1,9 +1,21 @@
+TARGET = xpcf
+
+!exists(version.pri) {
+    message("$$TARGET - version.pri not present, generate it")
+    win32 {
+        system(scripts/win/update_version.bat)
+    }
+    linux {
+        system(scripts/unixes/update_version.sh)
+    }
+}
+
+include(version.pri)
 QT       -= core gui
 CONFIG -= app_bundle qt
 
-TARGET = xpcf
 FRAMEWORK = $${TARGET}
-VERSION=2.7.0
+VERSION=XPCF_VERSION
 
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 

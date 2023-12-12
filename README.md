@@ -415,8 +415,10 @@ In order to build XPCF:
 - Install [conan](https://conan.io/)
 - Install [QT](https://www.qt.io/) to get QT Creator
 - Clone xpcf repository with submodules (```git clone --recursive https://github.com/b-com-software-basis/xpcf.git```). If you have already cloned the repository but not the submodules, run ```git submodule update --init --recursive``` within your xpcf repository folder.
+- If you want a specific version of xpcf, you need to generate files from template running in the folder of xpcf.pro the script update_version.sh for Linux or update_version for Windows with the parameter ```-v``` and a version number ```x.y.z``` 
 - Open xpcf.pro file in QT Creator and configure the project with the compilation kit of your OS (gcc on Linux, clang on mac os X, msvc 2017 for windows)
 - Run qmake - this can take a while as it should compile boost from conan.
+  - if there isn't any file generated from template, qmake will do it with a default version number ```0.0.0```
 - Add an install target for make in "compilation steps" from the "projects" tab in Qt Creator
 
 You can now build xpcf using Build inside Qt Creator.

@@ -1,0 +1,90 @@
+<xpcf-registry>
+     <module uuid="9a861602-e83e-461d-abfb-7d2aaf00ac69" name="xpcfGrpcRemotingxpcfSampleComponent" description="xpcf remoting module for project xpcfSampleComponent" path="$REMAKENROOT/xpcfGrpcRemotingxpcfSampleComponent/<version>/lib/x86_64/shared">
+        <component uuid="b433029e-a2cb-4ef1-8c06-e4aff4b24bd3" name="IElectricGuitar_grpcProxy" description="IElectricGuitar_grpcProxy grpc client proxy component">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface.
+Provides:
+- browsing of component interfaces&apos;
+- component binding to its implemented interfaces"/>
+            <interface uuid="6c5b9edc-c78b-47fd-8cb2-2bf8d7ede4ea" name="XPCF::IInjectable" description="Provides dependency injection interface"/>
+            <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+            <interface uuid="93e50702-41ba-4497-9bbe-c918c1a87814" name="IElectricGuitar" description="provides electric guitar specific methods"/>
+        </component>
+        <component uuid="734ee845-fa91-49b3-8a9b-37338f8a40cf" name="IGuitar_grpcProxy" description="IGuitar_grpcProxy grpc client proxy component">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface.
+Provides:
+- browsing of component interfaces&apos;
+- component binding to its implemented interfaces"/>
+            <interface uuid="6c5b9edc-c78b-47fd-8cb2-2bf8d7ede4ea" name="XPCF::IInjectable" description="Provides dependency injection interface"/>
+            <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+            <interface uuid="6279bb1d-69b5-42bd-9da1-743c8922bcb9" name="IGuitar" description="provides instrument specific methods"/>
+        </component>
+        <component uuid="824b6642-ad39-476a-80c1-8ee16614f9fc" name="IGuitarist_grpcProxy" description="IGuitarist_grpcProxy grpc client proxy component">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface.
+Provides:
+- browsing of component interfaces&apos;
+- component binding to its implemented interfaces"/>
+            <interface uuid="6c5b9edc-c78b-47fd-8cb2-2bf8d7ede4ea" name="XPCF::IInjectable" description="Provides dependency injection interface"/>
+            <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+            <interface uuid="41348765-1017-47a7-ab9f-6b59d39e4b95" name="IGuitarist" description="provides guitar player specific methods"/>
+        </component>
+        <component uuid="2fff72e8-b192-477d-83d7-7dad07564c46" name="IHuman_grpcProxy" description="IHuman_grpcProxy grpc client proxy component">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface.
+Provides:
+- browsing of component interfaces&apos;
+- component binding to its implemented interfaces"/>
+            <interface uuid="6c5b9edc-c78b-47fd-8cb2-2bf8d7ede4ea" name="XPCF::IInjectable" description="Provides dependency injection interface"/>
+            <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+            <interface uuid="46333fd5-9eeb-4c9a-9912-b7df96ccf5fc" name="IHuman" description="provides human related methods"/>
+        </component>
+        <component uuid="98626b20-3f78-42e0-9891-221be79902cf" name="IMusician_grpcProxy" description="IMusician_grpcProxy grpc client proxy component">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface.
+Provides:
+- browsing of component interfaces&apos;
+- component binding to its implemented interfaces"/>
+            <interface uuid="6c5b9edc-c78b-47fd-8cb2-2bf8d7ede4ea" name="XPCF::IInjectable" description="Provides dependency injection interface"/>
+            <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+            <interface uuid="3bc8f5ea-ee24-473e-8afd-4f5b1b21c018" name="IMusician" description="provides musician related methods"/>
+        </component>
+        <component uuid="fe931815-479c-4659-96c3-09074747796d" name="ITuner_grpcProxy" description="ITuner_grpcProxy grpc client proxy component">
+            <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface.
+Provides:
+- browsing of component interfaces&apos;
+- component binding to its implemented interfaces"/>
+            <interface uuid="6c5b9edc-c78b-47fd-8cb2-2bf8d7ede4ea" name="XPCF::IInjectable" description="Provides dependency injection interface"/>
+            <interface uuid="98dba14f-6ef9-462e-a387-34756b4cba80" name="XPCF::IConfigurable" description="Provides generic configuration ability to any component through metadata parameters"/>
+            <interface uuid="1fc313b3-fae3-4bca-b4be-222efd24e607" name="ITuner" description="defines guitar tune modes"/>
+        </component>
+    </module>
+    <!--module uuid="{3b899ff0-e098-4218-bdaa-82abdec22960}" name="xpcfSampleComponent" description="Sample component module" path="$REMAKENROOT/xpcfSampleComponent/<version>/lib/x86_64/shared">
+    <component uuid="5644b791-b684-4203-8479-391776f3f623" name="Tuner" description="Tuner is Configurable, it implements ITuner interface">
+        <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="XPCF::IComponentIntrospect" description="Component introspection interface."/>
+        <interface uuid="1FC313B3-FAE3-4BCA-B4BE-222EFD24E607" name="ITuner" description="provides ITuner specific methods"/>
+    </component>
+    </module-->
+    <properties>
+        <configure component="b433029e-a2cb-4ef1-8c06-e4aff4b24bd3">
+            <property name="channelUrl" access="rw" type="string" value="localhost:34123"/>
+            <property name="channelCredentials" access="rw" type="uint" value="0"/>
+        </configure>
+        <configure component="734ee845-fa91-49b3-8a9b-37338f8a40cf">
+            <property name="channelUrl" access="rw" type="string" value="localhost:34123"/>
+            <property name="channelCredentials" access="rw" type="uint" value="0"/>
+        </configure>
+        <configure component="824b6642-ad39-476a-80c1-8ee16614f9fc">
+            <property name="channelUrl" access="rw" type="string" value="localhost:34123"/>
+            <property name="channelCredentials" access="rw" type="uint" value="0"/>
+        </configure>
+        <configure component="2fff72e8-b192-477d-83d7-7dad07564c46">
+            <property name="channelUrl" access="rw" type="string" value="localhost:34123"/>
+            <property name="channelCredentials" access="rw" type="uint" value="0"/>
+        </configure>
+        <configure component="98626b20-3f78-42e0-9891-221be79902cf">
+            <property name="channelUrl" access="rw" type="string" value="localhost:34123"/>
+            <property name="channelCredentials" access="rw" type="uint" value="0"/>
+        </configure>
+        <configure component="fe931815-479c-4659-96c3-09074747796d">
+            <property name="channelUrl" access="rw" type="string" value="localhost:34123"/>
+            <property name="channelCredentials" access="rw" type="uint" value="0"/>
+        </configure>
+    </properties>
+</xpcf-registry>

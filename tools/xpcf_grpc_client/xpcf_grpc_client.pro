@@ -1,5 +1,20 @@
 TARGET = xpcf_grpc_client
-VERSION = 2.7.0
+
+LIST = "packagedependencies.txt" "grpc_client_sample.xml" "xpcfGrpcSampleComponentClient.xml"
+for(file, LIST) {
+    !exists(file) { 
+        message("$$TARGET - at least $${file} not present, generate it")
+        win32 {
+            system(../../../scripts/win/update_version.bat)
+        }
+        linux {
+            system(../../../scripts/unixes/update_version.sh)
+        }
+    }
+}
+
+include(../../version.pri)
+VERSION = XPCF_VERSION
 
 CONFIG += c++1z
 CONFIG += console

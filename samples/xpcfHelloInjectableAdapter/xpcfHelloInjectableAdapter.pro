@@ -1,7 +1,18 @@
+TARGET = xpcfHelloInjectableAdapter
+
+!exists(packagedependencies.txt) {
+    message("$$TARGET - packagedependencies.txt not present, generate it")
+    win32 {
+        system(../../scripts/win/update_version.bat)
+    }
+    linux {
+        system(../../scripts/unixes/update_version.sh)
+    }
+}
+
 QT       -= core gui
 CONFIG -= app_bundle qt
 
-TARGET = xpcfHelloInjectableAdapter
 FRAMEWORK = $${TARGET}
 VERSION=1.0.0
 DEFINES +=  $${TARGET}VERSION=\"$${VERSION}\"
