@@ -13,8 +13,9 @@ for(file, LIST) {
     }
 }
 
-include(../../version.pri)
-VERSION = XPCF_VERSION
+include(../../../version.pri)
+VERSION = $${XPCF_VERSION}
+message("VERSION = $${XPCF_VERSION}")
 
 CONFIG += c++1z
 CONFIG += console
@@ -24,18 +25,25 @@ DEFINES += MYVERSION=$${VERSION}
 DEFINES += MYVERSIONSTRING=\\\"$${VERSION}\\\"
 
 #DEFINES += XPCF_NAMEDINJECTIONAPPROACH
+REMAKEN_PKGSUBDIR=static
 
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
     DEFINES += DEBUG=1
     CPPAST_ROOT_BUILD=$${_PRO_FILE_PWD_}/../../../libs/build-cppast-Debug
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/debug/$${TARGET}_$${VERSION}
 }
 
 CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
     CPPAST_ROOT_BUILD=$${_PRO_FILE_PWD_}/../../../libs/build-cppast-Release
+    REMAKEN_PKGSUBDIR=$${REMAKEN_PKGSUBDIR}/release/$${TARGET}_$${VERSION}
 }
 
+package_remaken {
+    message("Preparing remaken package installation in $${REMAKEN_PKGSUBDIR}")
+    INSTALLSUBDIR=$${REMAKEN_PKGSUBDIR}
+}
 
 linux {
     CPPAST_ROOT_BUILD=$${CPPAST_ROOT_BUILD}/linux-gcc
@@ -118,8 +126,8 @@ linux {
     QMAKE_CXXFLAGS += -fPIC
 #    LLVM_BINARIES = /home/linuxbrew/.linuxbrew/opt/llvm/bin
     LLVM_BINARIES = /usr/bin
-    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-15 --libdir)
-    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-15 --includedir)
+    LLVM_LIBDIR = $$system($${LLVM_BINARIES}/llvm-config-14 --libdir)
+    LLVM_INCDIR = $$system($${LLVM_BINARIES}/llvm-config-14 --includedir)
     LIBS += -L$${LLVM_LIBDIR} -lclang
     LLVM_CLANG_LIBS = $$files($${LLVM_LIBDIR}/libclang*.a)
     LIBS += $${LLVM_CLANG_LIBS}

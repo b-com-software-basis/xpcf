@@ -25,7 +25,9 @@ echo "jom path used is : %JOMPATH%"
 
 call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcf shared %XPCFROOT% %QTVERSION% %QMAKEPATH% %JOMPATH%
 call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcf static %XPCFROOT% %QTVERSION% %QMAKEPATH% %JOMPATH%
+call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcf_static_deps shared %XPCFROOT% %QTVERSION% %QMAKEPATH% %JOMPATH%
 call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfSampleComponent shared %XPCFROOT%/samples/sample_component %QTVERSION% %QMAKEPATH% %JOMPATH%
+call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfSampleComponent_static_deps shared %XPCFROOT%/samples/sample_component %QTVERSION% %QMAKEPATH% %JOMPATH%
 
 endlocal
 goto:eof

@@ -6,7 +6,11 @@
 #ifdef xpcf_API_DLLEXPORT
 #define XPCF_EXPORT_API __declspec(dllexport)
 #else
+#ifdef xpcf_static_deps_API_DLLEXPORT
+#define XPCF_EXPORT_API __declspec(dllexport)
+#else
 #define XPCF_EXPORT_API __declspec(dllimport)
+#endif
 #endif
 #else
 #define XPCF_EXPORT_API

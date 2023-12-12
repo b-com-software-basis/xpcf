@@ -23,7 +23,7 @@ std::string findRemakenRulesStr = "# Author(s) : Loic Touraine, Stephane Leduc\n
 "}\n\nmessage(\"Remaken qmake build rules used : \" $$QMAKE_REMAKEN_RULES_ROOT)\n";
 
 // TODO : package information should depend upon the generator used ! and grpc/protobuf version should be added from metadata !
-std::string pkgdepsStr = "xpcf|<version>|xpcf|@github|https://github.com/SolarFramework/binaries/releases/download\n";
+std::string pkgdepsStr = "xpcf|<version>|xpcf\%XPCF_SHARED_DEPS|@github|https://github.com/SolarFramework/binaries/releases/download\nxpcf_static_deps|2.7.0|xpcf_static_deps\%XPCF_STATIC_DEPS|@github|https://github.com/SolarFramework/binaries/releases/download\n";
 
 ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenerator>())
 {
@@ -92,19 +92,21 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::string priFileName = "xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".pri";
-    fs::path projectFilePath("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".pro",utf8);
+    std::string priBaseFileName = "xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "_base.pri";
+    fs::path projectFilePath(priBaseFileName.c_str(),utf8);
     projectFilePath = m_folder/projectFilePath;
     std::ofstream projectFile(projectFilePath.generic_string(utf8).c_str(), std::ios::out);
 
+    // 
     projectFile << "## remove Qt dependencies\nQT       -= core gui\nCONFIG -= qt\n";
-
     projectFile << "\n## global definitions : target lib name, version\n";
-    projectFile << "TARGET = xpcfGrpcRemoting"<< metadata[MetadataType::PROJECT_NAME] << "\n";
     projectFile << "FRAMEWORK = $$TARGET\n";
     projectFile << "VERSION="<< metadata[MetadataType::PROJECT_VERSION] << "\n";
-    projectFile << "\nDEFINES += MYVERSION=$${VERSION}\nDEFINES += TEMPLATE_LIBRARY\nCONFIG += c++1z\n\n";
+    projectFile << "\nDEFINES += MYVERSION=$${VERSION}\nDEFINES += XPCFVERSION=\\\\\\\"$${VERSION}\\\\\\\"\nDEFINES += TEMPLATE_LIBRARY\nCONFIG += c++1z\n\n";
     projectFile << "include(findremakenrules.pri)\n\n";
-    projectFile << "CONFIG(debug,debug|release) {\n    DEFINES += _DEBUG=1\n    DEFINES += DEBUG=1\n DEFINES += ENABLE_PROXY_TIMERS=1\n DEFINES += ENABLE_SERVER_TIMERS=1\n }\n";
+    projectFile << "CONFIG -= static\n";
+    projectFile << "CONFIG += shared\n\n";
+    projectFile << "CONFIG(debug,debug|release) {\n    DEFINES += _DEBUG=1\n    DEFINES += DEBUG=1\n    DEFINES += ENABLE_PROXY_TIMERS=1\n    DEFINES += ENABLE_SERVER_TIMERS=1\n }\n";
     projectFile << "CONFIG(release,debug|release) {\n    DEFINES += _NDEBUG=1\n    DEFINES += NDEBUG=1\n}\n\n";
     projectFile << "DEPENDENCIESCONFIG = shared recursive install_recurse\n\n";
     projectFile << "## Configuration for Visual Studio to install binaries and dependencies. Work also for QT Creator by replacing QMAKE_INSTALL\n";
@@ -128,6 +130,24 @@ void ProjectGenerator::generateProjectFile(std::map<MetadataType,std::string> me
     projectFile << "OTHER_FILES += \\n    xpcfGrpcRemoting" << metadata[MetadataType::PROJECT_NAME] <<".xml\n\n";
     projectFile << "#NOTE : Must be placed at the end of the .pro\ninclude ($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)\n";
     projectFile.close();
+
+    // Pro using shared xpcf
+    fs::path projectFilePathShared("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + ".pro",utf8);
+    projectFilePathShared = m_folder/projectFilePathShared;
+    std::ofstream projectFileShared(projectFilePathShared.generic_string(utf8).c_str(), std::ios::out);
+    projectFileShared << "TARGET = xpcfGrpcRemoting"<< metadata[MetadataType::PROJECT_NAME] << "\n";
+    projectFileShared << "DEFINES += XPCF_SHARED_DEPS\n\n";
+    projectFileShared << "include (" << priBaseFileName << ")\n\n" ;
+    projectFileShared.close();
+
+    // Pro using static deps xpcf
+    fs::path projectFilePathStatDeps("xpcfGrpcRemoting" + metadata[MetadataType::PROJECT_NAME] + "_static_deps.pro",utf8);
+    projectFilePathStatDeps = m_folder/projectFilePathStatDeps;
+    std::ofstream projectFileStatDeps(projectFilePathStatDeps.generic_string(utf8).c_str(), std::ios::out);
+    projectFileStatDeps << "TARGET = xpcfGrpcRemoting"<< metadata[MetadataType::PROJECT_NAME]<< "_static_deps" << "\n";
+    projectFileStatDeps << "DEFINES += XPCF_STATIC_DEPS\n    DEFINES += XPCF_USE_BOOST\n\n";
+    projectFileStatDeps << "include (" << priBaseFileName << ")\n\n" ;
+    projectFileStatDeps.close();
 
     fs::path priFilePath(priFileName,utf8);
     priFilePath = m_folder/priFilePath;

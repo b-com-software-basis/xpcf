@@ -46,5 +46,7 @@ if [ ! -d ${XPCFROOT}/scripts/unixes/build-xpcf ]; then
 fi
 
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_grpc_client shared ${XPCFROOT}/tools ${QTVERSION} ${QMAKEPATH}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_grpc_client_static_deps shared ${XPCFROOT}/tools/xpcf_grpc_client ${QTVERSION} ${QMAKEPATH}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_grpc_server shared ${XPCFROOT}/tools ${QTVERSION} ${QMAKEPATH}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_grpc_server_static_deps shared ${XPCFROOT}/tools/xpcf_grpc_server ${QTVERSION} ${QMAKEPATH}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_grpc_gen static ${XPCFROOT}/tools/generators/grpc ${QTVERSION} ${QMAKEPATH}

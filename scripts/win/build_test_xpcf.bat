@@ -32,7 +32,7 @@ if not exist %XPCFROOT%/scripts/win/build-xpcf (
 	pause
 )
 call %XPCFROOT%/scripts/win/build_remaken_project.bat testxpcf shared %XPCFROOT%/test %QTVERSION% %QMAKEPATH% %JOMPATH%
-call %XPCFROOT%/scripts/win/build_remaken_project.bat xpcfcli shared  %XPCFROOT%/tools/cli %QTVERSION% %QMAKEPATH% %JOMPATH%
+call %XPCFROOT%/scripts/win/build_remaken_project.bat testxpcf_static_deps shared %XPCFROOT%/test %QTVERSION% %QMAKEPATH% %JOMPATH%
 
 endlocal
 goto:eof

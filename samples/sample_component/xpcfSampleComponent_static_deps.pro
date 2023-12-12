@@ -1,4 +1,4 @@
-TARGET = xpcfSampleComponent
+TARGET = xpcfSampleComponent_static_deps
 
 !exists(packagedependencies.txt) {
     message("$$TARGET - packagedependencies.txt not present, generate it")
@@ -11,7 +11,7 @@ TARGET = xpcfSampleComponent
 }
 
 REMAKEN_PKGSUBDIR=shared
-DEPENDENCIESCONFIG = sharedlib
-DEFINES += XPCF_SHARED_DEPS
+DEPENDENCIESCONFIG -= sharedlib
+DEFINES += XPCF_STATIC_DEPS
 
 include(xpcfSampleComponent.pri)

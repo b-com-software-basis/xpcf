@@ -1,1 +1,2 @@
-xpcf|<version>|xpcf|github|https://github.com/b-com-software-basis/xpcf/releases/download
+xpcf|<version>|xpcf%XPCF_SHARED_DEPS|github|https://github.com/b-com-software-basis/xpcf/releases/download
+xpcf_static_deps|<version>|xpcf_static_deps%XPCF_STATIC_DEPS|github|https://github.com/b-com-software-basis/xpcf/releases/download

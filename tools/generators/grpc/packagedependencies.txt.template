@@ -1,2 +1,2 @@
 xpcf|<version>|xpcf|github|https://github.com/b-com-software-basis/xpcf/releases/download
-grpc|1.50.1|grpc++%WITHREMOTING|conan|conancenter
+grpc|1.50.1|grpc++%WITHREMOTING|conan|conancenter|default|secure=True

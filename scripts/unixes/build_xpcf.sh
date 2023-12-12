@@ -40,4 +40,6 @@ fi
 
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf shared ${XPCFROOT} ${QTVERSION} ${QMAKEPATH}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf static ${XPCFROOT} ${QTVERSION} ${QMAKEPATH}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcf_static_deps shared ${XPCFROOT} ${QTVERSION} ${QMAKEPATH}
 ${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfSampleComponent shared ${XPCFROOT}/samples/sample_component ${QTVERSION} ${QMAKEPATH}
+${XPCFROOT}/scripts/unixes/build_remaken_project.sh xpcfSampleComponent_static_deps shared ${XPCFROOT}/samples/sample_component ${QTVERSION} ${QMAKEPATH}

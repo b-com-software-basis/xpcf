@@ -1,5 +1,7 @@
 ### XPCF evolutions
 - CD for xpcf
+- Add packaging for xpcf_grpc_gen
+- fix: add pkgconfig template for xpcf_static_deps project
 
 ### XPCF remoting features
 add new ```grpc``` interfaces in ```interfaces/xpcf/remoting``` to manage ```grpc``` components in ```xpcf```
