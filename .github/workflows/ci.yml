@@ -86,15 +86,33 @@ jobs:
       # Build solution
       - run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       - working-directory: ./scripts/win
-        run: .\build_remaken_project.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       - working-directory: ./scripts/win
-        run: .\build_remaken_project.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       - working-directory: ./scripts/win
-        run: .\build_remaken_project.bat xpcf_static_deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        run: .\build_remaken_project_package.bat xpcf_static_deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       # - working-directory: ./scripts/win
-      #   run: .\build_remaken_project.bat xpcfSampleComponent shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      #   run: .\build_remaken_project_package.bat xpcfSampleComponent shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       # - working-directory: ./scripts/win
-      #   run: .\build_remaken_project.bat xpcfSampleComponent_static_deps shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      #   run: .\build_remaken_project_package.bat xpcfSampleComponent_static_deps shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+
+      # zip results
+      - run: 7z a -tzip xpcf_0.0.0_x86_64_static_release.zip %USERPROFILE%\.remaken\packages\win-cl-14.1\static\release\xpcf_0.0.0\xpcf >NUL
+      - run: 7z a -tzip xpcf_0.0.0_x86_64_shared_release.zip %USERPROFILE%\.remaken\packages\win-cl-14.1\shared\release\xpcf_0.0.0\xpcf >NUL
+      - run: 7z a -tzip xpcf_static_deps_0.0.0_x86_64_shared_release.zip %USERPROFILE%\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_0.0.0\xpcf_static_deps >NUL
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: test_latest
+          release_name: Release test_latest
+          body: |
+            test ASE
+          draft: true
+          prerelease: true
 
   linux-ci:
     runs-on: ubuntu-22.04
@@ -162,8 +180,27 @@ jobs:
 
       # Build solution
       - working-directory: ./scripts/unixes
-        run: ./build_remaken_project.sh xpcf static ../.. 5.15.2 /usr/bin
+        run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
       - working-directory: ./scripts/unixes
-        run: ./build_remaken_project.sh xpcf shared ../.. 5.15.2 /usr/bin
+        run: ./build_remaken_project_package.sh xpcf shared ../.. 5.15.2 /usr/bin
       - working-directory: ./scripts/unixes
-        run: ./build_remaken_project.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
+        run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
+
+      # Zip results
+      - run: zip -r -y xpcf_0.0.0_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_0.0.0/xpcf
+      - run: zip -r -y xpcf_0.0.0_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_0.0.0/xpcf
+      - run: zip -r -y xpcf_static_deps_0.0.0_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_0.0.0/xpcf_static_deps
+
+      # Create release
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: test_latest
+          release_name: Release test_latest
+          body: |
+            test ASE
+          draft: true
+          prerelease: true
