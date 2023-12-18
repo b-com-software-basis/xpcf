@@ -12,6 +12,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - run: echo $GITHUB_REF
+      - run: echo ${{ github.ref_name }}
       - run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
 
 #  windows-ci:
