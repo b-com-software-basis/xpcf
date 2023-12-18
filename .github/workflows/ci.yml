@@ -123,19 +123,19 @@ jobs:
 #            xpcf_0.0.0_x86_64_static_release.zip
 #            xpcf_0.0.0_x86_64_shared_release.zip
 #            xpcf_static_deps_0.0.0_x86_64_shared_release.zip      
-
+#
 #  linux-ci:
 #    runs-on: ubuntu-22.04
 #    steps:
 #      # Xpcf
 #      - name: Xpcf code download
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
+#        uses: actions/checkout@v3
+#        with:
+#          submodules: 'recursive'
 #
 #      # Pkgconfig
 #      - name: Pkgconfig
-        run: pip install pkgconfig
+#        run: pip install pkgconfig
 #      # - run: pkg-config --version
 #
 #      - uses: suisei-cn/actions-download-file@v1.3.0
@@ -150,17 +150,17 @@ jobs:
 #      # Brew
 #      # - Install
 #      - name: Install Brew
-        run: |
-          ./installBrew.sh
-          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+#        run: |
+#          ./installBrew.sh
+#          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
 #
 #      # Remaken
 #      # - Install
 #      - name: Install Remaken
-        run: |
-          ./installRemaken.sh
-          echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
-          source ~/.profile
+#        run: |
+#          ./installRemaken.sh
+#          echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
+#          source ~/.profile
 #
 #      # - configuration
 #      - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
@@ -203,12 +203,12 @@ jobs:
 #
 #      # Create release
 #      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "test_latest_linux"
-          prerelease: true
-          title: "test_latest_linux"
-          files: |
-            xpcf_0.0.0_x86_64_shared_release.zip
-            xpcf_0.0.0_x86_64_static_release.zip
-            xpcf_static_deps_0.0.0_x86_64_shared_release.zip      
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          automatic_release_tag: "test_latest_linux"
+#          prerelease: true
+#          title: "test_latest_linux"
+#          files: |
+#            xpcf_0.0.0_x86_64_shared_release.zip
+#            xpcf_0.0.0_x86_64_static_release.zip
+#            xpcf_static_deps_0.0.0_x86_64_shared_release.zip      
