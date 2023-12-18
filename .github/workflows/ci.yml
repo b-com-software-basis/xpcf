@@ -14,7 +14,8 @@ jobs:
   test:
     runs-on: windows-2022
     steps:
-      - run: echo $tag_name 
+      - run: echo "pouet"
+      - run: echo "$tag_name"
 
 #  windows-ci:
 #    runs-on: windows-2022
