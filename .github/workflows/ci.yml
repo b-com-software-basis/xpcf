@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - features/cd_xpcf
     tags:
       - '*.*.*'
 jobs:
