@@ -10,7 +10,7 @@ on:
 
 env: 
   tag_version: ${{ github.ref == 'features/cd_xpcf' && '1.0.0' || '0.0.0'}}  
-
+  tag: '2.0.0'
 jobs:
 
 #  windows-ci:
@@ -224,9 +224,16 @@ jobs:
     runs-on: windows-2022
     steps:
       - run: echo $tag_version
+      - run: echo $tag
       - run: echo "$tag_version"
+      - run: echo "$tag"
       - run: echo '$tag_version'
+      - run: echo '$tag'
       - run: echo pouet_$tag_version_truc
+      - run: echo pouet_$tag_truc
       - run: echo pouet_'$tag_version'_truc
+      - run: echo pouet_'$tag'_truc
       - run: echo "pouet_$tag_version_truc"
+      - run: echo "pouet_$tag_truc"
       - run: echo "pouet_'$tag_version'_truc"
+      - run: echo "pouet_'$tag'_truc"
