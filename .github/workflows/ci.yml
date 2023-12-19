@@ -219,7 +219,7 @@ jobs:
 #            xpcf_static_deps_$tag_version_x86_64_shared_release.zip
 
   make_release:
-    runs-on: ubuntu-22.04, windows-2022
+    runs-on: ubuntu-22.04
     env:
       tag_version: '0.0.0'
       title: 'test_latest_linux'
