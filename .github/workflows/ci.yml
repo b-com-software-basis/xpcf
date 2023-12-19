@@ -7,14 +7,8 @@ on:
       - features/cd_xpcf
     tags:
       - '*.*.*'
-env:
-  tag_name: "0.0.0"
 
 jobs:
-  test:
-    runs-on: windows-2022
-    steps:
-      - run: echo $tag_name
 
 #  windows-ci:
 #    runs-on: windows-2022
@@ -199,15 +193,43 @@ jobs:
 #        run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
 #
 #      # Zip results
-#      - run: zip -r -y xpcf_0.0.0_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_0.0.0/xpcf
-#      - run: zip -r -y xpcf_0.0.0_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_0.0.0/xpcf
-#      - run: zip -r -y xpcf_static_deps_0.0.0_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_0.0.0/xpcf_static_deps
+#      - run: zip -r -y xpcf_$tag_version_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_0.0.0/xpcf
+#      - run: zip -r -y xpcf_$tag_version_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_0.0.0/xpcf
+#      - run: zip -r -y xpcf_static_deps_$tag_version_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_0.0.0/xpcf_static_deps
 #
 #      # Create release
 #      - uses: "marvinpinto/action-automatic-releases@latest"
 #        with:
 #          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-#          automatic_release_tag: "test_latest_linux"
+#          automatic_release_tag: "xpcf/linux/$tag_version"
+#          prerelease: true
+#          title: "xpcf/linux/$tag_version"
+#          files: |
+#            xpcf_$tag_version_x86_64_shared_release.zip
+#            xpcf_$tag_version_x86_64_static_release.zip
+#
+#      # Create release
+#      - uses: "marvinpinto/action-automatic-releases@latest"
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          automatic_release_tag: "xpcf_static_deps/linux/$tag_version"
+#          prerelease: true
+#          title: "xpcf_static_deps/linux/$tag_version"
+#          files: |
+#            xpcf_static_deps_$tag_version_x86_64_shared_release.zip
+
+  make_release:
+    runs-on: ubuntu-22.04, windows-2022
+    env:
+      tag_version: '0.0.0'
+      title: 'test_latest_linux'
+    steps:
+      - run: echo "$tag_version"
+#      # Create release
+#      - uses: "marvinpinto/action-automatic-releases@latest"
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          automatic_release_tag: "$tag_version"
 #          prerelease: true
 #          title: "test_latest_linux"
 #          files: |
