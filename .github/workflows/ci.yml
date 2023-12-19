@@ -246,8 +246,8 @@ jobs:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: $env:tag
+          automatic_release_tag: ${{env.tag}}
           prerelease: true
-          title: $env:tag
+          title: ${{env.tag}}
 #          files: |
 #            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
