@@ -71,7 +71,7 @@ else
     echo "error in template parameters: $template"
 fi
 
-exit 1
+exit 0
 
 display_usage() { 
     echo This script generates or replaces files from all template files (*.template) in the directory and its subdirectory
@@ -85,5 +85,4 @@ display_usage() {
     echo    -   --template or -t        generate the file only for the template given in parameter
 } 
 
-generate_file() {
-}
+exit 1
