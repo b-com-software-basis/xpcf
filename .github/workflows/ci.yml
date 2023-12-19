@@ -8,6 +8,9 @@ on:
     tags:
       - '*.*.*'
 
+env: 
+  tag_version: ${{ github.ref == 'features/cd_xpcf' && '1.0.0' || '0.0.0'}}  
+
 jobs:
 
 #  windows-ci:
@@ -219,12 +222,11 @@ jobs:
 #            xpcf_static_deps_$tag_version_x86_64_shared_release.zip
   test:
     runs-on: windows-2022
-    env:
-      test_version: '0.0.0'
     steps:
-      - run: echo $test_version
-      - run: echo "$test_version"
-      - run: echo pouet_$test_version_truc
-      - run: echo pouet_'$test_version'_truc
-      - run: echo "pouet_$test_version_truc"
-      - run: echo "pouet_'$test_version'_truc"
+      - run: echo $tag_version
+      - run: echo "$tag_version"
+      - run: echo '$tag_version'
+      - run: echo pouet_$tag_version_truc
+      - run: echo pouet_'$tag_version'_truc
+      - run: echo "pouet_$tag_version_truc"
+      - run: echo "pouet_'$tag_version'_truc"
