@@ -223,6 +223,8 @@ jobs:
   test:
     runs-on: windows-2022
     steps:
+      - run: echo $env:tag_version
+      - run: echo $env:tag
       - run: echo $tag_version
       - run: echo $tag
       - run: echo "$tag_version"
