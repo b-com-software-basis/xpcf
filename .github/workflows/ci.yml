@@ -238,14 +238,16 @@ jobs:
 
   test:
     runs-on: windows-2022
+    env:
+      tag: xpcf_static_deps/$env:tag_version/linux
     steps:
-      - run: echo "xpcf_static_deps/$env:tag_version/linux"
+      - run: echo $env:tag
       # Create release for xpcf_static_deps
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "xpcf_static_deps/$env:tag_version/linux"
+          automatic_release_tag: $env:tag
           prerelease: true
-          title: "xpcf_static_deps/$env:tag_version/linux"
+          title: $env:tag
 #          files: |
 #            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
