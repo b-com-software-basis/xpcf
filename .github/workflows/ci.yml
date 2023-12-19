@@ -9,7 +9,7 @@ on:
       - '*.*.*'
 
 env: 
-  tag_version: ${{ github.ref == 'features/cd_xpcf' && '1.0.0' || '0.0.0'}}  
+  tag_version: ${{ github.ref_name == 'features/cd_xpcf' && '1.0.0' || '0.0.0'}}  
   tag: '2.0.0'
 jobs:
 
@@ -225,17 +225,4 @@ jobs:
     steps:
       - run: echo $env:tag_version
       - run: echo $env:tag
-      - run: echo $tag_version
-      - run: echo $tag
-      - run: echo "$tag_version"
-      - run: echo "$tag"
-      - run: echo '$tag_version'
-      - run: echo '$tag'
-      - run: echo pouet_$tag_version_truc
-      - run: echo pouet_$tag_truc
-      - run: echo pouet_'$tag_version'_truc
-      - run: echo pouet_'$tag'_truc
-      - run: echo "pouet_$tag_version_truc"
-      - run: echo "pouet_$tag_truc"
-      - run: echo "pouet_'$tag_version'_truc"
-      - run: echo "pouet_'$tag'_truc"
+      - run: echo pouet_"$env:tag_version"_truc
