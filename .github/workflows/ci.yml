@@ -247,5 +247,5 @@ jobs:
           automatic_release_tag: "xpcf_static_deps/$env:tag_version/linux"
           prerelease: true
           title: "xpcf_static_deps/$env:tag_version/linux"
-          files: |
-            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
+#          files: |
+#            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
