@@ -9,8 +9,8 @@ on:
       - '[0-9]+\.[0-9]+\.[0-9]+'
 
 env: 
-  tag_version: ${{ github.ref_name == 'develop' && '0.0.0' || 'nothing'}}  
-
+  tag_version: ${{ github.ref_name == 'develop' && '0.0.0' || github.ref_name }}  
+  
 jobs:
 
 #  windows-ci:
@@ -224,6 +224,6 @@ jobs:
   test:
     runs-on: windows-2022
     steps:
+      - run: echo ${{github.ref_name}}
       - run: echo $env:tag_version
-      - run: echo $env:tag
       - run: echo pouet_"$env:tag_version"_truc
