@@ -242,8 +242,7 @@ jobs:
     env:
       tag: xpcf_static_deps/"$env:tag_version"/linux
     steps:
-      - run: echo "$env:tag"
-      - run: echo ${{env:tag}}
+      - run: echo $env:tag
       # Create release for xpcf_static_deps
 #      - uses: "marvinpinto/action-automatic-releases@latest"
 #        with:
