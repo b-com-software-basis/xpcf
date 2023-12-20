@@ -247,8 +247,8 @@ jobs:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "ase_pouet"
+          automatic_release_tag: "$env:tag"
           prerelease: true
-          title: "ase_pouet"
+          title: "$env:tag"
 #          files: |
 #            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
