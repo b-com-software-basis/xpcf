@@ -237,21 +237,19 @@ jobs:
 #          files: |
 #            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
 
-  test:
-    runs-on: windows-2022
-    env:
-      tag_name: xpcf_static_deps/"$env:tag_version"/linux
-    steps:
-      # - run: echo "$tag_version"
-      - run: echo "$env:tag_version"
-      - run: echo "$env:tag_name"
-      - run: echo "xpcf_static_deps/$env:tag_version/linux"
-      # Create release for xpcf_static_deps
-#      - uses: "marvinpinto/action-automatic-releases@latest"
-#        with:
-#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-#          automatic_release_tag: ${{env:tag_name}}
-#          prerelease: true
-#          title: ase test
-#          files: |
-#            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
+# test:
+#   runs-on: windows-2022
+#   env:
+#     tag_name: xpcf_static_deps/"$env:tag_version"/linux
+#   steps:
+#     # - run: echo "$tag_version"
+#     # - run: echo "xpcf_static_deps/$env:tag_version/linux"
+#     # Create release for xpcf_static_deps
+#     - uses: "marvinpinto/action-automatic-releases@latest"
+#       with:
+#         repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#         automatic_release_tag: "xpcf_static_deps/$env:tag_version/linux"
+#         prerelease: true
+#         title: "xpcf_static_deps/$env:tag_version/linux"
+#         files: |
+#           xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
