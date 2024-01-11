@@ -245,6 +245,7 @@ jobs:
       # - run: echo "$tag_version"
       - run: echo "$env:tag_version"
       - run: echo "$env:tag_name"
+      - run: echo "xpcf_static_deps/$env:tag_version/linux"
       # Create release for xpcf_static_deps
 #      - uses: "marvinpinto/action-automatic-releases@latest"
 #        with:
