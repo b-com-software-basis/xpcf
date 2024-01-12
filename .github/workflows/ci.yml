@@ -23,7 +23,7 @@ jobs:
       
       # Generate xpcf files
       - name: Generate xpcf files
-        run: ./scripts/win/update_version.bat -v $env:tag_version
+        run: ./scripts/win/update_version.bat -v ${{ env.tag_version }}
 
       # Pkgconfig
       - name: Pkgconfig
