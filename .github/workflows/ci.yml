@@ -126,9 +126,9 @@ jobs:
       #   run: .\build_remaken_project_package.bat xpcfSampleComponent_static_deps shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
 
       # zip results
-      - run: 7z a -tzip xpcf_"$env:tag_version"_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_"$env:tag_version"\xpcf >NUL
-      - run: 7z a -tzip xpcf_"$env:tag_version"_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_"$env:tag_version"\xpcf >NUL
-      - run: 7z a -tzip xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_"$env:tag_version"\xpcf_static_deps >NUL
+      - run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
+      - run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf >NUL
+      - run: 7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -243,9 +243,9 @@ jobs:
        run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
 
      # Zip results
-     - run: zip -r -y xpcf_"$env:tag_version"_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_"$env:tag_version"/xpcf
-     - run: zip -r -y xpcf_"$env:tag_version"_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_"$env:tag_version"/xpcf
-     - run: zip -r -y xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_"$env:tag_version"/xpcf_static_deps
+     - run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf
+     - run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf
+     - run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps
 
      # Create release for xpcf
      - uses: "marvinpinto/action-automatic-releases@latest"
@@ -266,7 +266,7 @@ jobs:
          prerelease: true
          title: xpcf_static_deps/${{ env.tag_version }}/linux
          files: |
-           xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
+           xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip
 
 # test:
 #   runs-on: windows-2022
