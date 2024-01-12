@@ -47,6 +47,7 @@ jobs:
 #      # - run: conan --version
 #      # - Configuration
 #      - run: conan remote add conan-solar https://repository.solarframework.org/conan --insert 0
+#      - run: conan remote add gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
 #      - run: conan profile new default --detect
 #      - run: conan profile update settings.compiler.cppstd=17 default
 #      - run: conan profile update settings.compiler.version=16 default
@@ -189,6 +190,7 @@ jobs:
 #     # - Configuration
 #     # - run: conan --version
 #     - run: conan remote add conan-solar https://repository.solarframework.org/conan --insert 0
+#     - run: conan remote add gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
 #     # - run: conan remote list
 #     - run: conan profile new default --detect
 #     - run: conan profile update settings.compiler.libcxx=libstdc++11 default
@@ -231,9 +233,9 @@ jobs:
 #     - uses: "marvinpinto/action-automatic-releases@latest"
 #       with:
 #         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-#         automatic_release_tag: "xpcf_static_deps/$env:tag_version/linux"
+#         automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
 #         prerelease: true
-#         title: "xpcf_static_deps/$env:tag_version/linux"
+#         title: xpcf_static_deps/${{ env.tag_version }}/linux
 #         files: |
 #           xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
 
@@ -242,12 +244,20 @@ jobs:
     env:
       tag_name: xpcf_static_deps/"$env:tag_version"/linux
     steps:
+      - name: delete previous latest version
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          tag_name: xpcf_static_deps/${{ env.tag_version }}/linux
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_release: true
+        if: ${{ env.tag_version }} == 0.0.0
+
       # - run: echo "$tag_version"
       - run: echo xpcf_static_deps/"$env:tag_version"/linux
       # Create release for xpcf_static_deps
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
           prerelease: true
           title: xpcf_static_deps/${{ env.tag_version }}/linux
