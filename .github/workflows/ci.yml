@@ -160,7 +160,7 @@ jobs:
 
      # Generate xpcf files
      - name: Generate xpcf files
-       run: ./scripts/unixes/update_version.sh -v $env:tag_version
+       run: ./scripts/unixes/update_version.sh -v ${{ env.tag_version }}
 
        # Pkgconfig
      - name: Pkgconfig
