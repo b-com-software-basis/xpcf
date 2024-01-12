@@ -235,38 +235,39 @@ jobs:
      # - run: remaken install -c debug --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
 
      # Build solution
-     - working-directory: ./scripts/unixes
-       run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
+    #  - working-directory: ./scripts/unixes
+    #    run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
      - working-directory: ./scripts/unixes
        run: ./build_remaken_project_package.sh xpcf shared ../.. 5.15.2 /usr/bin
      - working-directory: ./scripts/unixes
        run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
 
      # Zip results
+     - run: ls -al $HOME/.remaken/packages/linux-gcc/shared/release/
      - run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf
-     - run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf
-     - run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps
+    #  - run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf
+    #  - run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps
 
      # Create release for xpcf
-     - uses: "marvinpinto/action-automatic-releases@latest"
-       with:
-         repo_token: ${{ secrets.GITHUB_TOKEN }}
-         automatic_release_tag: xpcf/${{ env.tag_version }}/linux
-         prerelease: true
-         title: xpcf/${{ env.tag_version }}/linux
-         files: |
-           xpcf_${{ env.tag_version }}_x86_64_shared_release.zip
-           xpcf_${{ env.tag_version }}_x86_64_static_release.zip
+    #  - uses: "marvinpinto/action-automatic-releases@latest"
+    #    with:
+    #      repo_token: ${{ secrets.GITHUB_TOKEN }}
+    #      automatic_release_tag: xpcf/${{ env.tag_version }}/linux
+    #      prerelease: true
+    #      title: xpcf/${{ env.tag_version }}/linux
+    #      files: |
+    #        xpcf_${{ env.tag_version }}_x86_64_shared_release.zip
+    #        xpcf_${{ env.tag_version }}_x86_64_static_release.zip
 
-     # Create release for xpcf_static_deps
-     - uses: "marvinpinto/action-automatic-releases@latest"
-       with:
-         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-         automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
-         prerelease: true
-         title: xpcf_static_deps/${{ env.tag_version }}/linux
-         files: |
-           xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip
+    #  # Create release for xpcf_static_deps
+    #  - uses: "marvinpinto/action-automatic-releases@latest"
+    #    with:
+    #      repo_token: "${{ secrets.GITHUB_TOKEN }}"
+    #      automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
+    #      prerelease: true
+    #      title: xpcf_static_deps/${{ env.tag_version }}/linux
+    #      files: |
+    #        xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip
 
 # test:
 #   runs-on: windows-2022
