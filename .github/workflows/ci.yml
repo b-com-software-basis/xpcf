@@ -11,7 +11,7 @@ on:
 env: 
   tag_version: ${{ github.ref_name == 'features/cd_xpcf' && '0.0.0' || github.ref_name }}  
   
-#jobs:
+jobs:
 #
 #  windows-ci:
 #    runs-on: windows-2022
@@ -135,99 +135,115 @@ env:
 #          files: |
 #            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip      
 #
-jobs:
-  linux-ci:
-    runs-on: ubuntu-22.04
+# linux-ci:
+#   runs-on: ubuntu-22.04
+#   steps:
+#     # Xpcf
+#     - name: Xpcf code download
+#       uses: actions/checkout@v3
+#       with:
+#         submodules: 'recursive'
+#
+#     # Generate xpcf files
+#     - name: Generate xpcf files
+#       run: ./scripts/unixes/update_version.sh -v $env:tag_version
+#
+#       # Pkgconfig
+#     - name: Pkgconfig
+#       run: pip install pkgconfig
+#     # - run: pkg-config --version
+#
+#     - uses: suisei-cn/actions-download-file@v1.3.0
+#       id: downloadfile  # Remember to give an ID if you need the output filename
+#       name: Download Linux setup
+#       with:
+#         url: "https://github.com/b-com-software-basis/remaken/releases/download/Remaken_Linux_Installer_conan1.X/Remaken_Linux_Installer.zip"
+#         target: ./
+#     - run: ls -al
+#     - run: unzip Remaken_Linux_Installer.zip
+#
+#     # Brew
+#     # - Install
+#     - name: Install Brew
+#       run: |
+#         ./installBrew.sh
+#         echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+#
+#     # Remaken
+#     # - Install
+#     - name: Install Remaken
+#       run: |
+#         ./installRemaken.sh
+#         echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
+#         source ~/.profile
+#
+#     # - configuration
+#     - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+#     - run: remaken profile display
+#
+#     # Qt tools: qmake and jom
+#     - run: sudo apt-get install qtbase5-dev
+#     # - run: qmake --help
+#
+#     # Conan v1.59
+#     # - Configuration
+#     # - run: conan --version
+#     - run: conan remote add conan-solar https://repository.solarframework.org/conan --insert 0
+#     # - run: conan remote list
+#     - run: conan profile new default --detect
+#     - run: conan profile update settings.compiler.libcxx=libstdc++11 default
+#     - run: conan profile update settings.compiler.cppstd=17 default
+#     - run: conan profile update settings.compiler.version=11 default
+#     # - run: conan profile show default
+#
+#     # Install dependencies
+#     - run: conan remote list
+#     - run: remaken install packagedependencies.txt
+#     - run: remaken install -c debug packagedependencies.txt -f -e
+#     # - run: remaken install --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
+#     # - run: remaken install -c debug --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
+#
+#     # Build solution
+#     - working-directory: ./scripts/unixes
+#       run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
+#     - working-directory: ./scripts/unixes
+#       run: ./build_remaken_project_package.sh xpcf shared ../.. 5.15.2 /usr/bin
+#     - working-directory: ./scripts/unixes
+#       run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
+#
+#     # Zip results
+#     - run: zip -r -y xpcf_"$env:tag_version"_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_"$env:tag_version"/xpcf
+#     - run: zip -r -y xpcf_"$env:tag_version"_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_"$env:tag_version"/xpcf
+#     - run: zip -r -y xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_"$env:tag_version"/xpcf_static_deps
+#
+#     # Create release for xpcf
+#     - uses: "marvinpinto/action-automatic-releases@latest"
+#       with:
+#         repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#         automatic_release_tag: "xpcf/$env:tag_version/linux"
+#         prerelease: true
+#         title: "xpcf/$env:tag_version/linux"
+#         files: |
+#           xpcf_"$env:tag_version"_x86_64_shared_release.zip
+#           xpcf_"$env:tag_version"_x86_64_static_release.zip
+#
+#     # Create release for xpcf_static_deps
+#     - uses: "marvinpinto/action-automatic-releases@latest"
+#       with:
+#         repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#         automatic_release_tag: "xpcf_static_deps/$env:tag_version/linux"
+#         prerelease: true
+#         title: "xpcf_static_deps/$env:tag_version/linux"
+#         files: |
+#           xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
+
+  test:
+    runs-on: windows-2022
+    env:
+      tag_name: xpcf_static_deps/"$env:tag_version"/linux
     steps:
-      # Xpcf
-      - name: Xpcf code download
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
-
-      # Generate xpcf files
-      - name: Generate xpcf files
-        run: ./scripts/unixes/update_version.sh -v $env:tag_version
-
-        # Pkgconfig
-      - name: Pkgconfig
-        run: pip install pkgconfig
-      # - run: pkg-config --version
-
-      - uses: suisei-cn/actions-download-file@v1.3.0
-        id: downloadfile  # Remember to give an ID if you need the output filename
-        name: Download Linux setup
-        with:
-          url: "https://github.com/b-com-software-basis/remaken/releases/download/Remaken_Linux_Installer_conan1.X/Remaken_Linux_Installer.zip"
-          target: ./
-      - run: ls -al
-      - run: unzip Remaken_Linux_Installer.zip
-
-      # Brew
-      # - Install
-      - name: Install Brew
-        run: |
-          ./installBrew.sh
-          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
-
-      # Remaken
-      # - Install
-      - name: Install Remaken
-        run: |
-          ./installRemaken.sh
-          echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
-          source ~/.profile
-
-      # - configuration
-      - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-      - run: remaken profile display
-
-      # Qt tools: qmake and jom
-      - run: sudo apt-get install qtbase5-dev
-      # - run: qmake --help
-
-      # Conan v1.59
-      # - Configuration
-      # - run: conan --version
-      - run: conan remote add conan-solar https://repository.solarframework.org/conan --insert 0
-      # - run: conan remote list
-      - run: conan profile new default --detect
-      - run: conan profile update settings.compiler.libcxx=libstdc++11 default
-      - run: conan profile update settings.compiler.cppstd=17 default
-      - run: conan profile update settings.compiler.version=11 default
-      # - run: conan profile show default
-
-      # Install dependencies
-      - run: conan remote list
-      - run: remaken install packagedependencies.txt
-      - run: remaken install -c debug packagedependencies.txt -f -e
-      # - run: remaken install --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
-      # - run: remaken install -c debug --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
-
-      # Build solution
-      - working-directory: ./scripts/unixes
-        run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
-      - working-directory: ./scripts/unixes
-        run: ./build_remaken_project_package.sh xpcf shared ../.. 5.15.2 /usr/bin
-      - working-directory: ./scripts/unixes
-        run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
-
-      # Zip results
-      - run: zip -r -y xpcf_"$env:tag_version"_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_"$env:tag_version"/xpcf
-      - run: zip -r -y xpcf_"$env:tag_version"_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_"$env:tag_version"/xpcf
-      - run: zip -r -y xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_"$env:tag_version"/xpcf_static_deps
-
-      # Create release for xpcf
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "xpcf/$env:tag_version/linux"
-          prerelease: true
-          title: "xpcf/$env:tag_version/linux"
-          files: |
-            xpcf_"$env:tag_version"_x86_64_shared_release.zip
-            xpcf_"$env:tag_version"_x86_64_static_release.zip
-
+      # - run: echo "$tag_version"
+      - run: echo xpcf_static_deps/"$env:tag_version"/linux
       # Create release for xpcf_static_deps
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -235,22 +251,5 @@ jobs:
           automatic_release_tag: "xpcf_static_deps/$env:tag_version/linux"
           prerelease: true
           title: "xpcf_static_deps/$env:tag_version/linux"
-          files: |
-            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
-
-#  test:
-#    runs-on: windows-2022
-#    env:
-#      tag_name: xpcf_static_deps/"$env:tag_version"/linux
-#    steps:
-#      # - run: echo "$tag_version"
-#      # - run: echo "xpcf_static_deps/$env:tag_version/linux"
-#      # Create release for xpcf_static_deps
-#      - uses: "marvinpinto/action-automatic-releases@latest"
-#        with:
-#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-#          automatic_release_tag: "xpcf_static_deps/$env:tag_version/linux"
-#          prerelease: true
-#          title: "xpcf_static_deps/$env:tag_version/linux"
-#          files: |
+#         files: |
 #            xpcf_static_deps_"$env:tag_version"_x86_64_shared_release.zip
