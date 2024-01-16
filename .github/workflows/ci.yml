@@ -36,8 +36,8 @@ jobs:
         run: choco install visualstudio2019-workload-nativedesktop
       #- working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
       #  run: .\vswhere.exe
-      - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
-        run: .\vswhere.exe -requires Microsoft.Component.MSBuild -property installationPath
+      # - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
+      #   run: .\vswhere.exe -requires Microsoft.Component.MSBuild -property installationPath
 
       # Conan v1.59
       # - Install
@@ -46,10 +46,12 @@ jobs:
       # - run: conan --version
       # - Configuration
       - run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
-      - run: conan profile new default --detect
-      - run: conan profile update settings.compiler.cppstd=17 default
-      - run: conan profile update settings.compiler.version=16 default
-      - run: conan profile update settings.compiler.toolset=v142 default
+      - name: conan profile configuration
+        run: |
+          conan profile new default --detect
+          conan profile update settings.compiler.cppstd=17 default
+          conan profile update settings.compiler.version=16 default
+          conan profile update settings.compiler.toolset=v142 default
       # - run: conan profile show default
 
       # Remaken v1.9.5
@@ -67,35 +69,39 @@ jobs:
       # - run: remaken.exe profile display
 
       # Qt tools: qmake and jom
-      - run: mkdir ${{ github.workspace }}/example/
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v3
-        with:
-          version: '5.15.2'
-          host: 'windows'
-          target: 'desktop'
-          arch: 'win64_msvc2019_64'
-          dir: '${{ github.workspace }}/tools'
-          install-deps: 'true'
-          modules: 'qtcharts qtwebengine'
-          archives: 'qtbase qtsvg'
-          cache: 'false'
-          cache-key-prefix: 'install-qt-action'
-          setup-python: 'true'
-          tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
-          set-env: 'true'
-          tools-only: 'false'
-          aqtversion: '==2.1.*'
-          py7zrversion: '==0.19.*'
-          extra: '--external 7z'
+      # - run: mkdir ${{ github.workspace }}/example/ to remove
+      # - name: Install Qt
+      #   uses: jurplel/install-qt-action@v3
+      #   with:
+      #     version: '5.15.2'
+      #     host: 'windows'
+      #     target: 'desktop'
+      #     arch: 'win64_msvc2019_64'
+      #     dir: '${{ github.workspace }}/tools'
+      #     install-deps: 'true'
+      #     modules: 'qtcharts qtwebengine'
+      #     archives: 'qtbase qtsvg'
+      #     cache: 'false'
+      #     cache-key-prefix: 'install-qt-action'
+      #     setup-python: 'true'
+      #     tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
+      #     set-env: 'true'
+      #     tools-only: 'false'
+      #     aqtversion: '==2.1.*'
+      #     py7zrversion: '==0.19.*'
+      #     extra: '--external 7z'
+      - name: install aqt
+        run: choco install aqt
+      - name: install Qt kit 5.15.2 msvc2019 64b
+        run: aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O ${{ github.workspace }}/tools/Qt
+      - name: install QtCreator
+        run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
       - run: echo "${{ github.workspace }}/tools/Qt/Tools/QtCreator/bin/jom" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Install dependencies
       - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
       - run: remaken.exe install -c debug --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt -f -e
-      # - run: remaken.exe -v install --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
-      # - run: remaken.exe install -c debug --condition USE_XPCF_BOOST=true --cpp-std 17 -b cl-14.1 -o win -a x86_64 samples\sample_component\packagedependencies.txt
 
       # Delete previous latest version 
       - name: delete previous latest version
@@ -119,15 +125,13 @@ jobs:
         run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       - working-directory: ./scripts/win
         run: .\build_remaken_project_package.bat xpcf_static_deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-      # - working-directory: ./scripts/win
-      #   run: .\build_remaken_project_package.bat xpcfSampleComponent shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-      # - working-directory: ./scripts/win
-      #   run: .\build_remaken_project_package.bat xpcfSampleComponent_static_deps shared ..\..\samples\sample_component 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
 
       # zip results
-      - run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
-      - run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf >NUL
-      - run: 7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
+      - name: compress results
+        run: |
+          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
+          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf >NUL
+          7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -149,120 +153,122 @@ jobs:
             xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip      
 
   linux-ci:
-   runs-on: ubuntu-22.04
-   steps:
-     # Xpcf
-     - name: Xpcf code download
-       uses: actions/checkout@v3
-       with:
-         submodules: 'recursive'
+    runs-on: ubuntu-22.04
+    steps:
+      # Xpcf
+      - name: Xpcf code download
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
 
-     # Generate xpcf files
-     - name: Generate xpcf files
-       run: ./scripts/unixes/update_version.sh -v ${{ env.tag_version }}
+      # Generate xpcf files
+      - name: Generate xpcf files
+        run: ./scripts/unixes/update_version.sh -v ${{ env.tag_version }}
 
-       # Pkgconfig
-     - name: Pkgconfig
-       run: pip install pkgconfig
-     # - run: pkg-config --version
+        # Pkgconfig
+      - name: Pkgconfig
+        run: pip install pkgconfig
+      # - run: pkg-config --version
 
-     - uses: suisei-cn/actions-download-file@v1.3.0
-       id: downloadfile  # Remember to give an ID if you need the output filename
-       name: Download Linux setup
-       with:
-         url: "https://github.com/b-com-software-basis/remaken/releases/download/Remaken_Linux_Installer_conan1.X/Remaken_Linux_Installer.zip"
-         target: ./
-     - run: ls -al
-     - run: unzip Remaken_Linux_Installer.zip
+      - uses: suisei-cn/actions-download-file@v1.3.0
+        id: downloadfile  # Remember to give an ID if you need the output filename
+        name: Download Linux setup
+        with:
+          url: "https://github.com/b-com-software-basis/remaken/releases/download/Remaken_Linux_Installer_conan1.X/Remaken_Linux_Installer.zip"
+          target: ./
+      - run: ls -al
+      - run: unzip Remaken_Linux_Installer.zip
 
-     # Brew
-     # - Install
-     - name: Install Brew
-       run: |
-         ./installBrew.sh
-         echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+      # Brew
+      # - Install
+      - name: Install Brew
+        run: |
+          ./installBrew.sh
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
 
-     # Remaken
-     # - Install
-     - name: Install Remaken
-       run: |
-         ./installRemaken.sh
-         echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
-         source ~/.profile
+      # Remaken
+      # - Install
+      - name: Install Remaken
+        run: |
+          ./installRemaken.sh
+          echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
+          source ~/.profile
 
-     # - configuration
-     - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-     - run: remaken profile display
+      # - configuration
+      - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+      - run: remaken profile display
 
-     # Qt tools: qmake and jom
-     - run: sudo apt-get install qtbase5-dev
-     # - run: qmake --help
+      # Qt tools: qmake and jom
+      - run: sudo apt-get install qtbase5-dev
+      # - run: qmake --help
 
-     # Conan v1.59
-     # - Configuration
-     # - run: conan --version
-     - run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
-     # - run: conan remote list
-     - run: conan profile new default --detect
-     - run: conan profile update settings.compiler.libcxx=libstdc++11 default
-     - run: conan profile update settings.compiler.cppstd=17 default
-     - run: conan profile update settings.compiler.version=11 default
-     # - run: conan profile show default
+      # Conan v1.59
+      # - Configuration
+      # - run: conan --version
+      - run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
+      # - run: conan remote list
+      - name: conan profile configuration
+        run: |
+          conan profile new default --detect
+          conan profile update settings.compiler.libcxx=libstdc++11 default
+          conan profile update settings.compiler.cppstd=17 default
+          conan profile update settings.compiler.version=11 default
+      # - run: conan profile show default
 
-     # Delete previous latest version 
-     - name: delete previous latest version
-       uses: dev-drprasad/delete-tag-and-release@v1.0
-       with:
-         tag_name: xpcf/${{ env.tag_version }}/linux
-         github_token: ${{ secrets.GITHUB_TOKEN }}
-         delete_release: true
+      # Delete previous latest version 
+      - name: delete previous latest version
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          tag_name: xpcf/${{ env.tag_version }}/linux
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_release: true
 
-     # Delete previous latest version 
-     - name: delete previous latest version
-       uses: dev-drprasad/delete-tag-and-release@v1.0
-       with:
-         tag_name: xpcf_static_deps/${{ env.tag_version }}/linux
-         github_token: ${{ secrets.GITHUB_TOKEN }}
-         delete_release: true
+      # Delete previous latest version 
+      - name: delete previous latest version
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          tag_name: xpcf_static_deps/${{ env.tag_version }}/linux
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_release: true
 
-     # Install dependencies
-     - run: conan remote list
-     - run: remaken install packagedependencies.txt
-     - run: remaken install -c debug packagedependencies.txt -f -e
-     # - run: remaken install --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
-     # - run: remaken install -c debug --condition USE_XPCF_BOOST=true samples/sample_component/packagedependencies.txt
+      # Install dependencies
+      - run: conan remote list
+      - run: remaken install packagedependencies.txt
+      - run: remaken install -c debug packagedependencies.txt -f -e
 
      # Build solution
-    #  - working-directory: ./scripts/unixes
-    #    run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
-     - working-directory: ./scripts/unixes
-       run: ./build_remaken_project_package.sh xpcf shared ../.. 5.15.2 /usr/bin
-     - working-directory: ./scripts/unixes
-       run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
+      - working-directory: ./scripts/unixes
+        run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
+      - working-directory: ./scripts/unixes
+        run: ./build_remaken_project_package.sh xpcf shared ../.. 5.15.2 /usr/bin
+      - working-directory: ./scripts/unixes
+        run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
 
-     # Zip results
-     - run: ls -al $HOME/.remaken/packages/linux-gcc/shared/release/
-     - run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf
-    #  - run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf
-    #  - run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps
+      # Zip results
+      # - run: ls -al $HOME/.remaken/packages/linux-gcc/shared/release/
+      - name: compress results
+        run: |
+          zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf
+          zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf
+          zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps
 
-     # Create release for xpcf
-     - uses: "marvinpinto/action-automatic-releases@latest"
-       with:
-         repo_token: ${{ secrets.GITHUB_TOKEN }}
-         automatic_release_tag: xpcf/${{ env.tag_version }}/linux
-         prerelease: true
-         title: xpcf/${{ env.tag_version }}/linux
-         files: |
-           xpcf_${{ env.tag_version }}_x86_64_shared_release.zip
-           xpcf_${{ env.tag_version }}_x86_64_static_release.zip
+      # Create release for xpcf
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: xpcf/${{ env.tag_version }}/linux
+          prerelease: true
+          title: xpcf/${{ env.tag_version }}/linux
+          files: |
+            xpcf_${{ env.tag_version }}_x86_64_shared_release.zip
+            xpcf_${{ env.tag_version }}_x86_64_static_release.zip
 
-     # Create release for xpcf_static_deps
-     - uses: "marvinpinto/action-automatic-releases@latest"
-       with:
-         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-         automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
-         prerelease: true
-         title: xpcf_static_deps/${{ env.tag_version }}/linux
-         files: |
-           xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip
+      # Create release for xpcf_static_deps
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
+          prerelease: true
+          title: xpcf_static_deps/${{ env.tag_version }}/linux
+          files: |
+            xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip
