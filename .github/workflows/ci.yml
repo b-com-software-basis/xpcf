@@ -13,7 +13,7 @@ env:
   
 jobs:
   windows-ci:
-    runs-on: windows-2022
+    runs-on: windows-2019
     steps:
       # Xpcf
       - name: Xpcf code download
@@ -30,10 +30,6 @@ jobs:
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
       # Visual Studio 2019 Community
-      - name: Visual Studio 2019
-        run: choco install --allow-empty-checksums visualstudio2019community
-      - name: Visual C++ 2019
-        run: choco install visualstudio2019-workload-nativedesktop
       #- working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
       #  run: .\vswhere.exe
       # - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
@@ -69,27 +65,6 @@ jobs:
       # - run: remaken.exe profile display
 
       # Qt tools: qmake and jom
-      # - run: mkdir ${{ github.workspace }}/example/ to remove
-      # - name: Install Qt
-      #   uses: jurplel/install-qt-action@v3
-      #   with:
-      #     version: '5.15.2'
-      #     host: 'windows'
-      #     target: 'desktop'
-      #     arch: 'win64_msvc2019_64'
-      #     dir: '${{ github.workspace }}/tools'
-      #     install-deps: 'true'
-      #     modules: 'qtcharts qtwebengine'
-      #     archives: 'qtbase qtsvg'
-      #     cache: 'false'
-      #     cache-key-prefix: 'install-qt-action'
-      #     setup-python: 'true'
-      #     tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
-      #     set-env: 'true'
-      #     tools-only: 'false'
-      #     aqtversion: '==2.1.*'
-      #     py7zrversion: '==0.19.*'
-      #     extra: '--external 7z'
       - name: install aqt
         run: choco install aqt
       - name: install Qt kit 5.15.2 msvc2019 64b
@@ -127,6 +102,7 @@ jobs:
         run: .\build_remaken_project_package.bat xpcf_static_deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
 
       # zip results
+      - run: dir 
       - name: compress results
         run: |
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
