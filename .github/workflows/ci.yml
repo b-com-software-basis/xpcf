@@ -78,7 +78,6 @@ jobs:
 
       - name: install QtCreator
         run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
-      # - run: echo "${{ github.workspace }}/tools/Qt/Tools/QtCreator/bin/jom" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Install dependencies
@@ -95,7 +94,7 @@ jobs:
       - name: delete previous latest version
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
-          tag_name: xpcf_static_deps/${{ env.tag_version }}/win
+          tag_name: "xpcf_static_deps/${{ env.tag_version }}/win"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           delete_release: true
  
@@ -120,7 +119,6 @@ jobs:
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
           7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
-      - run: 7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
       - run: dir .
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
