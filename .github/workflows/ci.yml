@@ -100,16 +100,16 @@ jobs:
           delete_release: true
  
        # Build solution
-       #- run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      - run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       - working-directory: ./scripts/win
-        # run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-        run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
+        run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        # run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
       - working-directory: ./scripts/win
-        # run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-        run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
+        run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        # run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
       - working-directory: ./scripts/win
-        # run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-        run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
+        run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        # run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
 
       # zip results
       - run: dir $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}
