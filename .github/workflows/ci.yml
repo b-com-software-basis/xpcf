@@ -132,6 +132,9 @@ jobs:
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf >NUL
           7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
+          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
+          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
+          7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -142,6 +145,8 @@ jobs:
           files: |
             xpcf_${{ env.tag_version }}_x86_64_static_release.zip
             xpcf_${{ env.tag_version }}_x86_64_shared_release.zip
+            xpcf_${{ env.tag_version }}_x86_64_static_debug.zip
+            xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -151,6 +156,7 @@ jobs:
           title: xpcf_static_deps/${{ env.tag_version }}/win
           files: |
             xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip      
+            xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip      
 
   linux-ci:
     runs-on: ubuntu-22.04
@@ -251,6 +257,9 @@ jobs:
           zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf
           zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_release.zip $HOME/.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf
           zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps
+          zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip $HOME/.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}/xpcf
+          zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_debug.zip $HOME/.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}/xpcf
+          zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip $HOME/.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps
 
       # Create release for xpcf
       - uses: "marvinpinto/action-automatic-releases@latest"
@@ -262,6 +271,8 @@ jobs:
           files: |
             xpcf_${{ env.tag_version }}_x86_64_shared_release.zip
             xpcf_${{ env.tag_version }}_x86_64_static_release.zip
+            xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip
+            xpcf_${{ env.tag_version }}_x86_64_static_debug.zip
 
       # Create release for xpcf_static_deps
       - uses: "marvinpinto/action-automatic-releases@latest"
@@ -272,3 +283,4 @@ jobs:
           title: xpcf_static_deps/${{ env.tag_version }}/linux
           files: |
             xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip
+            xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip
