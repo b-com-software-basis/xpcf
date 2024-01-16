@@ -29,7 +29,7 @@ jobs:
       - name: Pkgconfig
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
-      # Visual Studio 2019 Community
+      # Visual Studio 2019 Enterprise comes with the image windows-2019
       #- working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
       #  run: .\vswhere.exe
       # - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
@@ -69,9 +69,16 @@ jobs:
         run: choco install aqt
       - name: install Qt kit 5.15.2 msvc2019 64b
         run: aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O ${{ github.workspace }}/tools/Qt
+      - name: install jom
+        uses: suisei-cn/actions-download-file@v1.3.0
+        id: downloadJom
+        with:
+          url: "http://download.qt.io/official_releases/jom/jom.zip"
+          target: ./
+
       - name: install QtCreator
         run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
-      - run: echo "${{ github.workspace }}/tools/Qt/Tools/QtCreator/bin/jom" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+      # - run: echo "${{ github.workspace }}/tools/Qt/Tools/QtCreator/bin/jom" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Install dependencies
@@ -95,14 +102,17 @@ jobs:
        # Build solution
        #- run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       - working-directory: ./scripts/win
-        run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        # run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
       - working-directory: ./scripts/win
-        run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        # run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
       - working-directory: ./scripts/win
-        run: .\build_remaken_project_package.bat xpcf_static_deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        # run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" .
 
       # zip results
-      - run: dir 
+      - run: dir $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}
       - name: compress results
         run: |
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
