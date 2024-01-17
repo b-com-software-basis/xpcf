@@ -112,7 +112,6 @@ jobs:
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
           7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
-      - run: dir .
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -155,7 +154,6 @@ jobs:
         with:
           url: "https://github.com/b-com-software-basis/remaken/releases/download/Remaken_Linux_Installer_conan1.X/Remaken_Linux_Installer.zip"
           target: ./
-      - run: ls -al
       - run: unzip Remaken_Linux_Installer.zip
 
       # Brew
@@ -185,7 +183,6 @@ jobs:
       # - Configuration
       # - run: conan --version
       - run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
-      # - run: conan remote list
       - name: conan profile configuration
         run: |
           conan profile new default --detect
@@ -211,7 +208,6 @@ jobs:
           delete_release: true
 
       # Install dependencies
-      - run: conan remote list
       - run: remaken install packagedependencies.txt
       - run: remaken install -c debug packagedependencies.txt -f -e
 
@@ -224,7 +220,6 @@ jobs:
         run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
 
       # Zip results
-      # - run: ls -al $HOME/.remaken/packages/linux-gcc/shared/release/
       - name: compress results
         run: |
           zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf
