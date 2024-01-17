@@ -127,10 +127,7 @@ jobs:
           prerelease: true
           title: xpcf/${{ env.tag_version }}/win
           files: |
-            xpcf_${{ env.tag_version }}_x86_64_static_release.zip
-            xpcf_${{ env.tag_version }}_x86_64_shared_release.zip
-            xpcf_${{ env.tag_version }}_x86_64_static_debug.zip
-            xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip
+            xpcf_${{ env.tag_version }}_*
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -140,8 +137,6 @@ jobs:
           title: xpcf_static_deps/${{ env.tag_version }}/win
           files: |
             xpcf_static_deps_${{ env.tag_version }}_*
-            # xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip      
-            # xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip      
 
   linux-ci:
     runs-on: ubuntu-22.04
