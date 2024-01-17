@@ -29,11 +29,7 @@ jobs:
       - name: Pkgconfig
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
-      # Visual Studio 2019 Enterprise comes with the image windows-2019
-      #- working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
-      #  run: .\vswhere.exe
-      # - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
-      #   run: .\vswhere.exe -requires Microsoft.Component.MSBuild -property installationPath
+      # Visual Studio 2019 Enterprise comes with the github image windows-2019
 
       # Conan v1.59
       # - Install
@@ -94,7 +90,7 @@ jobs:
       - name: delete previous latest version
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
-          tag_name: "xpcf_static_deps/${{ env.tag_version }}/win"
+          tag_name: xpcf_static_deps/${{ env.tag_version }}/win
           github_token: ${{ secrets.GITHUB_TOKEN }}
           delete_release: true
  
@@ -108,9 +104,6 @@ jobs:
         run: .\build_remaken_project_package.bat xpcf_static_deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
 
       # zip results
-      - run: dir $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\
-      - run: dir $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\
-      - run: dir $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps
       - name: compress results
         run: |
           7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
@@ -249,10 +242,7 @@ jobs:
           prerelease: true
           title: xpcf/${{ env.tag_version }}/linux
           files: |
-            xpcf_${{ env.tag_version }}_x86_64_shared_release.zip
-            xpcf_${{ env.tag_version }}_x86_64_static_release.zip
-            xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip
-            xpcf_${{ env.tag_version }}_x86_64_static_debug.zip
+            xpcf_${{ env.tag_version }}_x86_64_*
 
       # Create release for xpcf_static_deps
       - uses: "marvinpinto/action-automatic-releases@latest"
@@ -262,5 +252,4 @@ jobs:
           prerelease: true
           title: xpcf_static_deps/${{ env.tag_version }}/linux
           files: |
-            xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip
-            xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip
+            xpcf_static_deps_${{ env.tag_version }}_*
