@@ -374,22 +374,18 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
     std::cout << "Searching protobuf compiler (protoc) from path: " << std::endl;
     std::cout << "===> "<< protocBin.generic_string(utf8) << std::endl;
 
-    bool isRemakenGrpc = true;
+    bool isRemakenGrpc = false;
     if (!fs::exists(protocBin) || !fs::exists(grpcLibs) || !fs::exists(grpcBin)) {
-        isRemakenGrpc = false;
-        // else search in brew paths on unixes, what about win ?
-#ifdef BOOST_OS_MACOS_AVAILABLE
-        protocBin = "/usr/local/bin/";
-        grpcLibs = "/usr/local/lib";
-#endif
-#ifdef BOOST_OS_LINUX_AVAILABLE
-        protocBin = "/home/linuxbrew/.linuxbrew/bin/";
-        grpcLibs = "/home/linuxbrew/.linuxbrew/lib";
-#endif
-#ifdef BOOST_OS_WIN_AVAILABLE
-        std::cerr<<"Error grpc protoc compiler not found : check your grpc installation !"<<std::endl;
-        return;
-#endif
+        isRemakenGrpc = true;
+
+        std::vector<fs::path> envPath = boost::this_process::path();
+        remakenGrpcRoot /= "grpc/1.50.1";
+        fs::path grpcBin = remakenGrpcRoot;
+        grpcBin /= "/bin/x86_64/shared/release/";
+        protocBin = grpcBin;
+        fs::path grpcLibs = remakenGrpcRoot;
+        grpcLibs /= "/lib/x86_64/shared/release/";
+
     }
     envPath.push_back(protocBin);
     envPath.push_back(grpcBin);
