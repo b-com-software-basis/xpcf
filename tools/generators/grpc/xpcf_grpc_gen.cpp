@@ -238,12 +238,12 @@ try
         cppast::cpp_entity_index idx; // the entity index is used to resolve cross references in the AST
 
         if (!databaseDirOptIsEmpty) {
+            assert(fileOptIsEmpty);
             if (int res = astParser->parse_database(options["database_dir"].as<std::string>(),options) != 0) {
                 return res;
             }
             //parse_database(options["database_dir"].as<std::string>(),idx,options, [&](const cppast::cpp_entity_index& idx, std::ostream& out, const cppast::cpp_file& file) { astParser->parseAst(idx,out,file); });
         } else if (!fileOptIsEmpty) {
-            assert(databaseDirOptIsEmpty);
             if (int res = astParser->parse_file(options["file"].as<std::string>(), options.count("fatal_errors") == 1) != 0) {
                 return res;
             }
