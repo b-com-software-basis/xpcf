@@ -220,6 +220,14 @@ try
             serviceGenerator->setDestinationFolder(options["output"].as<std::string>());
         }
 
+        bool fileOptIsEmpty = !options.count("file") || options["file"].as<std::string>().empty();
+        bool databaseDirOptIsEmpty = !options.count("database_dir") || options["database_dir"].as<std::string>().empty();
+
+        if (!fileOptIsEmpty && !databaseDirOptIsEmpty) {
+            print_error("--file and --database_dir cannot be both set");
+            return 1;
+        }
+
         auto astParser = cmpMgr->resolve<ITypeParser>("astParser");
 
         int result = astParser->initOptions(options);
@@ -229,21 +237,19 @@ try
 
         cppast::cpp_entity_index idx; // the entity index is used to resolve cross references in the AST
 
-        if (!options.count("file") || options["file"].as<std::string>().empty()) {
-            if (options.count("database_dir") && !options["database_dir"].as<std::string>().empty()) {
-                std::cout<<"File argument is missing : parsing every file listed in database"<<std::endl;
-                astParser->parse_database(options["database_dir"].as<std::string>(),options);
-                //parse_database(options["database_dir"].as<std::string>(),idx,options, [&](const cppast::cpp_entity_index& idx, std::ostream& out, const cppast::cpp_file& file) { astParser->parseAst(idx,out,file); });
+        if (!databaseDirOptIsEmpty) {
+            if (int res = astParser->parse_database(options["database_dir"].as<std::string>(),options) != 0) {
+                return res;
             }
-            else {
-                print_error("missing one of file or database dir argument");
-                return 1;
+            //parse_database(options["database_dir"].as<std::string>(),idx,options, [&](const cppast::cpp_entity_index& idx, std::ostream& out, const cppast::cpp_file& file) { astParser->parseAst(idx,out,file); });
+        } else if (!fileOptIsEmpty) {
+            assert(databaseDirOptIsEmpty);
+            if (int res = astParser->parse_file(options["file"].as<std::string>(), options.count("fatal_errors") == 1) != 0) {
+                return res;
             }
-        }
-        else {
-            result = astParser->parse_file(options["file"].as<std::string>(), options.count("fatal_errors") == 1);
-            if (result != 0)
-                return result;
+        } else {
+            print_error("missing one of --file or --database_dir argument");
+            return 1;
         }
 
         //update types : try to qualify non fqdn types in parameters ... from classes found during parsing
