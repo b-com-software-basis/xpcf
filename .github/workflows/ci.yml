@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - feat/cd_test
     tags:
       - '[0-9]+\.[0-9]+\.[0-9]+'
 
@@ -104,22 +105,22 @@ jobs:
 
       # zip results
       - name: compress results
-        working-directory: $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}
+        working-directory: ..\..\..\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip xpcf >NUL
       - name: compress results
-        working-directory: $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}
+        working-directory: ..\..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf >NUL
       - name: compress results
-        working-directory: $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}
+        working-directory: ..\..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}
         run: 7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip xpcf_static_deps >NUL
       - name: compress results
-        working-directory: $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}
+        working-directory: ..\..\..\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip xpcf >NUL
       - name: compress results
-        working-directory: $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}
+        working-directory: ..\..\..\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf >NUL
       - name: compress results
-        working-directory: $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}
+        working-directory: ..\..\..\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}
         run: 7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf_static_deps >NUL
 
       - uses: "marvinpinto/action-automatic-releases@latest"
@@ -236,22 +237,22 @@ jobs:
 
       # Zip results
       - name: compress results
-        working-directory: $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}
+        working-directory: ../../../.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}
         run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf
       - name: compress results
-        working-directory: $HOME/.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}
+        working-directory: ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}
         run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf
       - name: compress results
-        working-directory: $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}
+        working-directory: ../../../.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}
         run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip xpcf_static_deps
       - name: compress results
-        working-directory: $HOME/.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}
+        working-directory: ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}
         run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf
       - name: compress results
-        working-directory: $HOME/.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}
+        working-directory: ../../../.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}
         run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_debug.zip xpcf
       - name: compress results
-        working-directory: $HOME/.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}
+        working-directory: ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}
         run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf_static_deps
 
       # Create release for xpcf
