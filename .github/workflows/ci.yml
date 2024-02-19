@@ -190,6 +190,7 @@ jobs:
       - run: remaken profile display
 
       # Qt tools: qmake and jom
+      - run: sudo apt-get update
       - run: sudo apt-get install qtbase5-dev
       # - run: qmake --help
 
