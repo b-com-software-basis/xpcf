@@ -26,7 +26,9 @@ jobs:
         run: ./scripts/win/update_version.bat -v ${{ env.tag_version }}
 
       # Pkgconfig
-      - run: choco
+      - run: choco --help
+
+      - run: choco upgrade chocolotey --version=1.3.1
 
       - name: Pkgconfig
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
