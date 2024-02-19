@@ -26,10 +26,11 @@ jobs:
         run: ./scripts/win/update_version.bat -v ${{ env.tag_version }}
 
       # Pkgconfig
+      - run: choco
+
       - name: Pkgconfig
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
-      - run: choco
 
       # Visual Studio 2019 Enterprise comes with the github image windows-2019
 
