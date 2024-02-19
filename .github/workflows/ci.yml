@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - develop
-      - feat/cd_test
+      - feature/cd_test
     tags:
       - '[0-9]+\.[0-9]+\.[0-9]+'
 
