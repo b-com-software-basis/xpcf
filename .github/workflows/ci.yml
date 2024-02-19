@@ -33,6 +33,8 @@ jobs:
         run: echo ${{github.workspace}}
       - name: home
         run: echo $home
+      - name: user profile
+        run: echo $env:USERPROFILE
 
       # Visual Studio 2019 Enterprise comes with the github image windows-2019
 
