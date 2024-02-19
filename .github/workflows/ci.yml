@@ -31,6 +31,8 @@ jobs:
       - name: Pkgconfig
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
+      - name: github-workspace
+        run: echo ${{github.workspace}}
 
       # Visual Studio 2019 Enterprise comes with the github image windows-2019
 
