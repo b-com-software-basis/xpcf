@@ -29,12 +29,15 @@ jobs:
       - name: Pkgconfig
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
+      # ASE to remove
       - name: github-workspace
         run: echo ${{github.workspace}}
       - name: home
         run: echo $home
       - name: user profile
         run: echo $env:USERPROFILE
+      - name: test
+        run: echo ${{github.workspace}}\tools
 
       # Visual Studio 2019 Enterprise comes with the github image windows-2019
 
@@ -84,7 +87,7 @@ jobs:
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Install dependencies
-      - run: remaken.exe -r ${{ github.workspace }}\tools
+      - run: remaken.exe -r "${{ github.workspace }}\tools"
       - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
       - run: remaken.exe install -c debug --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt -f -e
 
