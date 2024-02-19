@@ -28,8 +28,6 @@ jobs:
       # Pkgconfig
       - run: choco --help
 
-      - run: choco upgrade chocolotey --version=2.1.0
-
       - name: Pkgconfig
         run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
