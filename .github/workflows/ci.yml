@@ -112,7 +112,7 @@ jobs:
 
       # zip results
       - name: compress xpcf static release 
-        working-directory: $env:USERPROFILe\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}
+        working-directory: $HOME\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip xpcf >NUL
       - name: compress xpcf shared release
         working-directory: ..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}
