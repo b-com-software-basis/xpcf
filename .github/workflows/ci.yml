@@ -133,10 +133,10 @@ jobs:
           prerelease: true
           title: xpcf/${{ env.tag_version }}/win
           files: |
-            $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
-            $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
-            $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
-            $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
+            ..\..\..\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
+            ..\..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
+            ..\..\..\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
+            ..\..\..\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -145,8 +145,8 @@ jobs:
           prerelease: true
           title: xpcf_static_deps/${{ env.tag_version }}/win
           files: |
-            $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps_${{ env.tag_version }}_*
-            $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps_${{ env.tag_version }}_*
+            ..\..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps_${{ env.tag_version }}_*
+            ..\..\..\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps_${{ env.tag_version }}_*
 
   linux-ci:
     runs-on: ubuntu-22.04
@@ -266,10 +266,10 @@ jobs:
           prerelease: true
           title: xpcf/${{ env.tag_version }}/linux
           files: |
-            $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
-            $HOME/.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
-            $HOME/.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
-            $HOME/.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
+            ../../../.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
+            ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
+            ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
+            ../../../.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
 
       # Create release for xpcf_static_deps
       - uses: "marvinpinto/action-automatic-releases@latest"
@@ -279,5 +279,5 @@ jobs:
           prerelease: true
           title: xpcf_static_deps/${{ env.tag_version }}/linux
           files: |
-            $HOME/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
-            $HOME/.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
+            ../../../.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
+            ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
