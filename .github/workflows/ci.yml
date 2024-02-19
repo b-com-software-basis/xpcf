@@ -84,6 +84,7 @@ jobs:
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Install dependencies
+      - run: remaken.exe -r ${{ github.workspace }}/tools/
       - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
       - run: remaken.exe install -c debug --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt -f -e
 
@@ -112,22 +113,22 @@ jobs:
 
       # zip results
       - name: compress xpcf static release 
-        working-directory: $HOME\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}
+        working-directory: ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip xpcf >NUL
       - name: compress xpcf shared release
-        working-directory: ..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}
+        working-directory: ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf >NUL
       - name: compress xpcf_static_deps shared release
-        working-directory: ..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}
+        working-directory: ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}
         run: 7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip xpcf_static_deps >NUL
       - name: compress xpcf static debug
-        working-directory: ..\..\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}
+        working-directory: ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip xpcf >NUL
       - name: compress xpcf shared debug
-        working-directory: ..\..\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}
+        working-directory: ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}
         run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf >NUL
       - name: compress xpcf_static_deps shared debug
-        working-directory: ..\..\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}
+        working-directory: ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}
         run: 7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf_static_deps >NUL
 
       - uses: "marvinpinto/action-automatic-releases@latest"
@@ -137,10 +138,10 @@ jobs:
           prerelease: true
           title: xpcf/${{ env.tag_version }}/win
           files: |
-            ..\..\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
-            ..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
-            ..\..\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
-            ..\..\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
+            ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
+            ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
+            ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
+            ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf_${{ env.tag_version }}_*
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -149,8 +150,8 @@ jobs:
           prerelease: true
           title: xpcf_static_deps/${{ env.tag_version }}/win
           files: |
-            ..\..\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps_${{ env.tag_version }}_*
-            ..\..\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps_${{ env.tag_version }}_*
+            ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps_${{ env.tag_version }}_*
+            ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps_${{ env.tag_version }}_*
 
   # linux-ci:
   #   runs-on: ubuntu-22.04
