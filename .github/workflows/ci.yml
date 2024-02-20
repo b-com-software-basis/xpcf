@@ -148,6 +148,7 @@ jobs:
           files: |
             xpcf_${{ env.tag_version }}_*
 
+            
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
