@@ -114,12 +114,12 @@ jobs:
       # zip results
       - name: compress archives 
         run: |
-          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
-          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf >NUL
-          7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
-          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
-          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
-          7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
+          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
+          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf >NUL
+          7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
+          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
+          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
+          7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
       #   working-directory: ${{ github.workspace }}\tools\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}
       #   run: 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip xpcf >NUL
       # - name: compress xpcf shared release
