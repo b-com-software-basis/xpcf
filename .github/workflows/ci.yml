@@ -8,7 +8,7 @@ on:
       - '[0-9]+\.[0-9]+\.[0-9]+'
 
 env: 
-  tag_version: ${{ github.ref_name == 'feature/cd_test' && '0.0.0' || github.ref_name }}  
+  tag_version: ${{ github.ref_name == 'develop' && '0.0.0' || github.ref_name }}  
   
 jobs:
   windows-ci:
