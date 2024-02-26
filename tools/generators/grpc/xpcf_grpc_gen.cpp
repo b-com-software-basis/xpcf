@@ -231,7 +231,7 @@ try
 
         if (!options.count("file") || options["file"].as<std::string>().empty()) {
             if (options.count("database_dir") && !options["database_dir"].as<std::string>().empty()) {
-                std::cout<<"File argument is missing : parsing every file listed in database"<<std::endl;
+                std::cout<<"--file is not set : parsing every file listed in database"<<std::endl;
                 astParser->parse_database(options["database_dir"].as<std::string>(),options);
                 //parse_database(options["database_dir"].as<std::string>(),idx,options, [&](const cppast::cpp_entity_index& idx, std::ostream& out, const cppast::cpp_file& file) { astParser->parseAst(idx,out,file); });
             }
