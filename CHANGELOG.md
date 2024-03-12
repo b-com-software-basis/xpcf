@@ -1,6 +1,7 @@
 ### XPCF evolutions
 - CD for xpcf
 - Add packaging for xpcf_grpc_gen
+- builddefs v4.10.0
 - fix: add pkgconfig template for xpcf_static_deps project
 - fix: creation and deletion of a PropertyManager to serialize
 
