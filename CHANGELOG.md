@@ -2,6 +2,7 @@
 - CD for xpcf
 - Add packaging for xpcf_grpc_gen
 - fix: add pkgconfig template for xpcf_static_deps project
+- fix: creation and deletion of a PropertyManager to serialize
 
 ### XPCF remoting features
 add new ```grpc``` interfaces in ```interfaces/xpcf/remoting``` to manage ```grpc``` components in ```xpcf```

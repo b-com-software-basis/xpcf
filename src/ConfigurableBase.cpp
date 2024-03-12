@@ -165,7 +165,22 @@ void ConfigurableBase::onInjected()
 
 XPCFErrorCode ConfigurableBase::serialize(const char * filepath, uint32_t mode)
 {
-    return m_internalImpl->m_propsMgr->serialize(getUUID(), this->bindTo<IConfigurable>(), filepath, mode);
+    bool tempPropMgr = false;
+    
+    // Serialize needs of a PropertyManager, if it isn't, ConfigurableBase creates a temporary one.
+    if((nullptr != m_internalImpl) && (nullptr == m_internalImpl->m_propsMgr)) {
+        PropertyManager* propsMgr = new PropertyManager();
+        m_internalImpl->m_propsMgr = propsMgr->bindTo<IPropertyManager>();
+        tempPropMgr = true;
+    }
+
+    XPCFErrorCode err = m_internalImpl->m_propsMgr->serialize(getUUID(), this->bindTo<IConfigurable>(), filepath, mode);
+
+    if(tempPropMgr) {
+        m_internalImpl->m_propsMgr = nullptr; 
+        tempPropMgr = false;
+    }
+    return err;
 }
 
 XPCFErrorCode ConfigurableBase::configure(const char * filepath)
