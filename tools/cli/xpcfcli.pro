@@ -10,9 +10,19 @@ TARGET = xpcfcli
     }
 }
 
+! exists(../../version.pri) {
+    win32 {
+        system(../../scripts/win/update_version.bat -t ../../version.pri.template)
+    }
+    linux {
+        system(../../scripts/unixes/update_version.sh -t ../../version.pri.template)
+    }
+    system(cd $${currentPath})
+} 
 include(../../version.pri)
+
 FRAMEWORK = xpcfcli
-VERSION=XPCF_VERSION
+VERSION=$${XPCF_VERSION}
 
 CONFIG += c++17
 CONFIG += console
