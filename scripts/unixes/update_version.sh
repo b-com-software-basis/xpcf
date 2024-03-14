@@ -7,6 +7,20 @@ cleanFound=false
 templateFound=false
 template=""
 
+display_usage() { 
+    echo 'This script generates or replaces files from all template files (*.template) in the directory and its subdirectory'
+    echo 'replacing marker "<version>" by the version (default version "0.0.0").'
+    echo
+    echo 'update_version.sh [options] --version|-v <version_number>'
+    echo 'options:'
+    echo '   -   --help or -h            display usage'
+    echo '   -   --force or -f           force generation (replace previous file)'
+    echo '   -   --clean or -c           remove all generated files from template'
+    echo '   -   --template or -t        generate the file only for the template given in parameter'
+
+    exit 1
+} 
+
 # Check parameters
 for arg
 do
@@ -73,16 +87,3 @@ fi
 
 exit 0
 
-display_usage() { 
-    echo This script generates or replaces files from all template files (*.template) in the directory and its subdirectory
-    echo replacing marker "<version>" by the version (default version "0.0.0").
-    echo
-    echo update_version.sh [options] --version|-v <version_number>
-    echo options:
-    echo    -   --help or -h            display usage
-    echo    -   --force or -f           force generation (replace previous file)
-    echo    -   --clean or -c           remove all generated files from template
-    echo    -   --template or -t        generate the file only for the template given in parameter
-} 
-
-exit 1
