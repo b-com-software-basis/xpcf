@@ -14,7 +14,6 @@ for(file, LIST) {
 }
 
 include(../../version.pri)
-VERSION = XPCF_VERSION
 
 DEFINES += XPCF_SHARED_DEPS
 
