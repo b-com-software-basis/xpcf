@@ -33,7 +33,7 @@ jobs:
 
       # Conan v1.59
       # - Install
-      - run: pip install --upgrade conan==1.59.0
+      - run: pip install --upgrade conan==1.60.1
       - run: echo "C:\Program Files\Conan\conan" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
       # - run: conan --version
       # - Configuration
@@ -158,12 +158,16 @@ jobs:
           target: ./
       - run: unzip Remaken_Linux_Installer.zip
 
+      # Conan
+      - name: Conan
+        run: pip install --upgrade conan==1.59.0
+
       # Brew
       # - Install
-      - name: Install Brew
-        run: |
-          ./installBrew.sh
-          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+      # - name: Install Brew
+      #   run: |
+      #     ./installBrew.sh
+      #     echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
 
       # Remaken
       # - Install
