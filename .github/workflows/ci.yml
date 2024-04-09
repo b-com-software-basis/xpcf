@@ -185,7 +185,7 @@ jobs:
       # Conan v1.59
       # - Configuration
       # - run: conan --version
-      - run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
+      # - run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
       - name: conan profile configuration
         run: |
           conan profile new default --detect
