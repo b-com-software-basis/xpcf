@@ -31,19 +31,17 @@ jobs:
 
       # Visual Studio 2019 Enterprise comes with the github image windows-2019
 
-      # Conan v1.59
+      # Conan v2.2.2
       # - Install
-      - run: pip install --upgrade conan==1.60.1
+      - run: pip install --upgrade conan==2.2.2
       - run: echo "C:\Program Files\Conan\conan" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+      - run: conan --version
+
       # - run: conan --version
       # - Configuration
-      # - run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
+      - run: conan remote add -i 0 solar https://repository.solarframework.org/conan
       - name: conan profile configuration
-        run: |
-          conan profile new default --detect
-          conan profile update settings.compiler.cppstd=17 default
-          conan profile update settings.compiler.version=16 default
-          conan profile update settings.compiler.toolset=v142 default
+        run: conan config install ${{ github.workspace }}/.github/resources/default-windows -tf profiles
       # - run: conan profile show default
 
       # Remaken v1.9.5
@@ -145,22 +143,24 @@ jobs:
       - name: Generate xpcf files
         run: ./scripts/unixes/update_version.sh -v ${{ env.tag_version }}
 
-        # Pkgconfig
+      # Pkgconfig
       - name: Pkgconfig
         run: pip install pkgconfig
       # - run: pkg-config --version
 
+      # Remaken
       - uses: suisei-cn/actions-download-file@v1.3.0
         id: downloadfile  # Remember to give an ID if you need the output filename
         name: Download Linux setup
         with:
-          url: "https://github.com/b-com-software-basis/remaken/releases/download/Remaken_Linux_Installer_conan1.X/Remaken_Linux_Installer.zip"
-          target: ./
-      - run: unzip Remaken_Linux_Installer.zip
+          url: "https://github.com/b-com-software-basis/remaken/releases/download/${version}/unixes/remaken-ubuntu22.04"
+          target: ./remaken
+      # - run: echo "./remaken" >> $GITHUB_PATH
 
       # Conan
       - name: Conan
-        run: pip install --upgrade conan==1.59.0
+        run: pip install --upgrade conan==2.2.2
+      - run: conan --version
 
       # Brew
       # - Install
@@ -171,11 +171,11 @@ jobs:
 
       # Remaken
       # - Install
-      - name: Install Remaken
-        run: |
-          ./installRemaken.sh
-          echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
-          source ~/.profile
+      # - name: Install Remaken
+      #   run: |
+      #     ./installRemaken.sh
+      #     echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
+      #     source ~/.profile
 
       # - configuration
       - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
@@ -186,17 +186,11 @@ jobs:
       - run: sudo apt-get install qtbase5-dev
       # - run: qmake --help
 
-      # Conan v1.59
+      # Conan v2.2.2
       # - Configuration
-      # - run: conan --version
-      # - run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
+      - run: conan remote add -i 0 solar https://repository.solarframework.org/conan
       - name: conan profile configuration
-        run: |
-          conan profile new default --detect
-          conan profile update settings.compiler.libcxx=libstdc++11 default
-          conan profile update settings.compiler.cppstd=17 default
-          conan profile update settings.compiler.version=11 default
-      # - run: conan profile show default
+        run: conan config install ${{ github.workspace }}/.github/resources/default-linux -tf profiles
 
       # Delete previous latest version 
       - name: delete previous latest version
