@@ -39,7 +39,7 @@ jobs:
 
       # - run: conan --version
       # - Configuration
-      - run: conan remote add -i 0 solar https://repository.solarframework.org/conan
+      - run: conan remote add --index 0 solar https://repository.solarframework.org/conan
       - name: conan profile configuration
         run: conan config install ${{ github.workspace }}/.github/resources/default-windows -tf profiles
       # - run: conan profile show default
@@ -153,7 +153,7 @@ jobs:
         id: downloadfile  # Remember to give an ID if you need the output filename
         name: Download Linux setup
         with:
-          url: "https://github.com/b-com-software-basis/remaken/releases/download/${version}/unixes/remaken-ubuntu22.04"
+          url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Funixes/remaken-ubuntu22.04"
           target: ./remaken
       # - run: echo "./remaken" >> $GITHUB_PATH
 
@@ -162,22 +162,8 @@ jobs:
         run: pip install --upgrade conan==2.2.2
       - run: conan --version
 
-      # Brew
-      # - Install
-      # - name: Install Brew
-      #   run: |
-      #     ./installBrew.sh
-      #     echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
-
-      # Remaken
-      # - Install
-      # - name: Install Remaken
-      #   run: |
-      #     ./installRemaken.sh
-      #     echo "export XPCF_MODULE_ROOT=~/.remaken/packages/linux-gcc/" >> ~/.profile
-      #     source ~/.profile
-
       # - configuration
+      - run: remaken init
       - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
       - run: remaken profile display
 
@@ -188,7 +174,7 @@ jobs:
 
       # Conan v2.2.2
       # - Configuration
-      - run: conan remote add -i 0 solar https://repository.solarframework.org/conan
+      - run: conan remote add --index 0 solar https://repository.solarframework.org/conan
       - name: conan profile configuration
         run: conan config install ${{ github.workspace }}/.github/resources/default-linux -tf profiles
 
