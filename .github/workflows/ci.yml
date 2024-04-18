@@ -156,6 +156,7 @@ jobs:
           url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Funixes/remaken-ubuntu22.04"
           target: ./remaken
       # - run: echo "./remaken" >> $GITHUB_PATH
+      - run: ls -al
 
       # Conan
       - name: Conan
@@ -163,9 +164,9 @@ jobs:
       - run: conan --version
 
       # - configuration
-      - run: remaken init
-      - run: remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-      - run: remaken profile display
+      - run: . ./remaken init
+      - run: . ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+      - run: . ./remaken profile display
 
       # Qt tools: qmake and jom
       - run: sudo apt-get update
@@ -195,8 +196,8 @@ jobs:
           delete_release: true
 
       # Install dependencies
-      - run: remaken install packagedependencies.txt
-      - run: remaken install -c debug packagedependencies.txt -f -e
+      - run: . ./remaken install packagedependencies.txt
+      - run: . ./remaken install -c debug packagedependencies.txt -f -e
 
      # Build solution
       - working-directory: ./scripts/unixes
