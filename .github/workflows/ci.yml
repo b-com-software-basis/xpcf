@@ -156,6 +156,7 @@ jobs:
           url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Funixes/remaken-ubuntu22.04"
           target: .
       # - run: echo "./remaken" >> $GITHUB_PATH
+      - run: mv ./remaken-ubuntu22.04 ./remaken
       - run: ls -al .
 
       # Conan
