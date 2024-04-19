@@ -39,7 +39,7 @@ jobs:
 
       # - run: conan --version
       # - Configuration
-      - run: conan remote add --index 0 solar https://repository.solarframework.org/conan
+      - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
       - name: conan profile configuration
         run: conan config install ${{ github.workspace }}/.github/resources/default-windows -tf profiles
       # - run: conan profile show default
@@ -177,7 +177,7 @@ jobs:
 
       # Conan v2.2.2
       # - Configuration
-      - run: conan remote add --index 0 solar https://repository.solarframework.org/conan
+      - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
       - run: cp ${{ github.workspace }}/.github/resources/default-linux ./default
       - name: conan profile configuration
         run: conan config install ./default -tf profiles
