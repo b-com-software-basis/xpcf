@@ -178,8 +178,9 @@ jobs:
       # Conan v2.2.2
       # - Configuration
       - run: conan remote add --index 0 solar https://repository.solarframework.org/conan
+      - run: cp ${{ github.workspace }}/.github/resources/default-linux ./default
       - name: conan profile configuration
-        run: conan config install ${{ github.workspace }}/.github/resources/default-linux -tf profiles
+        run: conan config install ./default -tf profiles
 
       # Delete previous latest version 
       - name: delete previous latest version
