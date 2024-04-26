@@ -1,2 +1,2 @@
-boost#stable|1.78.0|boost|conan|conan-solar|default|
-grpc|1.50.1|grpc++%WITHREMOTING|conan|conan-solar|default|secure=True
+boost#stable|1.78.0|boost|conan|conan-center|default|
+grpc|1.50.1|grpc++%WITHREMOTING|conan|conan-center|default|secure=True
