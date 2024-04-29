@@ -200,6 +200,7 @@ jobs:
           delete_release: true
 
       # Install dependencies
+      - run: ./remaken profile display
       - run: |
           ./remaken profile display
           ./remaken install packagedependencies.txt -v
