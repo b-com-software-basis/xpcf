@@ -201,7 +201,7 @@ jobs:
 
       # Install dependencies
       - run: |
-          ./remaken show profile
+          ./remaken profile display
           ./remaken install packagedependencies.txt -v
       - run: ./remaken install -c debug packagedependencies.txt -f -e
 
