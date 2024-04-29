@@ -210,8 +210,8 @@ jobs:
         run: ./remaken profile display
 
       # Install dependencies
-      - run: ./remaken install packagedependencies.txt -v
-      - run: ./remaken install -c debug packagedependencies.txt -f -e
+      - run: ./remaken install --cpp-std 17 packagedependencies.txt -v
+      - run: ./remaken install --cpp-std 17 -c debug packagedependencies.txt -f -e
 
       # Build solution
       - working-directory: ./scripts/unixes
