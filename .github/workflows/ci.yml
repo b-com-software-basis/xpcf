@@ -181,6 +181,7 @@ jobs:
       - run: cp ${{ github.workspace }}/.github/resources/default-linux ./default
       - name: conan profile configuration
         run: conan config install ./default -tf profiles
+      - run: conan profile show
 
       # Delete previous latest version 
       - name: delete previous latest version
