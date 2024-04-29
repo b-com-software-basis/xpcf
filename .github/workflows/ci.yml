@@ -200,7 +200,7 @@ jobs:
           delete_release: true
 
       # Install dependencies
-      - run: ./remaken install packagedependencies.txt
+      - run: ./remaken install packagedependencies.txt -v
       - run: ./remaken install -c debug packagedependencies.txt -f -e
 
      # Build solution
