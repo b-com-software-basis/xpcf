@@ -168,7 +168,8 @@ jobs:
       # - configuration
       - run: ./remaken init
       - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-      - run: ./remaken profile display
+      - name: profile 0
+        run: ./remaken profile display
 
       # Qt tools: qmake and jom
       - run: sudo apt-get update
@@ -183,15 +184,21 @@ jobs:
         run: conan config install ./default -tf profiles
       - run: conan profile show
 
-      # Delete previous latest version 
+      - name: profile 1
+        run: ./remaken profile display
+
+        # Delete previous latest version 
       - name: delete previous latest version
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
           tag_name: xpcf/${{ env.tag_version }}/linux
           github_token: ${{ secrets.GITHUB_TOKEN }}
           delete_release: true
+        
+      - name: profile 2
+        run: ./remaken profile display
 
-      # Delete previous latest version 
+          # Delete previous latest version 
       - name: delete previous latest version
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
@@ -199,11 +206,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           delete_release: true
 
+      - name: profile 3
+        run: ./remaken profile display
+
       # Install dependencies
-      - run: ./remaken profile display
-      - run: |
-          ./remaken profile display
-          ./remaken install packagedependencies.txt -v
+      - run: ./remaken install packagedependencies.txt -v
       - run: ./remaken install -c debug packagedependencies.txt -f -e
 
       # Build solution
