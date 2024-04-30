@@ -55,7 +55,6 @@ jobs:
       - run: .\Setup_Remaken_1.9.5.exe /S
       # - configuration
       - run: echo "c:\Program Files\Remaken\" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
-      - run: remaken.exe profile init --cpp-std 17 -b cl-14.2 -o win -a x86_64
       # - run: remaken.exe profile display
 
       # Qt tools: qmake and jom
@@ -75,8 +74,9 @@ jobs:
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Install dependencies
-      - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
-      - run: remaken.exe install -c debug --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt -f -e
+      - run: remaken.exe profile init --cpp-std 17 -b cl-14.2 -o win -a x86_64
+      - run: remaken.exe -v install packagedependencies.txt
+      - run: remaken.exe install -c debug packagedependencies.txt -f -e
 
       # Delete previous latest version 
       - name: delete previous latest version
@@ -165,12 +165,6 @@ jobs:
         run: pip install --upgrade conan==2.2.2
       - run: conan --version
 
-      # - configuration
-      - run: ./remaken init
-      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-      - name: profile 0
-        run: ./remaken profile display
-
       # Qt tools: qmake and jom
       - run: sudo apt-get update
       - run: sudo apt-get install qtbase5-dev
@@ -184,9 +178,6 @@ jobs:
         run: conan config install ./default -tf profiles
       - run: conan profile show
 
-      - name: profile 1
-        run: ./remaken profile display
-
         # Delete previous latest version 
       - name: delete previous latest version
         uses: dev-drprasad/delete-tag-and-release@v1.0
@@ -195,10 +186,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           delete_release: true
         
-      - name: profile 2
-        run: ./remaken profile display
-
-          # Delete previous latest version 
+      # Delete previous latest version 
       - name: delete previous latest version
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
@@ -206,12 +194,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           delete_release: true
 
-      - name: profile 3
-        run: ./remaken profile display
-
       # Install dependencies
-      - run: ./remaken install --cpp-std 17 packagedependencies.txt -v
-      - run: ./remaken install --cpp-std 17 -c debug packagedependencies.txt -f -e
+      - run: ./remaken init
+      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+      - run: ./remaken install packagedependencies.txt -v
+      - run: ./remaken install -c debug packagedependencies.txt -f -e
 
       # Build solution
       - working-directory: ./scripts/unixes
