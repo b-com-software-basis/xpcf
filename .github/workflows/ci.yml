@@ -40,8 +40,9 @@ jobs:
       # - run: conan --version
       # - Configuration
       - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
+      - run: copy ${{ github.workspace }}/.github/resources/default-linux ./default
       - name: conan profile configuration
-        run: conan config install ${{ github.workspace }}/.github/resources/default-windows -tf profiles
+        run: conan config install ./default -tf profiles
       # - run: conan profile show default
 
       # Remaken v1.9.5
@@ -50,9 +51,9 @@ jobs:
         id: downloadfile  # Remember to give an ID if you need the output filename
         name: Download the file
         with:
-          url: "https://github.com/b-com-software-basis/remaken/releases/download/1.9.5/Setup_Remaken_1.9.5.exe"
+          url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Fwin/Setup_Remaken.exe"
           target: ./
-      - run: .\Setup_Remaken_1.9.5.exe /S
+      - run: .\Setup_Remaken.exe /S
       # - configuration
       - run: echo "c:\Program Files\Remaken\" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
       # - run: remaken.exe profile display
