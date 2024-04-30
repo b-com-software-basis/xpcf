@@ -41,12 +41,12 @@ jobs:
       # - run: conan --version
       # - Configuration
       - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
-      - run: copy ${{ github.workspace }}/.github/resources/default-linux ./default
+      - run: copy ${{ github.workspace }}/.github/resources/default-windows ./default
       - name: conan profile configuration
         run: conan config install ./default -tf profiles
       # - run: conan profile show default
 
-      # Remaken v1.9.5
+      # Remaken v1.10.0
       # - Install
       - uses: suisei-cn/actions-download-file@v1.3.0
         id: downloadfile  # Remember to give an ID if you need the output filename
@@ -76,7 +76,6 @@ jobs:
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Install dependencies
-      # - run: remaken.exe profile init --cpp-std 17 -b cl-14.2 -o win -a x86_64
       - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
       - run: remaken.exe install --cpp-std 17 -b cl-14.2 -o win -a x86_64 -c debug packagedependencies.txt -f -e
 
