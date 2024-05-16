@@ -1,3 +1,16 @@
+LIST = "packagedependencies.txt" "grpc_server_sample.xml" "xpcfGrpcSampleComponentServer.xml"
+for(file, LIST) {
+    !exists(file) { 
+        message("$$TARGET - at least $${file} not present, generate it")
+        win32 {
+            system(../../scripts/win/update_version.bat)
+        }
+        linux {
+            system(../../scripts/unixes/update_version.sh)
+        }
+    }
+}
+
 ! exists(../../version.pri) {
     win32 {
         system(scripts/win/update_version.bat -t ../../version.pri)
@@ -12,7 +25,6 @@ VERSION=$${XPCF_VERSION}
 
 CONFIG += c++1z
 CONFIG += console
-CONFIG += verbose
 CONFIG -= qt
 
 DEFINES += MYVERSION=$${VERSION}
@@ -26,7 +38,7 @@ CONFIG(debug,debug|release) {
 
 CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
-    CPPAST_ROOT_BUILD=$${_P(RO_FILE_PWD_}/../../libs/build-cppast-Release
+    CPPAST_ROOT_BUILD=$${_PRO_FILE_PWD_}/../../libs/build-cppast-Release
 }
 
 linux {

@@ -75,10 +75,6 @@ jobs:
         run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
-      # Install dependencies
-      # - run: remaken.exe -v install --cpp-std 17 -b cl-14.2 -o win -a x86_64 packagedependencies.txt
-      # - run: remaken.exe install --cpp-std 17 -b cl-14.2 -o win -a x86_64 -c debug packagedependencies.txt -f -e
-
       # Delete previous latest version 
       - name: delete previous latest version
         uses: dev-drprasad/delete-tag-and-release@v1.0
@@ -121,7 +117,6 @@ jobs:
           title: xpcf/${{ env.tag_version }}/win
           files: |
             xpcf_${{ env.tag_version }}_*
-
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -199,8 +194,7 @@ jobs:
       # Install dependencies
       - run: ./remaken init
       - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-      - run: ./remaken install --cpp-std 17 -b gcc -o linux -a x86_64 packagedependencies.txt -v
-      - run: ./remaken install --cpp-std 17 -b gcc -o linux -a x86_64 -c debug packagedependencies.txt -f -e
+      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
 
       # Build solution
       - working-directory: ./scripts/unixes
@@ -253,3 +247,22 @@ jobs:
           files: |
             ../../../.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
             ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
+
+      # Build xpcf_grpc_gen
+      - working-directory: ./scripts/unixes
+        run: ./build_remaken_project_package.sh xpcf_grpc_gen static ../../tools/generators/grpc 5.15.2 /usr/bin
+
+      - name: compress xpcf_grpc static release
+        working-directory: ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}
+        run: zip -r -y xpcf_grpc_gen_${{ env.tag_version }}_x86_64_static_release.zip xpcf
+
+      # Create release for xpcf_static_deps
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
+          prerelease: true
+          title: xpcf_static_deps/${{ env.tag_version }}/linux
+          files: |
+            ../../../.remaken/packages/linux-gcc/static/release/xpcf_grpc_gen_${{ env.tag_version }}/xpcf_grpc_gen_${{ env.tag_version }}_*
+            ../../../.remaken/packages/linux-gcc/static/debug/xpcf_grpc_gen_${{ env.tag_version }}/xpcf_grpc_gen_${{ env.tag_version }}_*

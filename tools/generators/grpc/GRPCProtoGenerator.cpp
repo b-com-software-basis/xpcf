@@ -3,6 +3,7 @@
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <boost/predef/os.h>
+#include <exception> 
 
 namespace bp = boost::process;
 
@@ -348,24 +349,18 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
     fs::path remakenGrpcRoot = RemakenPathHelper::computeRemakenRootPackageDir();
 
     bp::ipstream out;
-    bp::system("conan search grpc/1.50.1@ -q \"build_type=Release AND shared=False\"", bp::std_out > out);
-    std::string grpcPackageId = getPackageId(out);
-    std::string protobufPackageId = getRequiredPackageId("protobuf", out);
-
-    fs::path conanDataPath = RemakenPathHelper::getHomePath();
-    conanDataPath /= ".conan/data/";
-    fs::path grpcLibs = conanDataPath;
-    grpcLibs /= "grpc/1.50.1/_/_/package/";
-    grpcLibs /= grpcPackageId;
-    grpcLibs /= "/lib/";
-    fs::path grpcBin = conanDataPath;
-    grpcBin /= "grpc/1.50.1/_/_/package/";
-    grpcBin /= grpcPackageId;
-    grpcBin /= "/bin/";
-    fs::path protocBin = conanDataPath;
-    protocBin /= "protobuf/3.21.9/_/_/package/";
-    protocBin /= protobufPackageId;
-    protocBin /= "/bin/";
+    bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin/xpcf_grpc_gen_bin.zip", bp::std_out > out);
+    try {
+        bp::system("unzip -o ./xpcf_grpc_gen_bin.zip", bp::std_out > out);
+    } catch ( std::exception& e) {
+        // It's dirty, but I don't know why with unzip boost raises this exception. despite this exception, files are extracted.
+        if( std::string(e.what()) != "dup2() failed : Bad file descriptor" ) {
+            throw(e);
+        }
+    }
+    fs::path grpcLibs = "./xpcf_grpc_gen_bin/lib/";
+    fs::path grpcBin = "./xpcf_grpc_gen_bin/bin/";
+    fs::path protocBin = grpcBin;
     std::string SharedLibraryPathEnvName(RemakenPathHelper::sharedLibraryPathEnvName());
 
     auto env = boost::this_process::environment();

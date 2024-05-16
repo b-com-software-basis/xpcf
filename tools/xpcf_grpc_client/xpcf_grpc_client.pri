@@ -1,3 +1,16 @@
+LIST = "packagedependencies.txt" "grpc_client_sample.xml" "xpcfGrpcSampleComponentClient.xml"
+for(file, LIST) {
+    !exists(file) { 
+        message("$$TARGET - at least $${file} not present, generate it")
+        win32 {
+            system(../../scripts/win/update_version.bat)
+        }
+        linux {
+            system(../../scripts/unixes/update_version.sh)
+        }
+    }
+}
+
 ! exists(../../version.pri) {
     win32 {
         system(scripts/win/update_version.bat -t ../../version.pri)
