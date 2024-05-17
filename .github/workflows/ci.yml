@@ -260,9 +260,9 @@ jobs:
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
+          automatic_release_tag: xpcf_grpc_gen/${{ env.tag_version }}/linux
           prerelease: true
-          title: xpcf_static_deps/${{ env.tag_version }}/linux
+          title: xpcf_grpc_gen/${{ env.tag_version }}/linux
           files: |
             ../../../.remaken/packages/linux-gcc/static/release/xpcf_grpc_gen_${{ env.tag_version }}/xpcf_grpc_gen_${{ env.tag_version }}_*
             ../../../.remaken/packages/linux-gcc/static/debug/xpcf_grpc_gen_${{ env.tag_version }}/xpcf_grpc_gen_${{ env.tag_version }}_*
