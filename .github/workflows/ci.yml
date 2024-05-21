@@ -254,6 +254,10 @@ jobs:
       # xpcf_grpc_gen
       ####################################################
 
+      # Build cppast
+      - working-directory: ./libs
+        run: ./build_cppast.sh
+
       # Build xpcf_grpc_gen
       - working-directory: ./scripts/unixes
         run: ./build_remaken_project_package.sh xpcf_grpc_gen static ../../tools/generators/grpc 5.15.2 /usr/bin
@@ -266,7 +270,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           delete_release: true
 
-          
       # Compress result
       - name: compress xpcf_grpc static release
         working-directory: ../../../.remaken/packages/linux-gcc/static/release/xpcf_grpc_gen_${{ env.tag_version }}
