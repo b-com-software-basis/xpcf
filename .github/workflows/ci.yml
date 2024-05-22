@@ -262,6 +262,7 @@ jobs:
       - run: ./remaken init
       - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
       - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
+      - run: ls -al ../../../.remaken/profiles
 
       # Build xpcf_grpc_gen
       - working-directory: ./scripts/unixes
