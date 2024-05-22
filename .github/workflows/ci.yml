@@ -258,6 +258,11 @@ jobs:
       - working-directory: ./libs
         run: ./build_cppast.sh
 
+      # Install dependencies
+      - run: ./remaken init
+      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
+
       # Build xpcf_grpc_gen
       - working-directory: ./scripts/unixes
         run: ./build_remaken_project_package.sh xpcf_grpc_gen static ../../tools/generators/grpc 5.15.2 /usr/bin
