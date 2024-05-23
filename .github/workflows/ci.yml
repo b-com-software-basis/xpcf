@@ -270,16 +270,16 @@ jobs:
       # - run: ./remaken init
       # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
       # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
-      - run: ls -al ../../../.remaken/profiles
-      - run: ls -al ./tools/generators/grpc
-      - run: ./remaken install ./tools/generators/grpc/packagedependencies.txt
-      - run: ls -al ../../../.remaken/packages
-      - run: ls -al /home/runner
-      - run: ls -al /home/runner/.remaken
-      - run: ls -al /home/runner/.remaken/packages
-      - run: ls -al /home/runner/.remaken/packages/linux-gcc
-      - run: ls -al /home/runner/.remaken/packages/linux-gcc/xpcf
-      - run: ls -al /home/runner/.remaken/packages/linux-gcc/xpcf/0.0.0
+      # - run: ls -al ../../../.remaken/profiles
+      # - run: ls -al ./tools/generators/grpc
+      # - run: ./remaken install ./tools/generators/grpc/packagedependencies.txt
+      # - run: ls -al ../../../.remaken/packages
+      # - run: ls -al /home/runner
+      # - run: ls -al /home/runner/.remaken
+      # - run: ls -al /home/runner/.remaken/packages
+      # - run: ls -al /home/runner/.remaken/packages/linux-gcc
+      # - run: ls -al /home/runner/.remaken/packages/linux-gcc/xpcf
+      # - run: ls -al /home/runner/.remaken/packages/linux-gcc/xpcf/0.0.0
 
       # Build xpcf_grpc_gen
       - working-directory: ./scripts/unixes
