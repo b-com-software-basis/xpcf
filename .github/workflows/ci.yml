@@ -130,53 +130,53 @@ jobs:
   linux-ci:
     runs-on: ubuntu-22.04
     steps:
-      # # Xpcf
-      # - name: Xpcf code download
-      #   uses: actions/checkout@v3
-      #   with:
-      #     submodules: 'recursive'
+      # Xpcf
+      - name: Xpcf code download
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
 
-      # # xpcf
-      # ####################################################
+      # xpcf
+      ####################################################
 
-      # # Generate xpcf files
-      # - name: Generate xpcf files
-      #   run: ./scripts/unixes/update_version.sh -v ${{ env.tag_version }}
+      # Generate xpcf files
+      - name: Generate xpcf files
+        run: ./scripts/unixes/update_version.sh -v ${{ env.tag_version }}
 
-      # # Pkgconfig
-      # - name: Pkgconfig
-      #   run: pip install pkgconfig
-      # # - run: pkg-config --version
+      # Pkgconfig
+      - name: Pkgconfig
+        run: pip install pkgconfig
+      # - run: pkg-config --version
 
-      # # Remaken
-      # - uses: suisei-cn/actions-download-file@v1.3.0
-      #   id: downloadfile  # Remember to give an ID if you need the output filename
-      #   name: Download Linux setup
-      #   with:
-      #     url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Funixes/remaken-ubuntu22.04"
-      #     target: .
-      # # - run: echo "./remaken" >> $GITHUB_PATH
-      # - run: mv ./remaken-ubuntu22.04 ./remaken
-      # - run: chmod +x ./remaken 
-      # - run: ls -al .
+      # Remaken
+      - uses: suisei-cn/actions-download-file@v1.3.0
+        id: downloadfile  # Remember to give an ID if you need the output filename
+        name: Download Linux setup
+        with:
+          url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Funixes/remaken-ubuntu22.04"
+          target: .
+      # - run: echo "./remaken" >> $GITHUB_PATH
+      - run: mv ./remaken-ubuntu22.04 ./remaken
+      - run: chmod +x ./remaken 
+      - run: ls -al .
 
-      # # Conan
-      # - name: Conan
-      #   run: pip install --upgrade conan==2.2.2
-      # - run: conan --version
+      # Conan
+      - name: Conan
+        run: pip install --upgrade conan==2.2.2
+      - run: conan --version
 
-      # # Qt tools: qmake and jom
-      # - run: sudo apt-get update
-      # - run: sudo apt-get install qtbase5-dev
-      # # - run: qmake --help
+      # Qt tools: qmake and jom
+      - run: sudo apt-get update
+      - run: sudo apt-get install qtbase5-dev
+      # - run: qmake --help
 
-      # # Conan v2.2.2
-      # # - Configuration
-      # - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
-      # - run: cp ${{ github.workspace }}/.github/resources/default-linux ./default
-      # - name: conan profile configuration
-      #   run: conan config install ./default -tf profiles
-      # - run: conan profile show
+      # Conan v2.2.2
+      # - Configuration
+      - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
+      - run: cp ${{ github.workspace }}/.github/resources/default-linux ./default
+      - name: conan profile configuration
+        run: conan config install ./default -tf profiles
+      - run: conan profile show
 
       # # Delete previous latest version
       # - name: delete previous latest version
