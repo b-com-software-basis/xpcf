@@ -266,12 +266,16 @@ jobs:
       - working-directory: ./libs
         run: ./build_cppast.sh
 
+      - working-directory: ./tools/generators/grpc
+        run: ../../../scripts/unixes/update_version.sh -v ${{ env.tag_version }}
+
       # Install dependencies
       # - run: ./remaken init
       # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
       # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
       - run: ls -al ../../../.remaken/profiles
-      - run: remaken install packagedependencies.txt
+      - working-directory: ./tools/generators/grpc
+        run: ./remaken install packagedependencies.txt
       - run: ls -al ../../../.remaken/packages
       - run: ls -al /home/runner
       - run: ls -al /home/runner/.remaken
