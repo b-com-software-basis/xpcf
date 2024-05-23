@@ -13,243 +13,243 @@ env:
   tag_version: ${{ github.ref_name == 'feature/test_new_remotes' && '0.0.0' || github.ref_name }}  
   
 jobs:
-  windows-ci:
-    runs-on: windows-2019
-    steps:
-      # Xpcf
-      - name: Xpcf code download
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
+  # windows-ci:
+  #   runs-on: windows-2019
+  #   steps:
+  #     # Xpcf
+  #     - name: Xpcf code download
+  #       uses: actions/checkout@v3
+  #       with:
+  #         submodules: 'recursive'
       
-      # Generate xpcf files
-      - name: Generate xpcf files
-        run: ./scripts/win/update_version.bat -v ${{ env.tag_version }}
+  #     # Generate xpcf files
+  #     - name: Generate xpcf files
+  #       run: ./scripts/win/update_version.bat -v ${{ env.tag_version }}
 
-      # Pkgconfig
-      - name: Pkgconfig
-        run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
+  #     # Pkgconfig
+  #     - name: Pkgconfig
+  #       run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
 
-      # Visual Studio 2019 Enterprise comes with the github image windows-2019
+  #     # Visual Studio 2019 Enterprise comes with the github image windows-2019
 
-      # Conan v2.2.2
-      # - Install
-      - run: pip install --upgrade conan==2.2.2
-      - run: echo "C:\Program Files\Conan\conan" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
-      - run: conan --version
+  #     # Conan v2.2.2
+  #     # - Install
+  #     - run: pip install --upgrade conan==2.2.2
+  #     - run: echo "C:\Program Files\Conan\conan" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+  #     - run: conan --version
 
-      # - run: conan --version
-      # - Configuration
-      - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
-      - run: copy ${{ github.workspace }}/.github/resources/default-windows ./default
-      - name: conan profile configuration
-        run: conan config install ./default -tf profiles
-      # - run: conan profile show default
+  #     # - run: conan --version
+  #     # - Configuration
+  #     - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
+  #     - run: copy ${{ github.workspace }}/.github/resources/default-windows ./default
+  #     - name: conan profile configuration
+  #       run: conan config install ./default -tf profiles
+  #     # - run: conan profile show default
 
-      # Remaken v1.10.0
-      # - Install
-      - uses: suisei-cn/actions-download-file@v1.3.0
-        id: downloadfile  # Remember to give an ID if you need the output filename
-        name: Download the file
-        with:
-          url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Fwin/Setup_Remaken.exe"
-          target: ./
-      - run: .\Setup_Remaken.exe /S
-      # - configuration
-      - run: echo "c:\Program Files\Remaken\" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
-      # - run: remaken.exe profile display
+  #     # Remaken v1.10.0
+  #     # - Install
+  #     - uses: suisei-cn/actions-download-file@v1.3.0
+  #       id: downloadfile  # Remember to give an ID if you need the output filename
+  #       name: Download the file
+  #       with:
+  #         url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Fwin/Setup_Remaken.exe"
+  #         target: ./
+  #     - run: .\Setup_Remaken.exe /S
+  #     # - configuration
+  #     - run: echo "c:\Program Files\Remaken\" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+  #     # - run: remaken.exe profile display
 
-      # Qt tools: qmake and jom
-      - name: install aqt
-        run: choco install aqt
-      - name: install Qt kit 5.15.2 msvc2019 64b
-        run: aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O ${{ github.workspace }}/tools/Qt
-      - name: install jom
-        uses: suisei-cn/actions-download-file@v1.3.0
-        id: downloadJom
-        with:
-          url: "http://download.qt.io/official_releases/jom/jom.zip"
-          target: ./
+  #     # Qt tools: qmake and jom
+  #     - name: install aqt
+  #       run: choco install aqt
+  #     - name: install Qt kit 5.15.2 msvc2019 64b
+  #       run: aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O ${{ github.workspace }}/tools/Qt
+  #     - name: install jom
+  #       uses: suisei-cn/actions-download-file@v1.3.0
+  #       id: downloadJom
+  #       with:
+  #         url: "http://download.qt.io/official_releases/jom/jom.zip"
+  #         target: ./
 
-      - name: install QtCreator
-        run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
-      - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+  #     - name: install QtCreator
+  #       run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
+  #     - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
-      # Delete previous latest version 
-      - name: delete previous latest version
-        uses: dev-drprasad/delete-tag-and-release@v1.0
-        with:
-          tag_name: xpcf/${{ env.tag_version }}/win
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          delete_release: true
-      - name: delete previous latest version
-        uses: dev-drprasad/delete-tag-and-release@v1.0
-        with:
-          tag_name: xpcf_static_deps/${{ env.tag_version }}/win
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          delete_release: true
+  #     # Delete previous latest version 
+  #     - name: delete previous latest version
+  #       uses: dev-drprasad/delete-tag-and-release@v1.0
+  #       with:
+  #         tag_name: xpcf/${{ env.tag_version }}/win
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         delete_release: true
+  #     - name: delete previous latest version
+  #       uses: dev-drprasad/delete-tag-and-release@v1.0
+  #       with:
+  #         tag_name: xpcf_static_deps/${{ env.tag_version }}/win
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         delete_release: true
  
-      # Build solution
-      # - run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-      # - working-directory: ./scripts/win
-      #   run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-      - working-directory: ./scripts/win
-        run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-      - working-directory: ./scripts/win
-        run: .\build_remaken_project_package.bat xpcf_static_deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+  #     # Build solution
+  #     # - run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+  #     # - working-directory: ./scripts/win
+  #     #   run: .\build_remaken_project_package.bat xpcf shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+  #     - working-directory: ./scripts/win
+  #       run: .\build_remaken_project_package.bat xpcf static ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+  #     - working-directory: ./scripts/win
+  #       run: .\build_remaken_project_package.bat xpcf_static_deps shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
 
-      # zip results
-      - name: compress archives 
-        run: |
-          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
-          7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
-          7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
-          7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
+  #     # zip results
+  #     - name: compress archives 
+  #       run: |
+  #         7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\release\xpcf_${{ env.tag_version }}\xpcf >NUL
+  #         7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
+  #         7z a -tzip xpcf_${{ env.tag_version }}_x86_64_static_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\static\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
+  #         7z a -tzip xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_static_deps_${{ env.tag_version }}\xpcf_static_deps >NUL
 
-      # 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf >NUL
-      # 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
+  #     # 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_release.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\release\xpcf_${{ env.tag_version }}\xpcf >NUL
+  #     # 7z a -tzip xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip $env:USERPROFILE\.remaken\packages\win-cl-14.1\shared\debug\xpcf_${{ env.tag_version }}\xpcf >NUL
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          automatic_release_tag: xpcf/${{ env.tag_version }}/win
-          prerelease: true
-          title: xpcf/${{ env.tag_version }}/win
-          files: |
-            xpcf_${{ env.tag_version }}_*
+  #     - uses: "marvinpinto/action-automatic-releases@latest"
+  #       with:
+  #         repo_token: ${{ secrets.GITHUB_TOKEN }}
+  #         automatic_release_tag: xpcf/${{ env.tag_version }}/win
+  #         prerelease: true
+  #         title: xpcf/${{ env.tag_version }}/win
+  #         files: |
+  #           xpcf_${{ env.tag_version }}_*
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/win
-          prerelease: true
-          title: xpcf_static_deps/${{ env.tag_version }}/win
-          files: |
-            xpcf_static_deps_${{ env.tag_version }}_*
+  #     - uses: "marvinpinto/action-automatic-releases@latest"
+  #       with:
+  #         repo_token: "${{ secrets.GITHUB_TOKEN }}"
+  #         automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/win
+  #         prerelease: true
+  #         title: xpcf_static_deps/${{ env.tag_version }}/win
+  #         files: |
+  #           xpcf_static_deps_${{ env.tag_version }}_*
 
   linux-ci:
     runs-on: ubuntu-22.04
     steps:
-      # Xpcf
-      - name: Xpcf code download
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
+      # # Xpcf
+      # - name: Xpcf code download
+      #   uses: actions/checkout@v3
+      #   with:
+      #     submodules: 'recursive'
 
-      # xpcf
-      ####################################################
+      # # xpcf
+      # ####################################################
 
-      # Generate xpcf files
-      - name: Generate xpcf files
-        run: ./scripts/unixes/update_version.sh -v ${{ env.tag_version }}
+      # # Generate xpcf files
+      # - name: Generate xpcf files
+      #   run: ./scripts/unixes/update_version.sh -v ${{ env.tag_version }}
 
-      # Pkgconfig
-      - name: Pkgconfig
-        run: pip install pkgconfig
-      # - run: pkg-config --version
+      # # Pkgconfig
+      # - name: Pkgconfig
+      #   run: pip install pkgconfig
+      # # - run: pkg-config --version
 
-      # Remaken
-      - uses: suisei-cn/actions-download-file@v1.3.0
-        id: downloadfile  # Remember to give an ID if you need the output filename
-        name: Download Linux setup
-        with:
-          url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Funixes/remaken-ubuntu22.04"
-          target: .
-      # - run: echo "./remaken" >> $GITHUB_PATH
-      - run: mv ./remaken-ubuntu22.04 ./remaken
-      - run: chmod +x ./remaken 
-      - run: ls -al .
+      # # Remaken
+      # - uses: suisei-cn/actions-download-file@v1.3.0
+      #   id: downloadfile  # Remember to give an ID if you need the output filename
+      #   name: Download Linux setup
+      #   with:
+      #     url: "https://github.com/b-com-software-basis/remaken/releases/download/1.10.0%2Funixes/remaken-ubuntu22.04"
+      #     target: .
+      # # - run: echo "./remaken" >> $GITHUB_PATH
+      # - run: mv ./remaken-ubuntu22.04 ./remaken
+      # - run: chmod +x ./remaken 
+      # - run: ls -al .
 
-      # Conan
-      - name: Conan
-        run: pip install --upgrade conan==2.2.2
-      - run: conan --version
+      # # Conan
+      # - name: Conan
+      #   run: pip install --upgrade conan==2.2.2
+      # - run: conan --version
 
-      # Qt tools: qmake and jom
-      - run: sudo apt-get update
-      - run: sudo apt-get install qtbase5-dev
-      # - run: qmake --help
+      # # Qt tools: qmake and jom
+      # - run: sudo apt-get update
+      # - run: sudo apt-get install qtbase5-dev
+      # # - run: qmake --help
 
-      # Conan v2.2.2
-      # - Configuration
-      - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
-      - run: cp ${{ github.workspace }}/.github/resources/default-linux ./default
-      - name: conan profile configuration
-        run: conan config install ./default -tf profiles
-      - run: conan profile show
+      # # Conan v2.2.2
+      # # - Configuration
+      # - run: conan remote add --index 0 conan-solar https://repository.solarframework.org/conan
+      # - run: cp ${{ github.workspace }}/.github/resources/default-linux ./default
+      # - name: conan profile configuration
+      #   run: conan config install ./default -tf profiles
+      # - run: conan profile show
 
-      # Delete previous latest version
-      - name: delete previous latest version
-        uses: dev-drprasad/delete-tag-and-release@v1.0
-        with:
-          tag_name: xpcf/${{ env.tag_version }}/linux
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          delete_release: true
+      # # Delete previous latest version
+      # - name: delete previous latest version
+      #   uses: dev-drprasad/delete-tag-and-release@v1.0
+      #   with:
+      #     tag_name: xpcf/${{ env.tag_version }}/linux
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     delete_release: true
         
-      # Delete previous latest version 
-      - name: delete previous latest version
-        uses: dev-drprasad/delete-tag-and-release@v1.0
-        with:
-          tag_name: xpcf_static_deps/${{ env.tag_version }}/linux
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          delete_release: true
+      # # Delete previous latest version 
+      # - name: delete previous latest version
+      #   uses: dev-drprasad/delete-tag-and-release@v1.0
+      #   with:
+      #     tag_name: xpcf_static_deps/${{ env.tag_version }}/linux
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     delete_release: true
 
-      # Install dependencies
-      - run: ./remaken init
-      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
+      # # Install dependencies
+      # - run: ./remaken init
+      # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+      # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
 
-      # Build solution
-      - working-directory: ./scripts/unixes
-        run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
-      - working-directory: ./scripts/unixes
-        run: ./build_remaken_project_package.sh xpcf shared ../.. 5.15.2 /usr/bin
-      - working-directory: ./scripts/unixes
-        run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
+      # # Build solution
+      # - working-directory: ./scripts/unixes
+      #   run: ./build_remaken_project_package.sh xpcf static ../.. 5.15.2 /usr/bin
+      # - working-directory: ./scripts/unixes
+      #   run: ./build_remaken_project_package.sh xpcf shared ../.. 5.15.2 /usr/bin
+      # - working-directory: ./scripts/unixes
+      #   run: ./build_remaken_project_package.sh xpcf_static_deps shared ../.. 5.15.2 /usr/bin
 
-      # Zip results
-      - name: compress xpcf shared release
-        working-directory: ../../../.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}
-        run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf
-      - name: compress xpcf static release
-        working-directory: ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}
-        run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf
-      - name: compress xpcf_static_deps shared release
-        working-directory: ../../../.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}
-        run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip xpcf_static_deps
-      - name: compress xpcf shared debug
-        working-directory: ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}
-        run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf
-      - name: compress xpcf static debug
-        working-directory: ../../../.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}
-        run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_debug.zip xpcf
-      - name: compress xpcf_static_deps shared debug
-        working-directory: ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}
-        run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf_static_deps
+      # # Zip results
+      # - name: compress xpcf shared release
+      #   working-directory: ../../../.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}
+      #   run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf
+      # - name: compress xpcf static release
+      #   working-directory: ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}
+      #   run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf
+      # - name: compress xpcf_static_deps shared release
+      #   working-directory: ../../../.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}
+      #   run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip xpcf_static_deps
+      # - name: compress xpcf shared debug
+      #   working-directory: ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}
+      #   run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf
+      # - name: compress xpcf static debug
+      #   working-directory: ../../../.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}
+      #   run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_debug.zip xpcf
+      # - name: compress xpcf_static_deps shared debug
+      #   working-directory: ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}
+      #   run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf_static_deps
 
-      # Create release for xpcf
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          automatic_release_tag: xpcf/${{ env.tag_version }}/linux
-          prerelease: true
-          title: xpcf/${{ env.tag_version }}/linux
-          files: |
-            ../../../.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
-            ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
-            ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
-            ../../../.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
+      # # Create release for xpcf
+      # - uses: "marvinpinto/action-automatic-releases@latest"
+      #   with:
+      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+      #     automatic_release_tag: xpcf/${{ env.tag_version }}/linux
+      #     prerelease: true
+      #     title: xpcf/${{ env.tag_version }}/linux
+      #     files: |
+      #       ../../../.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
+      #       ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
+      #       ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
+      #       ../../../.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}/xpcf_${{ env.tag_version }}_x86_64_*
 
-      # Create release for xpcf_static_deps
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
-          prerelease: true
-          title: xpcf_static_deps/${{ env.tag_version }}/linux
-          files: |
-            ../../../.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
-            ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
+      # # Create release for xpcf_static_deps
+      # - uses: "marvinpinto/action-automatic-releases@latest"
+      #   with:
+      #     repo_token: "${{ secrets.GITHUB_TOKEN }}"
+      #     automatic_release_tag: xpcf_static_deps/${{ env.tag_version }}/linux
+      #     prerelease: true
+      #     title: xpcf_static_deps/${{ env.tag_version }}/linux
+      #     files: |
+      #       ../../../.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
+      #       ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${{ env.tag_version }}/xpcf_static_deps_${{ env.tag_version }}_*
 
       # xpcf_grpc_gen
       ####################################################
@@ -259,9 +259,9 @@ jobs:
         run: ./build_cppast.sh
 
       # Install dependencies
-      - run: ./remaken init
-      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
+      # - run: ./remaken init
+      # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+      # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
       - run: ls -al ../../../.remaken/profiles
 
       # Build xpcf_grpc_gen
