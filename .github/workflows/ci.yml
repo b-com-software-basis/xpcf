@@ -194,10 +194,10 @@ jobs:
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
       #     delete_release: true
 
-      # # Install dependencies
-      # - run: ./remaken init
-      # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
-      # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
+      # Install dependencies
+      - run: ./remaken init
+      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
+      - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
 
       # # Build solution
       # - working-directory: ./scripts/unixes
