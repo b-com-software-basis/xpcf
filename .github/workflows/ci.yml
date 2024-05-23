@@ -232,6 +232,10 @@ jobs:
       #   run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_debug.zip xpcf_static_deps
 
       # Create release for xpcf
+      - run: ls -al ../../../.remaken/packages/linux-gcc/shared/release/xpcf_${{ env.tag_version }}
+      - run: ls -al ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}
+      - run: ls -al ../../../.remaken/packages/linux-gcc/shared/debug/xpcf_${{ env.tag_version }}
+      - run: ls -al ../../../.remaken/packages/linux-gcc/static/debug/xpcf_${{ env.tag_version }}
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
