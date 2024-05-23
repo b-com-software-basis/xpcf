@@ -215,7 +215,7 @@ jobs:
       - run: ls -al ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}
       - name: compress xpcf static release
         working-directory: ../../../.remaken/packages/linux-gcc/static/release/xpcf_${{ env.tag_version }}
-        run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_shared_release.zip xpcf
+        run: zip -r -y xpcf_${{ env.tag_version }}_x86_64_static_release.zip xpcf
       # - name: compress xpcf_static_deps shared release
       #   working-directory: ../../../.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${{ env.tag_version }}
       #   run: zip -r -y xpcf_static_deps_${{ env.tag_version }}_x86_64_shared_release.zip xpcf_static_deps
