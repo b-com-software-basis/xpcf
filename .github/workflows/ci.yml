@@ -270,9 +270,10 @@ jobs:
       # - run: ./remaken init
       # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
       # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
-      # - run: ls -al ../../../.remaken/profiles
+      - run: ls -al ../../../.remaken/profiles
       # - run: ls -al ./tools/generators/grpc
-      # - run: ./remaken install ./tools/generators/grpc/packagedependencies.txt
+      - run: ./remaken install --cpp-std 17 -b gcc -o linux -a x86_64 ./tools/generators/grpc/packagedependencies.txt
+      - run: ./remaken install --cpp-std 17 -b gcc -o linux -a x86_64 -c debug ./tools/generators/grpc/packagedependencies.txt
       # - run: ls -al ../../../.remaken/packages
       # - run: ls -al /home/runner
       # - run: ls -al /home/runner/.remaken
