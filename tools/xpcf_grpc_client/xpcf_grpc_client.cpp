@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
     musician->playMusic(m);
     std::cout<<"Guitar brand "<<guitar->getGuitarBrand()<<std::endl;
     std::cout<<"Guitar nb strings "<<guitar->getNbStrings()<<std::endl;
-     std::cout<<"Guitar tune type "<<guitar->getTuneType()<<std::endl;
+    std::cout<<"Guitar tune type "<<guitar->getTuneType()<<std::endl;
 
     return 0;
 }
