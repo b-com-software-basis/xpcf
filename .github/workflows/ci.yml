@@ -270,8 +270,8 @@ jobs:
       # - run: ./remaken init
       # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
       # - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
-      - run: ./remaken install -m static --cpp-std 17 -b gcc -o linux -a x86_64 ./tools/generators/grpc/packagedependencies.txt
-      - run: ./remaken install -m static --cpp-std 17 -b gcc -o linux -a x86_64 -c debug ./tools/generators/grpc/packagedependencies.txt
+      - run: ./remaken install -v -m static --cpp-std 17 -b gcc -o linux -a x86_64 ./tools/generators/grpc/packagedependencies.txt
+      - run: ./remaken install -v -m static --cpp-std 17 -b gcc -o linux -a x86_64 -c debug ./tools/generators/grpc/packagedependencies.txt
 
       # Build xpcf_grpc_gen
       - working-directory: ./scripts/unixes
