@@ -62,6 +62,11 @@ then
         # Remove template extension
         outFile=${i%.template}
 
+        if [[ $outFile == *.sh ]]
+        then
+            chmod +x $outFile
+        fi
+
         if [[ "$clean" == true ]]
         then
             rm $outFile

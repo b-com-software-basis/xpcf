@@ -57,10 +57,14 @@ build_cppast() {
     if [ ! -d ${BUILDPATH} ]; then
         echo "Creating ${BUILDFOLDER}-${BUILDTYPE} folder"
         mkdir -p ${BUILDPATH}
-        echo "Building  cppast in ${BUILDTYPE} mode"
-	 
-        pushd ${BUILDPATH} && cmake -DCMAKE_BUILD_TYPE=${BUILDTYPE} ${CPPASTCMAKECOMPILER} -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DLLVM_CONFIG_BINARY=${LLVMCONFIGPATH} ../../cppast/ && make && popd
     fi
+
+    echo "Building  cppast in ${BUILDTYPE} mode"
+	 
+    pushd ${BUILDPATH}
+    cmake -DCMAKE_BUILD_TYPE=${BUILDTYPE} ${CPPASTCMAKECOMPILER} -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DLLVM_CONFIG_BINARY=${LLVMCONFIGPATH} ../../cppast/
+    make
+    popd
 }
 
 build_cppast "Debug"
