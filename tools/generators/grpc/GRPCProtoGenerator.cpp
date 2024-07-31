@@ -349,6 +349,12 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
     fs::path remakenGrpcRoot = RemakenPathHelper::computeRemakenRootPackageDir();
 
     bp::ipstream out;
+
+    fs::path zipFilePath = "./xpcf_grpc_gen_bin.zip";
+    if (fs::exists(zipFilePath) ) {
+        fs::remove(zipFilePath);
+    }
+
     bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin/xpcf_grpc_gen_bin.zip", bp::std_out > out);
     try {
         bp::system("unzip -o ./xpcf_grpc_gen_bin.zip", bp::std_out > out);
@@ -358,6 +364,8 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
             throw(e);
         }
     }
+
+
     fs::path grpcLibs = "./xpcf_grpc_gen_bin/lib/";
     fs::path grpcBin = "./xpcf_grpc_gen_bin/bin/";
     fs::path protocBin = grpcBin;
