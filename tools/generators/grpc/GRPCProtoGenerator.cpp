@@ -350,21 +350,18 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
 
     bp::ipstream out;
 
+    // Remove zip and unzip folder before
     fs::path zipFilePath = "./xpcf_grpc_gen_bin.zip";
     if (fs::exists(zipFilePath) ) {
         fs::remove(zipFilePath);
     }
-
-    bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin/xpcf_grpc_gen_bin.zip", bp::std_out > out);
-    try {
-        bp::system("unzip -o ./xpcf_grpc_gen_bin.zip", bp::std_out > out);
-    } catch ( std::exception& e) {
-        // It's dirty, but I don't know why with unzip boost raises this exception. despite this exception, files are extracted.
-        if( std::string(e.what()) != "dup2() failed : Bad file descriptor" ) {
-            throw(e);
-        }
+    fs::path zipFolderPath = "./xpcf_grpc_gen_bin/";
+    if (fs::exists(zipFolderPath) ) {
+        fs::remove_all(zipFolderPath);
     }
 
+    bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin/xpcf_grpc_gen_bin.zip", bp::std_out > out);
+    bp::system("unzip -o ./xpcf_grpc_gen_bin.zip");
 
     fs::path grpcLibs = "./xpcf_grpc_gen_bin/lib/";
     fs::path grpcBin = "./xpcf_grpc_gen_bin/bin/";
