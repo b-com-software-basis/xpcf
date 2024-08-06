@@ -73,7 +73,7 @@ then
             echo "removed file $outFile"
         elif [[ ! -f $outFile || "$force" == true ]]
         then
-            sed 's/<version>/'$version'/' $i > $outFile
+            sed 's/<version>/'$version'/g' $i > $outFile
             echo "generated file $outFile"
         else 
             echo "no replacement of $outFile"
@@ -84,7 +84,7 @@ then
     # Remove template extension
     outFile=${template%.template}
 
-    sed 's/<version>/'$version'/' $template > $outFile
+    sed 's/<version>/'$version'/g' $template > $outFile
     echo "generated file $outFile"
 else
     echo "error in template parameters: $template"
