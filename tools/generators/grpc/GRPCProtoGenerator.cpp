@@ -3,7 +3,8 @@
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <boost/predef/os.h>
-#include <exception> 
+#include <exception>
+#include <fstream>
 
 namespace bp = boost::process;
 

@@ -1,4 +1,5 @@
 #include "GRPCFlatBufferGenerator.h"
+#include <fstream>
 
 namespace xpcf = org::bcom::xpcf;
 

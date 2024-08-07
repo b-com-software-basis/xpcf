@@ -1,6 +1,7 @@
 #include "RemakenPathHelper.h"
 #include <boost/predef.h>
 #include <iostream>
+#include <fstream>
 #include <map>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 
