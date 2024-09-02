@@ -14,6 +14,8 @@ env:
   
 jobs:
   windows-ci:
+    # disable Windows CI - issue with boost fiber : error in shared in boost https://github.com/boostorg/fiber/issues/314 , boost fiber disabled in conan (https://github.com/conan-io/conan-center-index/commit/a73631858a3ee5911cab99e69bac9bcccd2b84fe)
+    if: false
     runs-on: windows-2019
     steps:
       # Xpcf
