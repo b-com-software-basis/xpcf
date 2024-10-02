@@ -200,6 +200,8 @@ jobs:
       - run: ./remaken init
       - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64
       - run: ./remaken profile init --cpp-std 17 -b gcc -o linux -a x86_64 -c debug
+      - run: ./remaken install -c debug -m static --cpp-std 17 -b gcc -o linux -a x86_64
+      - run: ./remaken install -m static --cpp-std 17 -b gcc -o linux -a x86_64
 
       # Build solution
       - working-directory: ./scripts/unixes
