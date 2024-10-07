@@ -1,6 +1,8 @@
 #include "xpcf/threading/BaseTask.h"
 
 #ifdef XPCF_USE_BOOST
+//#define BOOST_FIBERS_STATIC_LINK
+//#include "boost/fiber/all.hpp"
 #include "boost/fiber/fiber.hpp"
 #include "boost/fiber/operations.hpp"
 #include "boost/fiber/future.hpp"

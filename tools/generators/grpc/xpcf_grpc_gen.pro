@@ -5,7 +5,7 @@ for(file, LIST) {
     !exists(file) { 
         message("$$TARGET - at least $${file} not present, generate it")
         win32 {
-            system(../../../scripts/win/update_version.bat)
+            system($$shell_quote($$shell_path(../../../scripts/win/update_version.bat)))
         }
         linux {
             system(../../../scripts/unixes/update_version.sh)

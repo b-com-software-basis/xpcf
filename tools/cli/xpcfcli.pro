@@ -17,7 +17,6 @@ TARGET = xpcfcli
     linux {
         system(../../scripts/unixes/update_version.sh -t ../../version.pri.template)
     }
-    system(cd $${currentPath})
 } 
 include(../../version.pri)
 

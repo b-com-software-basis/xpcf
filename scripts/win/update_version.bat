@@ -10,7 +10,7 @@ set help=false
 set clean=false
 set marker=version
 set replace=0.0.0
-set template=""
+set filename=
 
 @REM Check parameters
 set argC=0
@@ -20,8 +20,8 @@ for %%x in (%*) do (
         set foundReplace=false
     )
     if "!foundTemplate!"=="true" (
-        set template=%%x
-        set foundTemplate=false
+		set filename=%%x
+		REM echo !filename!
     )
     if "%%x"=="-f" (
         set forceReplacement=true
@@ -48,10 +48,10 @@ for %%x in (%*) do (
         set clean=true
     )
     if "%%x"=="-t" (
-        set foundTemplate=true
+		set foundTemplate=true
     )
     if "%%x"=="--template" (
-        set foundTemplate=true
+		set foundTemplate=true
     )
 )
 
@@ -59,19 +59,20 @@ for %%x in (%*) do (
 if "!help!"=="true" goto display_usage
 
 if "!foundTemplate!"=="true" (
-    if "!template!"=="" (
+    if "!filename!"=="" (
         echo "error in template parameters: no template file found"
     ) else (
-        set targetFile=!filename:.template=!
-
+		set targetFile=!filename:.template=!
+		REM echo !targetFile!
         call :generate_file
     )
 ) else (
-    for /f %%f in ('dir /s/b *.template') do (
+	for /f %%f in ('dir /s/b *.template') do (
         
         @REM Define output file
         set filename=%%f
         set targetFile=!filename:.template=!
+		REM echo SLE !targetFile!
 
         @REM Remove generated files
         if "!clean!"=="true" (
@@ -87,12 +88,13 @@ goto end
 :display_usage
 echo This script generates or replaces files from all template files (*.template) in the directory and its subdirectory
 echo replacing marker "<version>" by the version (default version "0.0.0").
-echo
-echo update_version.bat [options] --version|-v <version_number>
+echo. 
+echo update_version.bat [options] --version/-v ^<version_number^>
 echo options:
 echo    -   --help or -h            display usage
 echo    -   --force or -f           force generation (replace previous file)
 echo    -   --clean or -c           remove all generated files from template
+echo    -   --template or -t        generate the file only for the template file given in parameter
 exit /b 0
 
 :generate_file
@@ -112,7 +114,7 @@ if "!doReplace!"=="true" (
         set line=%%i
         >> !targetFile! echo(!line:^<%marker%^>=%replace%!
     )
-    echo generated file !targetFile!
+    echo file !targetFile! generated
 ) else (
     echo no replacement of !targetFile!
 )
