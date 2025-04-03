@@ -1,3 +1,13 @@
+! exists(../version.pri) {
+    win32 {
+        system(scripts/win/update_version.bat -t ../version.pri)
+    }
+    linux {
+        system(scripts/unixes/update_version.sh -t ../version.pri)
+    }
+    system(cd $${currentPath})
+} 
+include(../version.pri)
 VERSION=$${XPCF_VERSION}
 
 CONFIG += c++1z

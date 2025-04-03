@@ -1,27 +1,42 @@
-TARGET = xpcf_static_deps
+!exists(version.pri) {
+    message("$$TARGET - version.pri not present, generate it")
+    win32 {
+        system(scripts/win/update_version.bat)
+    }
+    linux {
+        system(scripts/unixes/update_version.sh)
+    }
+}
+
+include(version.pri)
+VERSION=$${XPCF_VERSION}
+
 QT       -= core gui
 CONFIG -= app_bundle qt
+TARGET = xpcf_static_deps
 FRAMEWORK = $${TARGET}
 
-#CONFIG += verbose
-
-TEMPLATE_LIST_FILE=version.pri
-PROJECT_ROOT_PATH=$$_PRO_FILE_PWD_/.
-include ($${PROJECT_ROOT_PATH}/generate_template_files.pri)
-
-VERSION=$${XPCF_VERSION}
 DEFINES += XPCFVERSION=\\\"$${VERSION}\\\"
 
 CONFIG += c++1z
-CONFIG += shared
+#CONFIG += staticlib
+#CONFIG += verbose
+#!staticlib {
+    CONFIG += shared
+#} else {
+#    CONFIG -= shared
+#}
+#message($${CONFIG})
+#CONFIG += verbose
 
 # Uncomment following line to prepare remaken package
 #CONFIG += package_remaken
 
 DEFINES += WITHREMOTING
 DEFINES += XPCF_USE_BOOST
+
 DEFINES += XPCF_SHARED
-DEPENDENCIESCONFIG = staticlib
+DEPENDENCIESCONFIG = staticlib #sharedlib
 REMAKEN_PKGSUBDIR=shared
 
 CONFIG(debug,debug|release) {
