@@ -41,7 +41,11 @@ fi
 
 ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcf shared ${XPCFROOT} ${QTVERSION} ${QMAKEPATH}
 ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcf static ${XPCFROOT} ${QTVERSION} ${QMAKEPATH}
+${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcf_static_deps shared ${XPCFROOT} ${QTVERSION} ${QMAKEPATH}
+${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcf_grpc_gen static ${XPCFROOT}/tools/generators/grpc ${QTVERSION} ${QMAKEPATH}
 ${XPCFROOT}/scripts/unixes/build_remaken_project_package.sh xpcfSampleComponent shared ${XPCFROOT}/samples/sample_component ${QTVERSION} ${QMAKEPATH}
 
 ${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcf <version>
+${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcf_static_deps <version>
+${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcf_grpc_gen <version>
 ${XPCFROOT}/scripts/unixes/make_remaken_package.sh xpcfSampleComponent <version>

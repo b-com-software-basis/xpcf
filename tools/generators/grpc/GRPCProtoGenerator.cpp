@@ -361,7 +361,8 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
         fs::remove_all(zipFolderPath);
     }
 
-    bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin/xpcf_grpc_gen_bin.zip", bp::std_out > out);
+    //bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin/xpcf_grpc_gen_bin.zip", bp::std_out > out);
+    bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin_1.71.0/xpcf_grpc_gen_bin.zip", bp::std_out > out);
     bp::system("unzip -o ./xpcf_grpc_gen_bin.zip");
 
     fs::path grpcLibs = "./xpcf_grpc_gen_bin/lib/";
@@ -380,7 +381,7 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
         isRemakenGrpc = true;
 
         std::vector<fs::path> envPath = boost::this_process::path();
-        remakenGrpcRoot /= "grpc/1.50.1";
+        remakenGrpcRoot /= "grpc/1.71.1";
         fs::path grpcBin = remakenGrpcRoot;
         grpcBin /= "/bin/x86_64/shared/release/";
         protocBin = grpcBin;

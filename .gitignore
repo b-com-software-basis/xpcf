@@ -85,3 +85,6 @@ tools/xpcf_grpc_server/grpc_server_sample.xml
 tools/xpcf_grpc_server/packagedependencies.txt
 tools/xpcf_grpc_server/xpcfGrpcSampleComponentServer.xml
 version.pri
+
+*conanbuild*.sh
+*conanrun*.sh

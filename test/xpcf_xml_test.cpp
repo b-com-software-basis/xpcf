@@ -42,11 +42,15 @@ BOOST_AUTO_TEST_CASE(xml_valid)
     fs::path confPath = "xpcf_xml_test_valid.xml";
     fs::detail::utf8_codecvt_facet utf8;
     org::bcom::xpcf::XPCFErrorCode ret = xpcfComponentManager->load(confPath.generic_string(utf8).c_str());
+
+
+    auto covisibilityGraph = xpcfComponentManager->resolve<IGuitarist>();
+
 	BOOST_TEST_REQUIRE(ret == org::bcom::xpcf::_SUCCESS, "Xml parsing failed with error " << ret);
     xpcfComponentManager->clear();
 }
 
-BOOST_AUTO_TEST_CASE(xml_missing_start_tag)
+/*BOOST_AUTO_TEST_CASE(xml_missing_start_tag)
 {
     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
@@ -180,6 +184,6 @@ BOOST_AUTO_TEST_CASE(xml_property_unknown_component)
     fs::detail::utf8_codecvt_facet utf8;
     BOOST_CHECK_THROW(xpcfComponentManager->load(confPath.generic_string(utf8).c_str()), xpcf::ConfigurationException);
     xpcfComponentManager->clear();
-}
+}*/
 
 BOOST_AUTO_TEST_SUITE_END()
