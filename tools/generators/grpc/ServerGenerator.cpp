@@ -156,7 +156,7 @@ void ServerGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager 
     }
 }
 
-void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr)
+void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, const std::map<MetadataType,std::string>& metadata, CppBlockManager & blockMgr)
 {
     for (auto m : c->methods()) {
         std::string request = m->m_requestName;
@@ -165,6 +165,29 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
         blockMgr.out() << "::grpc::Status " + m_className +"::"+ m_grpcClassName + "Impl::" + m->m_rpcName + "(::grpc::ServerContext* context, const "+ request + "* request, " + response + "* response)\n";
         {
             block_guard methodBlock(blockMgr);
+
+            blockMgr.out() << "auto prop = opentelemetry::context::propagation::GlobalTextMapPropagator::GetGlobalPropagator();\n";
+            blockMgr.out() << "auto currentCtx = opentelemetry::context::RuntimeContext::GetCurrent();\n";
+            blockMgr.out() << "GrpcServerCarrier carrier(context);\n";
+            blockMgr.out() << "auto newContext = prop->Extract(carrier, currentCtx);\n";
+            blockMgr.out() << "ContextScope ctxtScope(newContext);\n";
+            blockMgr.out() << "\n";
+            blockMgr.out() << "opentelemetry::trace::StartSpanOptions options;\n";
+            blockMgr.out() << "options.kind = opentelemetry::trace::SpanKind::kServer;\n";
+            blockMgr.out() << "options.parent = opentelemetry::trace::GetSpan(newContext)->GetContext();\n";
+            blockMgr.out() << "\n";
+            blockMgr.out() << "auto provider = opentelemetry::trace::Provider::GetTracerProvider();\n";
+            blockMgr.out() << "auto tracer = provider->GetTracer(\"" << metadata.at(IRPCGenerator::MetadataType::MODULE_NAME) << "\", \"" << metadata.at(IRPCGenerator::MetadataType::PROJECT_VERSION) << "\");\n";
+            blockMgr.out() << "auto span = tracer->StartSpan(\""<<m_className<<"."<<m->getName()<<"\",\n";
+            blockMgr.out() << "                              {{opentelemetry::semconv::rpc::kRpcSystem, \"grpc\"},\n";
+            blockMgr.out() << "                               {opentelemetry::semconv::rpc::kRpcService, \"" << c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) << "." << m_grpcClassName << "\"},\n";
+            blockMgr.out() << "                               {opentelemetry::semconv::rpc::kRpcMethod, \"" << m->m_rpcName << "\"},\n";
+            blockMgr.out() << "                               {opentelemetry::semconv::rpc::kRpcGrpcStatusCode, 0}},\n";
+            blockMgr.out() << "                              options);\n";
+            blockMgr.out() << "SpanScope spanScope(span);\n";
+            blockMgr.out() << "auto scope= tracer->WithActiveSpan(span);\n";
+            blockMgr.out() << "\n";
+            
             std::stringstream methodCall;
             if (!m->returnType().isVoid()) {
                 if (m->returnType().kind() == type_kind::c_string_t) {
@@ -231,6 +254,7 @@ void ServerGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlock
             blockMgr.out() <<"#endif\n";
             //boost::posix_time::ptime end = boost::posix_time::microsec_clock::local_time();
             //std::cout << “====>IMappingPipeline_grpcServer::init response sent at “ << to_simple_string(end)
+            
             blockMgr.out() << "return ::grpc::Status::OK;\n";
         }
         blockMgr.newline();
@@ -250,6 +274,91 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
     // the body will use the grpcCLient generated from the proto or flat generators hence the following inclusion :
     //#include "grpcgeneratedclient.grpc.[pb|fb].h"
 
+    blockMgr.newline();
+
+    blockMgr.include("opentelemetry/context/propagation/global_propagator.h",false);
+    blockMgr.include("opentelemetry/context/propagation/text_map_propagator.h",false);
+    blockMgr.include("opentelemetry/context/runtime_context.h",false);
+    blockMgr.include("opentelemetry/nostd/shared_ptr.h",false);
+    blockMgr.include("opentelemetry/nostd/string_view.h",false);
+    blockMgr.include("opentelemetry/nostd/unique_ptr.h",false);
+    blockMgr.include("opentelemetry/nostd/variant.h",false);
+    blockMgr.include("opentelemetry/semconv/incubating/rpc_attributes.h",false);
+    blockMgr.include("opentelemetry/trace/context.h",false);
+    blockMgr.include("opentelemetry/trace/provider.h",false);
+    blockMgr.include("opentelemetry/trace/span.h",false);
+    blockMgr.include("opentelemetry/trace/span_metadata.h",false);
+    blockMgr.include("opentelemetry/trace/span_startoptions.h",false);
+    blockMgr.include("opentelemetry/trace/tracer.h",false);
+
+    blockMgr.newline();
+
+    blockMgr.out() << "namespace\n";
+    blockMgr.out() << "{\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "class GrpcServerCarrier : public opentelemetry::context::propagation::TextMapCarrier\n";
+    blockMgr.out() << "{\n";
+    blockMgr.out() << "public:\n";
+    blockMgr.out() << "  explicit GrpcServerCarrier(grpc::ServerContext *context) : context_(context) {}\n";
+    blockMgr.out() << "  GrpcServerCarrier() = default;\n";
+    blockMgr.out() << "  virtual opentelemetry::nostd::string_view Get(\n";
+    blockMgr.out() << "      opentelemetry::nostd::string_view key) const noexcept override\n";
+    blockMgr.out() << "  {\n";
+    blockMgr.out() << "    auto it = context_->client_metadata().find({key.data(), key.size()});\n";
+    blockMgr.out() << "    if (it != context_->client_metadata().end())\n";
+    blockMgr.out() << "    {\n";
+    blockMgr.out() << "      return opentelemetry::nostd::string_view(it->second.data(), it->second.size());\n";
+    blockMgr.out() << "    }\n";
+    blockMgr.out() << "    return \"\";\n";
+    blockMgr.out() << "  }\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "  virtual void Set(opentelemetry::nostd::string_view /* key */,\n";
+    blockMgr.out() << "                   opentelemetry::nostd::string_view /* value */) noexcept override\n";
+    blockMgr.out() << "  {\n";
+    blockMgr.out() << "    // Not required for server\n";
+    blockMgr.out() << "  }\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "  grpc::ServerContext *context_ = nullptr;\n";
+    blockMgr.out() << "};\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "class ContextScope {\n";
+    blockMgr.out() << "public:\n";
+    blockMgr.out() << "    explicit ContextScope(const opentelemetry::context::Context& context) {\n";
+    blockMgr.out() << "        m_token = opentelemetry::context::RuntimeContext::Attach(context);\n";
+    blockMgr.out() << "    }\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "    ~ContextScope() {\n";
+    blockMgr.out() << "        if (m_token) {\n";
+    blockMgr.out() << "            opentelemetry::context::RuntimeContext::Detach(*m_token);\n";
+    blockMgr.out() << "        }\n";
+    blockMgr.out() << "    }\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "    ContextScope(const ContextScope&) = delete;\n";
+    blockMgr.out() << "    ContextScope& operator=(const ContextScope&) = delete;\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "private:\n";
+    blockMgr.out() << "    opentelemetry::nostd::unique_ptr<opentelemetry::context::Token> m_token;\n";
+    blockMgr.out() << "};\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "class SpanScope {\n";
+    blockMgr.out() << "public:\n";
+    blockMgr.out() << "    explicit SpanScope(const opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> span) : m_span(span){}\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "    ~SpanScope() {\n";
+    blockMgr.out() << "      if (m_span) {\n";
+    blockMgr.out() << "        m_span->End();\n";
+    blockMgr.out() << "      }\n";
+    blockMgr.out() << "    }\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "    SpanScope(const ContextScope&) = delete;\n";
+    blockMgr.out() << "    SpanScope& operator=(const SpanScope&) = delete;\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "private:\n";
+    blockMgr.out() << "    opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> m_span;\n";
+    blockMgr.out() << "};\n";
+    blockMgr.out() << "} // namespace\n";
+
+    blockMgr.newline();
 
     blockMgr.out() << "namespace xpcf = org::bcom::xpcf;\n";
     blockMgr.newline();
@@ -300,7 +409,7 @@ void ServerGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metad
             block_guard methodBlock(blockMgr);
             blockMgr.out() << "return &m_grpcService;\n";
         }
-        processBodyMethods(c, blockMgr);
+        processBodyMethods(c, metadata, blockMgr);
     }
 }
 

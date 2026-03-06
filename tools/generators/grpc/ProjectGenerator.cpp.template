@@ -23,7 +23,11 @@ std::string findRemakenRulesStr = "# Author(s) : Loic Touraine, Stephane Leduc\n
 "}\n\nmessage(\"Remaken qmake build rules used : \" $$QMAKE_REMAKEN_RULES_ROOT)\n";
 
 // TODO : package information should depend upon the generator used ! and grpc/protobuf version should be added from metadata !
-std::string pkgdepsStr = "xpcf|<version>|xpcf\%XPCF_SHARED_DEPS|@github|https://github.com/SolarFramework/binaries/releases/download\nxpcf_static_deps|<version>|xpcf_static_deps\%XPCF_STATIC_DEPS|@github|https://github.com/SolarFramework/binaries/releases/download\n";
+std::string pkgdepsStr = "xpcf|<version>|xpcf\%XPCF_SHARED_DEPS|@github|https://github.com/b-com-software-basis/xpcf/releases/download\n"
+"xpcf_static_deps|<version>|xpcf_static_deps\%XPCF_STATIC_DEPS|@github|https://github.com/b-com-software-basis/xpcf/releases/download\n"
+"opentelemetry-cpp|1.22.0|opentelemetry-cpp-api%XPCF_SHARED_DEPS|conan|conan-center|default|protobuf:shared=True\n"
+"opentelemetry-cpp|1.22.0|opentelemetry-cpp-api%XPCF_STATIC_DEPS|conan|conan-center|default\n";
+
 
 ProjectGenerator::ProjectGenerator():AbstractGenerator(xpcf::toMap<ProjectGenerator>())
 {

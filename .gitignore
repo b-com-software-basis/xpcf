@@ -88,3 +88,5 @@ version.pri
 
 *conanbuild*.sh
 *conanrun*.sh
+
+xpcf_grpc_gen_bin*

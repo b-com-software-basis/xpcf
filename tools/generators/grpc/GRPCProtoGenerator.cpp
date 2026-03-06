@@ -362,7 +362,7 @@ void GRPCProtoGenerator::finalizeImpl(std::map<MetadataType,std::string> metadat
     }
 
     //bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin/xpcf_grpc_gen_bin.zip", bp::std_out > out);
-    bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin_1.71.0/xpcf_grpc_gen_bin.zip", bp::std_out > out);
+    bp::system("wget https://github.com/b-com-software-basis/thirdparties-binaries/releases/download/xpcf_grpc_gen_bin_1.71.0_protoc_6.32.1/xpcf_grpc_gen_bin.zip", bp::std_out > out);
     bp::system("unzip -o ./xpcf_grpc_gen_bin.zip");
 
     fs::path grpcLibs = "./xpcf_grpc_gen_bin/lib/";

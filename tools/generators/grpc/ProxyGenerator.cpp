@@ -156,7 +156,7 @@ void ProxyGenerator::bindOutput(const ParameterDescriptor & p, CppBlockManager &
     }
 }
 
-void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr)
+void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, const std::map<MetadataType,std::string>& metadata, CppBlockManager & blockMgr)
 {
     for (auto m : c->methods()) {
         blockMgr.out() << m->getReturnType() + "  "+ m_className + "::" + m->getDeclaration();
@@ -188,6 +188,34 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
             blockMgr.out() <<"boost::posix_time::ptime start = boost::posix_time::microsec_clock::universal_time();\n";
             blockMgr.out() <<"std::cout << \"====> "<<m_className<<"::"<<m->getName()<<" request sent at \" << to_simple_string(start) << std::endl;\n";
             blockMgr.out() <<"#endif\n";
+            blockMgr.out() <<"\n";
+            blockMgr.out() <<"auto provider = opentelemetry::trace::Provider::GetTracerProvider();\n";
+            blockMgr.out() <<"auto tracer = provider->GetTracer(\"" << metadata.at(IRPCGenerator::MetadataType::MODULE_NAME) << "\", \"" << metadata.at(IRPCGenerator::MetadataType::PROJECT_VERSION) << "\");\n";
+            blockMgr.out() <<"\n";
+            blockMgr.out() <<"// TODO: safer parsing with error handling\n";
+            blockMgr.out() <<"auto const pos = m_channelUrl.find_last_of(':');\n";
+            blockMgr.out() <<"auto networkAddress = m_channelUrl.substr(0, pos);\n";
+            blockMgr.out() <<"auto networkPort =  m_channelUrl.substr(pos + 1);\n";
+            blockMgr.out() <<"\n";
+            blockMgr.out() <<"opentelemetry::trace::StartSpanOptions spanOptions;\n";
+            blockMgr.out() <<"spanOptions.kind = opentelemetry::trace::SpanKind::kClient;\n";
+            blockMgr.out() <<"auto span = tracer->StartSpan(\""<<m_className<<"."<<m->getName()<<"\",\n";
+            blockMgr.out() <<"                              {{opentelemetry::semconv::rpc::kRpcSystem, \"grpc\"},\n";
+            blockMgr.out() <<"                               {opentelemetry::semconv::rpc::kRpcService, \"" << c->getMetadata().at(ClassDescriptor::MetadataType::REMOTINGNSPACE) << "." << m_grpcClassName << "\"},\n";
+            blockMgr.out() <<"                               {opentelemetry::semconv::rpc::kRpcMethod, \"" << m->m_rpcName << "\"},\n";
+            blockMgr.out() <<"                               {opentelemetry::semconv::network::kNetworkPeerAddress, networkAddress},\n";
+            blockMgr.out() <<"                               {opentelemetry::semconv::network::kNetworkPeerPort, std::stoi(networkPort)}},\n";
+            blockMgr.out() <<"                              spanOptions);\n";
+            blockMgr.out() <<"\n";
+            blockMgr.out() <<"auto scope = tracer->WithActiveSpan(span);\n";
+            blockMgr.out() <<"\n";
+            blockMgr.out() <<"// inject current context to grpc metadata\n";
+            blockMgr.out() <<"auto currentCtx = opentelemetry::context::RuntimeContext::GetCurrent();\n";
+            blockMgr.out() <<"GrpcClientCarrier carrier(&context);\n";
+            blockMgr.out() <<"auto prop = opentelemetry::context::propagation::GlobalTextMapPropagator::GetGlobalPropagator();\n";
+            blockMgr.out() <<"prop->Inject(carrier, currentCtx);\n";
+            blockMgr.out() <<"\n";
+
             blockMgr.out() << "::grpc::Status grpcRemoteStatus = m_grpcStub->" + m->m_rpcName + "(&context, reqIn, &respOut);\n";
             blockMgr.out() <<"#ifdef ENABLE_PROXY_TIMERS\n";
             blockMgr.out() <<"boost::posix_time::ptime end = boost::posix_time::microsec_clock::universal_time();\n";
@@ -198,8 +226,15 @@ void ProxyGenerator::processBodyMethods(const SRef<ClassDescriptor> c, CppBlockM
             {
                 block_guard condBlk(blockMgr);
                 blockMgr.out() << "std::cout << \"" + m->m_rpcName + " rpc failed.\" << std::endl;\n";
+                    blockMgr.out() << "span->SetStatus(opentelemetry::trace::StatusCode::kError, \"" << m_grpcClassName << "." << m->m_rpcName << "() rpc failed.\");\n";
+                    blockMgr.out() << "span->End();\n";
                 blockMgr.out() << "throw xpcf::RemotingException(\"" << m_grpcClassName <<"\",\""<< m->m_rpcName <<"\",static_cast<uint32_t>(grpcRemoteStatus.error_code()));\n";//TODO : differentiate semantic return type from status return type : provide status type name ?
             }
+            blockMgr.out() << "\n";
+            blockMgr.out() << "span->SetStatus(opentelemetry::trace::StatusCode::kOk);\n";
+            blockMgr.out() << "span->End();\n";
+            blockMgr.out() << "\n";
+            
             if (m->hasOutputs())  {
                 for (ParameterDescriptor * p: m->m_inoutParams) {
                     bindOutput(*p, blockMgr);
@@ -257,10 +292,46 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
     blockMgr.include("grpcpp/create_channel.h",false);
     blockMgr.include("grpcpp/security/credentials.h",false);
     blockMgr.include("boost/algorithm/string.hpp",false);
+    blockMgr.newline();
+    blockMgr.include("opentelemetry/context/propagation/global_propagator.h",false);
+    blockMgr.include("opentelemetry/context/propagation/text_map_propagator.h",false);
+    blockMgr.include("opentelemetry/context/runtime_context.h",false);
+    blockMgr.include("opentelemetry/trace/provider.h",false);
+    blockMgr.include("opentelemetry/semconv/incubating/rpc_attributes.h",false);
+    blockMgr.include("opentelemetry/semconv/network_attributes.h",false);
+    blockMgr.include("opentelemetry/trace/span_metadata.h",false);
+    blockMgr.include("opentelemetry/trace/span_startoptions.h",false);
+    blockMgr.newline();
+
     // the body will use the grpcCLient generated from the proto or flat generators hence the following inclusion :
     //#include "grpcgeneratedclient.grpc.[pb|fb].h"
     blockMgr.out() << "namespace xpcf = org::bcom::xpcf;\n";
 
+    blockMgr.newline();
+
+    blockMgr.out() << "namespace\n";
+    blockMgr.out() << "{\n";
+    blockMgr.out() << "class GrpcClientCarrier : public opentelemetry::context::propagation::TextMapCarrier\n";
+    blockMgr.out() << "{\n";
+    blockMgr.out() << "public:\n";
+    blockMgr.out() << "  explicit GrpcClientCarrier(::grpc::ClientContext *context) : context_(context) {}\n";
+    blockMgr.out() << "  GrpcClientCarrier() = default;\n";
+    blockMgr.out() << "  virtual opentelemetry::nostd::string_view Get(\n";
+    blockMgr.out() << "      opentelemetry::nostd::string_view /* key */) const noexcept override\n";
+    blockMgr.out() << "  {\n";
+    blockMgr.out() << "    return \"\";\n";
+    blockMgr.out() << "  }\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "  virtual void Set(opentelemetry::nostd::string_view key,\n";
+    blockMgr.out() << "                   opentelemetry::nostd::string_view value) noexcept override\n";
+    blockMgr.out() << "  {\n";
+    blockMgr.out() << "    context_->AddMetadata(std::string(key), std::string(value));\n";
+    blockMgr.out() << "  }\n";
+    blockMgr.out() << "\n";
+    blockMgr.out() << "private:\n";
+    blockMgr.out() << "  ::grpc::ClientContext *context_ = nullptr;\n";
+    blockMgr.out() << "};\n";
+    blockMgr.out() << "} // namespace\n";
 
     blockMgr.newline();
 
@@ -324,7 +395,7 @@ void ProxyGenerator::generateBody(const SRef<ClassDescriptor> c, std::map<Metada
             blockMgr.out() << "return xpcf::XPCFErrorCode::_SUCCESS;\n";
         }
         blockMgr.newline();
-        processBodyMethods(c, blockMgr);
+        processBodyMethods(c, metadata, blockMgr);
     }
 }
 

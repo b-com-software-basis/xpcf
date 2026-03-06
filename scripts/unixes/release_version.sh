@@ -1,10 +1,12 @@
 #!/bin/bash
 
 XPCFROOT=../..
-version = 2.10.0
+
+source version.sh
+version=${VERSION}
 
 pushd ${XPCFROOT}
-scripts/unixes/update_version -f -v ${version}
+scripts/unixes/update_version.sh -f -v ${version}
 popd
 
 ./package_xpcf.sh
@@ -25,5 +27,5 @@ popd
 #    - ~/.remaken/packages/linux-gcc/shared/release/xpcf_static_deps_${version}_x86_64_shared_release.zip
 #    - ~/.remaken/packages/linux-gcc/shared/debug/xpcf_static_deps_${version}_x86_64_shared_debug.zip
 # - release/tag xpcf_grpc_gen/${version}/linux
-#    - ~/.remaken/packages/linux-gcc/static/releasexpcf_grpc_gen_2.10.0_x86_64_static_release.zip
-#    - ~/.remaken/packages/linux-gcc/static/debug/xpcf_grpc_gen_2.10.0_x86_64_static_debug.zip
+#    - ~/.remaken/packages/linux-gcc/static/release/xpcf_grpc_gen_2.11.0_x86_64_static_release.zip
+#    - ~/.remaken/packages/linux-gcc/static/debug/xpcf_grpc_gen_2.11.0_x86_64_static_debug.zip

@@ -42,7 +42,7 @@ protected:
 
 private:
     void processHeaderMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
-    void processBodyMethods(const SRef<ClassDescriptor> c, CppBlockManager & blockMgr);
+    void processBodyMethods(const SRef<ClassDescriptor> c, const std::map<MetadataType,std::string>& metadata, CppBlockManager & blockMgr);
     void bindInput(const ParameterDescriptor & p, CppBlockManager & blockMgr);
     void bindOutput(const ParameterDescriptor & p, CppBlockManager & blockMgr);
     std::string m_nameSpace;
